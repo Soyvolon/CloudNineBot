@@ -149,8 +149,7 @@ namespace BirthdayBotTesting
 
                 InitalizeOtherParts(botCfg);
 
-                //await Client.ConnectAsync().ConfigureAwait(false);
-                Client.ConnectAsync().GetAwaiter().GetResult();
+                await Client.ConnectAsync().ConfigureAwait(false);
 
                 Console.WriteLine("Starting");
             }
