@@ -27,8 +27,6 @@ namespace BirthdayBotTesting
 
     public class Program
     {
-        public Program() { }
-
         public static bool IsDebug
         {
             get
@@ -108,7 +106,7 @@ namespace BirthdayBotTesting
             {
                 TokenType = TokenType.Bot,
                 Token = botCfg.Token,
-                MinimumLogLevel = LogLevel.Information
+                MinimumLogLevel = LogLevel.Debug
             };
 
             return cfg;
@@ -151,7 +149,8 @@ namespace BirthdayBotTesting
 
                 InitalizeOtherParts(botCfg);
 
-                await Client.ConnectAsync().ConfigureAwait(false);
+                //await Client.ConnectAsync().ConfigureAwait(false);
+                Client.ConnectAsync().GetAwaiter().GetResult();
 
                 Console.WriteLine("Starting");
             }
