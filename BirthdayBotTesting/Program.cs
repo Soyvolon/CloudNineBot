@@ -43,7 +43,7 @@ namespace BirthdayBotTesting
 
         public static Program Bot { get; private set; }
 
-        public DiscordShardedClient Client { get; private set; }
+        public DiscordClient Client { get; private set; }
         public DiscordRestClient Rest { get; private set; }
         public BirthdayManager Birthdays { get; private set; }
 
@@ -66,11 +66,19 @@ namespace BirthdayBotTesting
                     Environment.Exit(-1);
                 }
 
+                Console.WriteLine(botCfgPath);
+
                 using FileStream fs = new FileStream(botCfgPath, FileMode.Open);
                 using StreamReader sr = new StreamReader(fs);
                 var json = sr.ReadToEnd();
 
+                Console.WriteLine(json);
+
                 var botCfg = JsonConvert.DeserializeObject<BotConfig>(json);
+
+                Console.WriteLine(botCfg.Prefix);
+                Console.WriteLine(botCfg.Token);
+                Console.WriteLine(botCfg.TriggerBday);
 
                 Bot = new Program();
 
@@ -82,6 +90,7 @@ namespace BirthdayBotTesting
             }
             catch (Exception ex)
             {
+                Console.WriteLine("In Main");
                 Console.WriteLine(ex.Message);
                 Console.WriteLine(ex.StackTrace);
                 Console.WriteLine(ex.TargetSite);
@@ -124,31 +133,31 @@ namespace BirthdayBotTesting
             {
                 var cfg = GetDiscordConfiguration(botCfg);
 
-                Client = new DiscordShardedClient(cfg);
+                Client = new DiscordClient(cfg);
                 Rest = new DiscordRestClient(cfg);
 
-                var commands = await Client.UseCommandsNextAsync(GetCommandsNextConfiguration(botCfg)).ConfigureAwait(false);
+                var commands = Client.UseCommandsNext(GetCommandsNextConfiguration(botCfg));
 
-                foreach (var client in commands.Values)
-                {
-                    client.RegisterCommands(Assembly.GetExecutingAssembly());
+                commands.RegisterCommands(Assembly.GetExecutingAssembly());
 
-                    client.CommandErrored += Client_CommandErrored;
-                    client.CommandExecuted += Client_CommandExecuted;
+                commands.CommandErrored += Client_CommandErrored;
+                commands.CommandExecuted += Client_CommandExecuted;
 
-                    client.RegisterConverter(new DateTimeAttributeConverter());
-                }
+                commands.RegisterConverter(new DateTimeAttributeConverter());
+
+                Console.WriteLine(Client.GetCommandsNext());
 
                 Client.Ready += Client_Ready;
 
                 InitalizeOtherParts(botCfg);
 
-                await Client.StartAsync().ConfigureAwait(false);
+                await Client.ConnectAsync().ConfigureAwait(false);
 
                 Console.WriteLine("Starting");
             }
             catch (Exception ex)
             {
+                Console.WriteLine("In Start");
                 Console.WriteLine(ex.Message);
                 Console.WriteLine(ex.StackTrace);
                 Console.WriteLine(ex.TargetSite);
@@ -163,17 +172,6 @@ namespace BirthdayBotTesting
         private void InitalizeOtherParts(BotConfig cfg)
         {
             Birthdays = new BirthdayManager(cfg.TriggerBday);
-        }
-
-        public DiscordClient GetShardForGuild(ulong guildId)
-        {
-            foreach (var shard in Client.ShardClients.Values)
-            {
-                if (shard.Guilds.ContainsKey(guildId))
-                    return shard;
-            }
-
-            return null;
         }
 
         private Task Client_Ready(DSharpPlus.EventArgs.ReadyEventArgs e)

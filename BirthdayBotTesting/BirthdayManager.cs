@@ -73,7 +73,7 @@ namespace BirthdayBotTesting
 
                             if (toLockout is null) continue;
 
-                            var shard = Program.Bot.GetShardForGuild(server.Key);
+                            var shard = Program.Bot.Client;
 
                             var guild = await shard.GetGuildAsync(server.Key);
 
