@@ -206,7 +206,14 @@ namespace BirthdayBotTesting
                 channelTopic = channelTopic[..1024];
             }
 
-            await Program.Bot.Rest.ModifyChannelAsync(c, x => x.Topic = channelTopic).ConfigureAwait(false);
+            if (Program.IsDebug)
+            { // Use this to get around the channel update rate limits.
+                await Program.Bot.Rest.CreateMessageAsync(755610860680118283, channelTopic, false, null, null).ConfigureAwait(false);
+            }
+            else
+            {
+                await Program.Bot.Rest.ModifyChannelAsync(c, x => x.Topic = channelTopic).ConfigureAwait(false);
+            }
         }
 
         private void UpdateComparisonDay()
@@ -497,7 +504,7 @@ namespace BirthdayBotTesting
 
             public SortedList<DateTime, List<ulong>> GetNextBirthdaysToLockout()
             {
-                var res = new SortedList<DateTime, List<ulong>>();
+                var res = new SortedList<DateTime, List<ulong>>(Comparer);
 
                 var c = 0;
                 foreach(var val in SortedBirthdays)

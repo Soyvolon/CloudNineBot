@@ -47,57 +47,36 @@ namespace BirthdayBotTesting
 
         static void Main(string[] args)
         {
-            try
+            var botCfgPath = Path.Combine(new string[] { "Config", "bot_config.json" });
+
+            botCfgPath = Path.GetFullPath(botCfgPath);
+
+            if (!Directory.Exists("Config"))
+                Directory.CreateDirectory("Config");
+
+            if (!File.Exists(botCfgPath))
             {
-                var botCfgPath = Path.Combine(new string[] { "Config", "bot_config.json" });
-
-                botCfgPath = Path.GetFullPath(botCfgPath);
-
-                if (!Directory.Exists("Config"))
-                    Directory.CreateDirectory("Config");
-
-                if (!File.Exists(botCfgPath))
-                {
-                    File.WriteAllText(botCfgPath, @"{ ""token"": ""insert_token_here"", ""prefix"": ""bb"" }");
-                    Console.WriteLine("Bot config was missing, please insert new token.");
-                    Console.ReadLine();
-                    Environment.Exit(-1);
-                }
-
-                Console.WriteLine(botCfgPath);
-
-                using FileStream fs = new FileStream(botCfgPath, FileMode.Open);
-                using StreamReader sr = new StreamReader(fs);
-                var json = sr.ReadToEnd();
-
-                Console.WriteLine(json);
-
-                var botCfg = JsonConvert.DeserializeObject<BotConfig>(json);
-
-                Console.WriteLine(botCfg.Prefix);
-                Console.WriteLine(botCfg.Token);
-                Console.WriteLine(botCfg.TriggerBday);
-
-                Bot = new Program();
-
-                Bot.Start(botCfg).GetAwaiter().GetResult();
-
-                while (!Console.ReadLine().Equals("exit")) { }
-
-                Bot.Birthdays.SaveAllConfigurations();
+                File.WriteAllText(botCfgPath, @"{ ""token"": ""insert_token_here"", ""prefix"": ""bb"" }");
+                Console.WriteLine("Bot config was missing, please insert new token.");
+                Console.ReadLine();
+                Environment.Exit(-1);
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine("In Main");
-                Console.WriteLine(ex.Message);
-                Console.WriteLine(ex.StackTrace);
-                Console.WriteLine(ex.TargetSite);
-                foreach (var pair in ex.Data)
-                    Console.WriteLine(pair?.ToString());
-                Console.WriteLine();
-                Console.WriteLine(ex.InnerException?.Message);
-                Console.WriteLine(ex.InnerException?.StackTrace);
-            }
+
+            using FileStream fs = new FileStream(botCfgPath, FileMode.Open);
+            using StreamReader sr = new StreamReader(fs);
+            var json = sr.ReadToEnd();
+
+            var botCfg = JsonConvert.DeserializeObject<BotConfig>(json);
+
+            Bot = new Program();
+
+            Bot.Start(botCfg).GetAwaiter().GetResult();
+
+            //while (!Console.ReadLine().Equals("exit")) { }
+
+            Task.Delay(-1).GetAwaiter().GetResult();
+
+            Bot.Birthdays.SaveAllConfigurations();
         }
 
         private static DiscordConfiguration GetDiscordConfiguration(BotConfig botCfg)
@@ -127,44 +106,29 @@ namespace BirthdayBotTesting
 
         public async Task Start(BotConfig botCfg)
         {
-            try
-            {
-                var cfg = GetDiscordConfiguration(botCfg);
+            var cfg = GetDiscordConfiguration(botCfg);
 
-                Client = new DiscordClient(cfg);
-                Rest = new DiscordRestClient(cfg);
+            Client = new DiscordClient(cfg);
+            Rest = new DiscordRestClient(cfg);
 
-                var commands = Client.UseCommandsNext(GetCommandsNextConfiguration(botCfg));
+            var commands = Client.UseCommandsNext(GetCommandsNextConfiguration(botCfg));
 
-                commands.RegisterCommands(Assembly.GetExecutingAssembly());
+            commands.RegisterCommands(Assembly.GetExecutingAssembly());
 
-                commands.CommandErrored += Client_CommandErrored;
-                commands.CommandExecuted += Client_CommandExecuted;
+            commands.CommandErrored += Client_CommandErrored;
+            commands.CommandExecuted += Client_CommandExecuted;
 
-                commands.RegisterConverter(new DateTimeAttributeConverter());
+            commands.RegisterConverter(new DateTimeAttributeConverter());
 
-                Console.WriteLine(Client.GetCommandsNext());
+            Console.WriteLine(Client.GetCommandsNext());
 
-                Client.Ready += Client_Ready;
+            Client.Ready += Client_Ready;
 
-                InitalizeOtherParts(botCfg);
+            InitalizeOtherParts(botCfg);
 
-                await Client.ConnectAsync().ConfigureAwait(false);
+            await Client.ConnectAsync().ConfigureAwait(false);
 
-                Console.WriteLine("Starting");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("In Start");
-                Console.WriteLine(ex.Message);
-                Console.WriteLine(ex.StackTrace);
-                Console.WriteLine(ex.TargetSite);
-                foreach (var pair in ex.Data)
-                    Console.WriteLine(pair?.ToString());
-                Console.WriteLine();
-                Console.WriteLine(ex.InnerException?.Message);
-                Console.WriteLine(ex.InnerException?.StackTrace);
-            }
+            Console.WriteLine("Starting");
         }
 
         private void InitalizeOtherParts(BotConfig cfg)
