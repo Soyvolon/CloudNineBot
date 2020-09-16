@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
+using DSharpPlus.Entities;
 
 using Microsoft.Extensions.Logging;
 
@@ -38,6 +39,8 @@ namespace BirthdayBotTesting
 #endif
             }
         }
+
+        public const string VERSION = "1.0.1";
 
         public static Program Bot { get; private set; }
 
@@ -129,6 +132,13 @@ namespace BirthdayBotTesting
             await Client.ConnectAsync().ConfigureAwait(false);
 
             Console.WriteLine("Starting");
+
+            await Task.Run(async () =>
+            {
+                await Task.Delay(TimeSpan.FromSeconds(5));
+                await Client.UpdateStatusAsync(
+                    new DiscordActivity($"bbhelp | BBB {VERSION}", ActivityType.Playing));
+            });
         }
 
         private void InitalizeOtherParts(BotConfig cfg)

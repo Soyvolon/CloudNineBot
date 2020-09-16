@@ -34,7 +34,14 @@ namespace BirthdayBotTesting.Commands
 
                 foreach(var bday in date.Value)
                 {
-                    str += $"\n{ctx.Guild.Members[bday].Nickname} | {ctx.Guild.Members[bday].Username}#{ctx.Guild.Members[bday].Discriminator}";
+                    if (ctx.Guild.Members.TryGetValue(bday, out DiscordMember? m))
+                    {
+                        str += $"\n{m.Nickname} | {m.Username}#{m.Discriminator}";
+                    }
+                    else
+                    {
+                        str += $"<@{bday}> | {bday}";
+                    }
                 }
             }
 

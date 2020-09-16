@@ -93,12 +93,13 @@ namespace BirthdayBotTesting
                                     {
                                         try
                                         {
-                                            //await chan.AddOverwriteAsync(member, Permissions.None, Permissions.AccessChannels, "Auto Brithday Lockout").ConfigureAwait(false);
-                                            await Program.Bot.Rest.EditChannelPermissionsAsync((ulong)server.Value.BirthdayChannel, id, Permissions.None, Permissions.AccessChannels, "member", "Auto Birthday Lockout").ConfigureAwait(false);
+                                            await chan.AddOverwriteAsync(member, Permissions.None, Permissions.AccessChannels, "Auto Brithday Lockout").ConfigureAwait(false);
+                                            //await Program.Bot.Rest.EditChannelPermissionsAsync((ulong)server.Value.BirthdayChannel, id, Permissions.None, Permissions.AccessChannels, "member", "Auto Birthday Lockout").ConfigureAwait(false);
                                             //await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
                                         }
-                                        catch (UnauthorizedException)
+                                        catch (UnauthorizedException ex)
                                         {
+                                            throw ex;
                                             continue;
                                         }
                                     }
@@ -119,12 +120,13 @@ namespace BirthdayBotTesting
                                 {
                                     try
                                     {
-                                        //await chan.AddOverwriteAsync(member, Permissions.AccessChannels, Permissions.None, "Auto Birtday Access").ConfigureAwait(false);
-                                        await Program.Bot.Rest.EditChannelPermissionsAsync((ulong)server.Value.BirthdayChannel, bday, Permissions.AccessChannels, Permissions.None, "member", "Auto Birthday Access").ConfigureAwait(false);
+                                        await chan.AddOverwriteAsync(member, Permissions.AccessChannels, Permissions.None, "Auto Birtday Access").ConfigureAwait(false);
+                                        //await Program.Bot.Rest.EditChannelPermissionsAsync((ulong)server.Value.BirthdayChannel, bday, Permissions.AccessChannels, Permissions.None, "member", "Auto Birthday Access").ConfigureAwait(false);
                                         //await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
                                     }
-                                    catch (UnauthorizedException)
+                                    catch (UnauthorizedException ex)
                                     {
+                                        throw ex;
                                         continue;
                                     }
                                 }
@@ -146,12 +148,13 @@ namespace BirthdayBotTesting
                                 {
                                     try
                                     {
-                                        //await chan.AddOverwriteAsync(member, Permissions.AccessChannels, Permissions.None, "Auto Birtday Access").ConfigureAwait(false);
-                                        await Program.Bot.Rest.EditChannelPermissionsAsync((ulong)server.Value.BirthdayChannel, other, Permissions.AccessChannels, Permissions.None, "member", "Auto Birthday Access").ConfigureAwait(false);
+                                        await chan.AddOverwriteAsync(member, Permissions.AccessChannels, Permissions.None, "Auto Birtday Access").ConfigureAwait(false);
+                                        //await Program.Bot.Rest.EditChannelPermissionsAsync((ulong)server.Value.BirthdayChannel, other, Permissions.AccessChannels, Permissions.None, "member", "Auto Birthday Access").ConfigureAwait(false);
                                         //await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
                                     }
-                                    catch (UnauthorizedException)
+                                    catch (UnauthorizedException ex)
                                     {
+                                        throw ex;
                                         continue;
                                     }
                                 }
