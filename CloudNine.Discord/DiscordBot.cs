@@ -4,14 +4,11 @@ using System.Reflection;
 using System.Threading.Tasks;
 
 using CloudNine.Config.Bot;
-using CloudNine.Core.Database;
 using CloudNine.Discord.Utilities;
 
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
-using DSharpPlus.Interactivity;
-using DSharpPlus.Interactivity.Extensions;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -36,7 +33,7 @@ namespace CloudNine.Discord
             }
         }
 
-        public const string VERSION = "alpha-2.0.0";
+        public const string VERSION = "1.0.1";
         private bool disposedValue;
 
         public static DiscordBot Bot { get; private set; }
@@ -44,7 +41,6 @@ namespace CloudNine.Discord
         public DiscordClient Client { get; private set; }
         public DiscordRestClient Rest { get; private set; }
         public BirthdayManager Birthdays { get; private set; }
-        public DiscordBotConfiguration BotConfiguration { get; private set; }
 
         private LogLevel logLevel;
         private ServiceProvider services;
@@ -55,6 +51,40 @@ namespace CloudNine.Discord
             this.services = services;
 
             Bot = this;
+        }
+
+        static void Main(string[] args)
+        {
+            var botCfgPath = Path.Combine(new string[] { "Config", "bot_config.json" });
+
+            botCfgPath = Path.GetFullPath(botCfgPath);
+
+            if (!Directory.Exists("Config"))
+                Directory.CreateDirectory("Config");
+
+            if (!File.Exists(botCfgPath))
+            {
+                File.WriteAllText(botCfgPath, @"{ ""token"": ""insert_token_here"", ""prefix"": ""bb"" }");
+                Console.WriteLine("Bot config was missing, please insert new token.");
+                Console.ReadLine();
+                Environment.Exit(-1);
+            }
+
+            using FileStream fs = new FileStream(botCfgPath, FileMode.Open);
+            using StreamReader sr = new StreamReader(fs);
+            var json = sr.ReadToEnd();
+
+            var botCfg = JsonConvert.DeserializeObject<DiscordBotConfiguration>(json);
+
+            //Bot = new DiscordBot();
+
+            Bot.Start(botCfg).GetAwaiter().GetResult();
+
+            //while (!Console.ReadLine().Equals("exit")) { }
+
+            Task.Delay(-1).GetAwaiter().GetResult();
+
+            Bot.Birthdays.SaveAllConfigurations();
         }
 
         private DiscordConfiguration GetDiscordConfiguration(DiscordBotConfiguration botCfg)
@@ -83,21 +113,8 @@ namespace CloudNine.Discord
             return cncfg;
         }
 
-        private InteractivityConfiguration GetInteractivityConfiguration()
-        {
-            var icfg = new InteractivityConfiguration
-            {
-                PaginationBehaviour = DSharpPlus.Interactivity.Enums.PaginationBehaviour.WrapAround,
-                PaginationDeletion = DSharpPlus.Interactivity.Enums.PaginationDeletion.DeleteMessage
-            };
-
-            return icfg;
-        }
-
         public async Task Start(DiscordBotConfiguration botCfg)
         {
-            BotConfiguration = botCfg;
-
             var cfg = GetDiscordConfiguration(botCfg);
 
             Client = new DiscordClient(cfg);
@@ -112,13 +129,15 @@ namespace CloudNine.Discord
 
             commands.RegisterConverter(new DateTimeAttributeConverter());
 
-            Client.UseInteractivity(GetInteractivityConfiguration());
+            Console.WriteLine(Client.GetCommandsNext());
 
             Client.Ready += Client_Ready;
 
             InitalizeOtherParts(botCfg);
 
             await Client.ConnectAsync().ConfigureAwait(false);
+
+            Console.WriteLine("Starting");
 
             await Task.Run(async () =>
             {
@@ -130,24 +149,25 @@ namespace CloudNine.Discord
 
         private void InitalizeOtherParts(DiscordBotConfiguration cfg)
         {
-            Birthdays = new BirthdayManager(cfg.TriggerBday, services);
+            Birthdays = new BirthdayManager(cfg.TriggerBday);
         }
 
-        private Task Client_Ready(DiscordClient c, DSharpPlus.EventArgs.ReadyEventArgs e)
+        private Task Client_Ready(DSharpPlus.EventArgs.ReadyEventArgs e)
         {
-            c?.Logger.LogInformation("Client Ready!");
+            Console.WriteLine("Entering Client_Ready");
+            e.Client?.Logger.LogInformation("Client Ready!");
 
             return Task.CompletedTask;
         }
 
-        private Task Client_CommandExecuted(CommandsNextExtension cnext, CommandEventArgs e)
+        private Task Client_CommandExecuted(CommandExecutionEventArgs e)
         {
             e.Context.Client.Logger.LogInformation($"User {e.Context.User.Username} executed command: {e.Command.Name}");
 
             return Task.CompletedTask;
         }
 
-        private Task Client_CommandErrored(CommandsNextExtension cnext, CommandErrorEventArgs e)
+        private Task Client_CommandErrored(CommandErrorEventArgs e)
         {
             e.Context.Client.Logger.LogError(e.Exception, $"User {e.Context.User.Username} failed to execute command: {e.Command?.Name}");
 

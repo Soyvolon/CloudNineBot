@@ -16,35 +16,38 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using DSharpPlus.CommandsNext;
 using CloudNine.Core.Birthdays;
-using CloudNine.Core.Database;
-using Microsoft.EntityFrameworkCore;
-using CloudNine.Core.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace CloudNine.Discord.Utilities
 {
     public class BirthdayManager : IDisposable
     {
-        public readonly int TriggerBdayAt = 12;
         public bool DebugTrigger { get; set; } = false;
+
+        private const string ConfigDir = "ServerConfigs";
+
+        private ConcurrentDictionary<ulong, BirthdayServerConfiguration> ServerConfigs;
 
         private Timer bdayChecker;
         private DateTime lastDay;
         private bool disposedValue;
         private const int elapsedCounter = 1;
-        private readonly ServiceProvider _services;
-        private readonly ILogger _logger;
+        public readonly int TriggerBdayAt = 12;
 
-        public BirthdayManager(int trigger_at, ServiceProvider services)
+        public BirthdayManager(int trigger_at)
         {
+            if (!Directory.Exists(ConfigDir))
+                Directory.CreateDirectory(ConfigDir);
+
+            ServerConfigs = new ConcurrentDictionary<ulong, BirthdayServerConfiguration>();
+
+            PopulateInitialBirthdayWatchlist();
+
             TriggerBdayAt = trigger_at;
 
-            bdayChecker = new Timer(5000);
+            bdayChecker = new Timer(1000);
             bdayChecker.Elapsed += BdayChecker_Elapsed;
             bdayChecker.Start();
             lastDay = DateTime.UtcNow.AddDays(-1);
-            this._services = services;
-            _logger = services.GetService<ILogger<BirthdayManager>>();
         }
 
         private async void BdayChecker_Elapsed(object sender, ElapsedEventArgs e)
@@ -53,161 +56,118 @@ namespace CloudNine.Discord.Utilities
             {
                 if (DebugTrigger || ((DateTime.UtcNow.Date - lastDay.Date).TotalDays >= 1 && DateTime.UtcNow.Hour >= TriggerBdayAt))
                 {
+                    DiscordBot.Bot.Client.Logger.Log(LogLevel.Information, new EventId(elapsedCounter, "Bday Timer"), "Birthday Timer Elapsed", null);
+
                     lastDay = DateTime.UtcNow;
                     DebugTrigger = false;
 
-                    _logger.Log(LogLevel.Information, new EventId(elapsedCounter, "Bday Timer"), "Birthday Timer Elapsed", null);
-
-                    var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
-                    foreach (var server in _database.ServerConfigurations)
+                    foreach (var server in ServerConfigs)
                     {
                         try
                         {
-                            if (server.BirthdayConfiguration.BirthdayChannel is null) continue;
-                            if (!DiscordBot.Bot.Client.Guilds.ContainsKey(server.Id)) continue;
+                            if (server.Value.BirthdayChannel is null) continue;
 
-                            server.BirthdayConfiguration.ResetComparer();
-                            server.BirthdayConfiguration.TriggerResort();
+                            server.Value.ResetComparer();
+                            server.Value.TriggerResort();
 
-                            var toLockout = server.BirthdayConfiguration.GetNextBirthdaysToLockout();
+                            var toLockout = server.Value.GetNextBirthdaysToLockout();
 
                             if (toLockout is null) continue;
 
                             var shard = DiscordBot.Bot.Client;
 
-                            var guild = await shard.GetGuildAsync(server.Id);
+                            var guild = await shard.GetGuildAsync(server.Key);
 
                             var channels = await guild.GetChannelsAsync().ConfigureAwait(false);
 
-                            var chan = channels.FirstOrDefault(x => x.Id == server.BirthdayConfiguration.BirthdayChannel);
-
-                            if (chan == default) continue;
-
-                            HashSet<ulong> usersToRemove = new HashSet<ulong>();
+                            var chan = channels.First(x => x.Id == server.Value.BirthdayChannel);
 
                             foreach (var user in toLockout.Values)
                             {
                                 foreach (var id in user)
                                 {
-                                    try
+                                    var member = await guild.GetMemberAsync(id).ConfigureAwait(false);
+
+                                    var perms = chan.PermissionsFor(member);
+
+                                    if (((uint)perms & (uint)Permissions.AccessChannels) == (uint)Permissions.AccessChannels && perms != Permissions.All)
                                     {
-                                        var member = await guild.GetMemberAsync(id).ConfigureAwait(false);
-
-                                        var perms = chan.PermissionsFor(member);
-
-                                        if (((uint)perms & (uint)Permissions.AccessChannels) == (uint)Permissions.AccessChannels && perms != Permissions.All)
+                                        try
                                         {
-                                            try
-                                            {
-                                                await chan.AddOverwriteAsync(member, Permissions.None, Permissions.AccessChannels, "Auto Brithday Lockout").ConfigureAwait(false);
+                                            await chan.AddOverwriteAsync(member, Permissions.None, Permissions.AccessChannels, "Auto Brithday Lockout").ConfigureAwait(false);
 
-                                                var dm = await member.CreateDmChannelAsync();
-                                                await dm.SendMessageAsync($"Looks like your birthday is coming up soon! You are now locked out of {chan.Name} so people can plot your gifts in secret!");
-                                                //await Program.Bot.Rest.EditChannelPermissionsAsync((ulong)server.Value.BirthdayChannel, id, Permissions.None, Permissions.AccessChannels, "member", "Auto Birthday Lockout").ConfigureAwait(false);
-                                                //await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
-                                            }
-                                            catch (UnauthorizedException ex)
-                                            {
-                                                throw ex;
-                                                continue;
-                                            }
+                                            var dm = await member.CreateDmChannelAsync();
+                                            await dm.SendMessageAsync($"Looks like your birthday is coming up soon! You are now locked out of {chan.Name} so people can plot your gifts in secret!");
+                                            //await Program.Bot.Rest.EditChannelPermissionsAsync((ulong)server.Value.BirthdayChannel, id, Permissions.None, Permissions.AccessChannels, "member", "Auto Birthday Lockout").ConfigureAwait(false);
+                                            //await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
                                         }
-                                    }
-                                    catch (NotFoundException)
-                                    {
-                                        _logger.LogWarning("Failed to get a user, removing them from the birthday list.");
-                                        usersToRemove.Add(id);
-                                        continue;
+                                        catch (UnauthorizedException ex)
+                                        {
+                                            throw ex;
+                                            continue;
+                                        }
                                     }
                                 }
                             }
 
-                            var currentBday = server.BirthdayConfiguration.GetBirthdaysOnToday();
+                            var currentBday = server.Value.GetBirthdaysOnToday();
 
                             string msg = "";
 
                             foreach (var bday in currentBday)
                             {
-                                try
+                                var member = await guild.GetMemberAsync(bday).ConfigureAwait(false);
+
+                                var perms = chan.PermissionsFor(member);
+
+                                if (((uint)perms & (uint)Permissions.AccessChannels) != (uint)Permissions.AccessChannels)
                                 {
-                                    var member = await guild.GetMemberAsync(bday).ConfigureAwait(false);
-
-                                    var perms = chan.PermissionsFor(member);
-
-                                    if (((uint)perms & (uint)Permissions.AccessChannels) != (uint)Permissions.AccessChannels)
+                                    try
                                     {
-                                        try
-                                        {
-                                            await chan.AddOverwriteAsync(member, Permissions.AccessChannels, Permissions.None, "Auto Birtday Access").ConfigureAwait(false);
-                                            //await Program.Bot.Rest.EditChannelPermissionsAsync((ulong)server.Value.BirthdayChannel, bday, Permissions.AccessChannels, Permissions.None, "member", "Auto Birthday Access").ConfigureAwait(false);
-                                            //await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
-                                        }
-                                        catch (UnauthorizedException ex)
-                                        {
-                                            throw ex;
-                                            continue;
-                                        }
+                                        await chan.AddOverwriteAsync(member, Permissions.AccessChannels, Permissions.None, "Auto Birtday Access").ConfigureAwait(false);
+                                        //await Program.Bot.Rest.EditChannelPermissionsAsync((ulong)server.Value.BirthdayChannel, bday, Permissions.AccessChannels, Permissions.None, "member", "Auto Birthday Access").ConfigureAwait(false);
+                                        //await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
                                     }
-                                    msg += $"Happy Birthday {member.Mention}\n";
+                                    catch (UnauthorizedException ex)
+                                    {
+                                        throw ex;
+                                        continue;
+                                    }
                                 }
-                                catch (NotFoundException)
-                                {
-                                    _logger.LogWarning("Failed to get a user, removing them from the birthday list.");
-                                    usersToRemove.Add(bday);
-                                    continue;
-                                }
+                                msg += $"Happy Birthday {member.Mention}\n";
                             }
 
                             if (!(msg is null) && msg != "")
                                 await chan.SendMessageAsync(msg[..(msg.Length - 1)]).ConfigureAwait(false);
 
-                            var allOthers = server.BirthdayConfiguration.GetNonLockoutNonBirthdayUsers();
+                            var allOthers = server.Value.GetNonLockoutNonBirthdayUsers();
 
                             foreach (var other in allOthers)
                             {
-                                try
+                                var member = await guild.GetMemberAsync(other).ConfigureAwait(false);
+
+                                var perms = chan.PermissionsFor(member);
+
+                                if (((uint)perms & (uint)Permissions.AccessChannels) != (uint)Permissions.AccessChannels)
                                 {
-                                    var member = await guild.GetMemberAsync(other).ConfigureAwait(false);
-
-                                    var perms = chan.PermissionsFor(member);
-
-                                    if (((uint)perms & (uint)Permissions.AccessChannels) != (uint)Permissions.AccessChannels)
+                                    try
                                     {
-                                        try
-                                        {
-                                            await chan.AddOverwriteAsync(member, Permissions.AccessChannels, Permissions.None, "Auto Birtday Access").ConfigureAwait(false);
-                                            //await Program.Bot.Rest.EditChannelPermissionsAsync((ulong)server.Value.BirthdayChannel, other, Permissions.AccessChannels, Permissions.None, "member", "Auto Birthday Access").ConfigureAwait(false);
-                                            //await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
-                                        }
-                                        catch (UnauthorizedException ex)
-                                        {
-                                            throw ex;
-                                            continue;
-                                        }
+                                        await chan.AddOverwriteAsync(member, Permissions.AccessChannels, Permissions.None, "Auto Birtday Access").ConfigureAwait(false);
+                                        //await Program.Bot.Rest.EditChannelPermissionsAsync((ulong)server.Value.BirthdayChannel, other, Permissions.AccessChannels, Permissions.None, "member", "Auto Birthday Access").ConfigureAwait(false);
+                                        //await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+                                    }
+                                    catch (UnauthorizedException ex)
+                                    {
+                                        throw ex;
+                                        continue;
                                     }
                                 }
-                                catch (NotFoundException)
-                                {
-                                    _logger.LogWarning("Failed to get a user, removing them from the birthday list.");
-                                    usersToRemove.Add(other);
-                                    continue;
-                                }
                             }
 
-                            _database.Update(server);
-
-                            foreach (var u in usersToRemove)
-                            {
-                                server.BirthdayConfiguration.RemoveBirthday(u);
-                            }
-
-                            await _database.SaveChangesAsync();
-
-                            await UpdateChannelDescription(chan.Id, server.BirthdayConfiguration, server.Id).ConfigureAwait(false);
+                            await UpdateChannelDescription(chan.Id, server.Value, server.Key).ConfigureAwait(false);
                         }
-                        catch (Exception ex)
+                        catch
                         {
-                            _logger.LogError(ex, "Failed to execute birthday update.");
                             continue;
                         }
                     }
@@ -215,7 +175,7 @@ namespace CloudNine.Discord.Utilities
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Something went wrong in the Birthday Checker");
+                DiscordBot.Bot.Client.Logger.LogError(ex, "Something went wrong in the Birthday Checker");
             }
         }
 
@@ -265,20 +225,46 @@ namespace CloudNine.Discord.Utilities
 
         private void UpdateComparisonDay()
         {
-            var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
-            foreach (var val in _database.ServerConfigurations.AsNoTracking())
-                val.BirthdayConfiguration.TriggerResort();
+            foreach (var val in ServerConfigs.Values)
+                val.TriggerResort();
+        }
+
+        private void PopulateInitialBirthdayWatchlist()
+        {
+            var files = Directory.GetFiles(ConfigDir, "*");
+
+            foreach (var file in files)
+            {
+                if (ulong.TryParse(Path.GetFileNameWithoutExtension(file), out ulong result))
+                {
+                    var json = File.ReadAllText(file);
+
+                    var config = JsonConvert.DeserializeObject<BirthdayServerConfiguration>(json);
+
+                    if(ServerConfigs.TryAdd(result, config))
+                    {
+                        config.BuildInitalSortList();
+                    }
+                }
+            }
+        }
+
+        private void SaveConfigFile(ulong server)
+        {
+            if (ServerConfigs.TryGetValue(server, out BirthdayServerConfiguration? value))
+            {
+                File.WriteAllText(Path.Combine(new string[] { ConfigDir, server.ToString() + ".json" }),
+                    JsonConvert.SerializeObject(value, Formatting.Indented));
+            }
         }
 
         public async Task<bool> ForceChannelUpdate(DiscordGuild g)
         {
-            var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
-            var config = await _database.FindAsync<DiscordGuildConfiguration>(g.Id);
-            if(!(config is null))
+            if(ServerConfigs.TryGetValue(g.Id, out BirthdayServerConfiguration? config))
             {
-                if (config.BirthdayConfiguration.BirthdayChannel is null) return false;
+                if (config.BirthdayChannel is null) return false;
 
-                await UpdateChannelDescription((ulong)config.BirthdayConfiguration.BirthdayChannel, config.BirthdayConfiguration, g.Id).ConfigureAwait(false);
+                await UpdateChannelDescription((ulong)config.BirthdayChannel, config, g.Id).ConfigureAwait(false);
 
                 return true;
             }
@@ -286,39 +272,50 @@ namespace CloudNine.Discord.Utilities
             return false;
         }
 
+        public void SaveAllConfigurations()
+        {
+            foreach (var server in ServerConfigs.Keys)
+                SaveConfigFile(server);
+        }
+
+        public void GenerateNewServerConfiguration(ulong server)
+        {
+            GenerateNewServerConfiguartionWithValue(server, null, null);
+        }
+
+        public void GenerateNewServerConfiguartionWithValue(ulong server, ulong? user, DateTime? date)
+        {
+            var config = new BirthdayServerConfiguration();
+
+            if (!(date is null || user is null))
+            {
+                config.UpdateBirthday((ulong)user, (DateTime)date);
+            }
+
+            ServerConfigs.TryAdd(server, config);
+        }
+
         public void UpdateBirthday(ulong server, ulong user, DateTime date)
         {
-            var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
-            var cfg = _database.Find<DiscordGuildConfiguration>(server);
-            if (!(cfg is null))
+            if (ServerConfigs.TryGetValue(server, out BirthdayServerConfiguration? cfg))
             {
-                _database.Update(cfg);
-                cfg.BirthdayConfiguration.UpdateBirthday(user, date);
+                cfg.UpdateBirthday(user, date);
             }
             else
             {
-                cfg = new DiscordGuildConfiguration()
-                {
-                    Id = server,
-                    Prefix = DiscordBot.Bot.BotConfiguration.Prefix
-                };
-
-                _database.Add(cfg);
+                GenerateNewServerConfiguartionWithValue(server, user, date);
             }
 
-            _database.SaveChanges();
+            SaveConfigFile(server);
         }
 
         public bool RemoveBirthday(ulong server, ulong user)
         {
-            var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
-            var cfg = _database.Find<DiscordGuildConfiguration>(server);
-            if (!(cfg is null))
+            if(ServerConfigs.TryGetValue(server, out BirthdayServerConfiguration? cfg))
             {
-                if (cfg.BirthdayConfiguration.RemoveBirthday(user))
+                if (cfg.RemoveBirthday(user))
                 {
-                    _database.Update(cfg);
-                    _database.SaveChanges();
+                    SaveConfigFile(server);
 
                     return true;
                 }
@@ -329,11 +326,9 @@ namespace CloudNine.Discord.Utilities
 
         public DateTime? GetBirthday(ulong server, ulong user)
         {
-            var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
-            var cfg = _database.Find<DiscordGuildConfiguration>(server);
-            if (!(cfg is null))
+            if (ServerConfigs.TryGetValue(server, out BirthdayServerConfiguration? cfg))
             {
-                return cfg.BirthdayConfiguration.GetBirthday(user);
+                return cfg.GetBirthday(user);
             }
 
             return null;
@@ -341,12 +336,11 @@ namespace CloudNine.Discord.Utilities
 
         public Dictionary<ulong, List<ulong>> GetAllBirthdaysOnToday()
         {
-            var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
             var values = new Dictionary<ulong, List<ulong>>();
 
-            foreach (var pair in _database.ServerConfigurations.AsNoTracking())
+            foreach (var pair in ServerConfigs)
             {
-                values.Add(pair.Id, pair.BirthdayConfiguration.GetBirthdaysOnToday());
+                values.Add(pair.Key, pair.Value.GetBirthdaysOnToday());
             }
 
             return values;
@@ -354,11 +348,9 @@ namespace CloudNine.Discord.Utilities
 
         public List<ulong>? GetBrithdaysOnTodayForServer(ulong server)
         {
-            var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
-            var config = _database.Find<DiscordGuildConfiguration>(server);
-            if (!(config is null))
+            if (ServerConfigs.TryGetValue(server, out BirthdayServerConfiguration? config))
             {
-                return config.BirthdayConfiguration.GetBirthdaysOnToday();
+                return config.GetBirthdaysOnToday();
             }
 
             return null;
@@ -366,13 +358,11 @@ namespace CloudNine.Discord.Utilities
 
         public SortedList<DateTime, List<ulong>>? GetAllBirthdaysForServer(ulong server, bool keepCurrentSort)
         {
-            var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
-            var config = _database.Find<DiscordGuildConfiguration>(server);
-            if (!(config is null))
+            if(ServerConfigs.TryGetValue(server, out BirthdayServerConfiguration? config))
             {
-                if (keepCurrentSort) return config.BirthdayConfiguration.SortedBirthdays;
+                if (keepCurrentSort) return config.SortedBirthdays;
 
-                return new SortedList<DateTime, List<ulong>>(config.BirthdayConfiguration.SortedBirthdays);
+                return new SortedList<DateTime, List<ulong>>(config.SortedBirthdays);
             }
 
             return null;
@@ -380,54 +370,38 @@ namespace CloudNine.Discord.Utilities
 
         public void UpdateBirthdayChannel(ulong server, DiscordChannel channel)
         {
-            var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
-            var cfg = _database.Find<DiscordGuildConfiguration>(server);
-            if (!(cfg is null))
+            if (ServerConfigs.TryGetValue(server, out BirthdayServerConfiguration? cfg))
             {
-                _database.Update(cfg);
-                cfg.BirthdayConfiguration.BirthdayChannel = channel.Id;
+                cfg.BirthdayChannel = channel.Id;
             }
             else
             {
-                cfg = new DiscordGuildConfiguration()
+                cfg = new BirthdayServerConfiguration()
                 {
-                    Id = server,
-                    BirthdayConfiguration = new BirthdayServerConfiguration()
-                    {
-                        BirthdayChannel = channel.Id
-                    }
+                    BirthdayChannel = channel.Id
                 };
-
-                _database.Add(cfg);
+                ServerConfigs.TryAdd(server, cfg);
             }
 
-            _database.SaveChanges();
+            SaveConfigFile(server);
         }
 
         public void UpdateBirthdayRole(ulong server, DiscordRole role)
         {
-            var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
-            var cfg = _database.Find<DiscordGuildConfiguration>(server);
-            if (!(cfg is null))
+            if (ServerConfigs.TryGetValue(server, out BirthdayServerConfiguration? cfg))
             {
-                _database.Update(cfg);
-                cfg.BirthdayConfiguration.BirthdayRole = role.Id;
+                cfg.BirthdayRole = role.Id;
             }
             else
             {
-                cfg = new DiscordGuildConfiguration()
+                cfg = new BirthdayServerConfiguration()
                 {
-                    Id = server,
-                    BirthdayConfiguration = new BirthdayServerConfiguration()
-                    {
-                        BirthdayRole = role.Id
-                    }
+                    BirthdayRole = role.Id
                 };
-
-                _database.Add(cfg);
+                ServerConfigs.TryAdd(server, cfg);
             }
 
-            _database.SaveChanges();
+            SaveConfigFile(server);
         }
 
         
@@ -443,6 +417,8 @@ namespace CloudNine.Discord.Utilities
 
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer
                 // TODO: set large fields to null
+                ServerConfigs = null;
+
                 bdayChecker = null;
                 lastDay = DateTime.MinValue;
                 disposedValue = true;
