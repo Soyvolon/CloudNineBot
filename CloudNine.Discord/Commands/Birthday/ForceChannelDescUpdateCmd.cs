@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 
-namespace BirthdayBotTesting.Commands
+namespace CloudNine.Discord.Commands.Birthday
 {
     public class ForceChannelDescUpdateCmd : BaseCommandModule
     {
@@ -15,7 +15,7 @@ namespace BirthdayBotTesting.Commands
         [RequireUserPermissions(DSharpPlus.Permissions.Administrator)]
         public async Task ForceChannelDescUpdateAsync(CommandContext ctx)
         {
-            if (await Program.Bot.Birthdays.ForceChannelUpdate(ctx.Guild))
+            if (await DiscordBot.Bot.Birthdays.ForceChannelUpdate(ctx.Guild))
                 await ctx.RespondAsync("Channel updated.");
             else await ctx.RespondAsync("Failed to update channel. Make sure a birthday channel is set.");
         }

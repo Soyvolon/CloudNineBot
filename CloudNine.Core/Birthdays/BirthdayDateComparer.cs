@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
-namespace BirthdayBotTesting
+namespace CloudNine.Core.Birthdays
 {
     /// <summary>
     /// Compares the BirthdayDate based upon a current date.

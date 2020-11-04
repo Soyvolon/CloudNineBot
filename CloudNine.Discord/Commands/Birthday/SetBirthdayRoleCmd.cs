@@ -4,7 +4,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 
-namespace BirthdayBotTesting.Commands
+namespace CloudNine.Discord.Commands.Birthday
 {
     public class SetBirthdayRoleCmd : BaseCommandModule
     {
@@ -13,7 +13,7 @@ namespace BirthdayBotTesting.Commands
         [RequireUserPermissions(DSharpPlus.Permissions.Administrator)]
         public async Task SetBirthdayRoleAsync(CommandContext ctx, DiscordRole role)
         {
-            Program.Bot.Birthdays.UpdateBirthdayRole(ctx.Guild.Id, role);
+            DiscordBot.Bot.Birthdays.UpdateBirthdayRole(ctx.Guild.Id, role);
             await ctx.RespondAsync($"Set birthday role to {role.Mention}").ConfigureAwait(false);
         }
     }

@@ -1,0 +1,45 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30225.117
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudNine.Discord", "CloudNine.Discord\CloudNine.Discord.csproj", "{F087943A-2024-49A5-90A4-942EF2BDE026}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudNine.Core", "CloudNine.Core\CloudNine.Core.csproj", "{1F0CAB1B-2BA5-4133-B81A-7059DF7D2122}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudNine", "CloudNine\CloudNine.csproj", "{EC0F156A-21C4-46B5-8428-82F08DDBD2A3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1. Project", "1. Project", "{9CA2308B-4B0D-40C1-B2B7-AFFC297064C9}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		Dockerfile = Dockerfile
+		NuGet.config = NuGet.config
+		README.md = README.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F087943A-2024-49A5-90A4-942EF2BDE026}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F087943A-2024-49A5-90A4-942EF2BDE026}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F087943A-2024-49A5-90A4-942EF2BDE026}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F087943A-2024-49A5-90A4-942EF2BDE026}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F0CAB1B-2BA5-4133-B81A-7059DF7D2122}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F0CAB1B-2BA5-4133-B81A-7059DF7D2122}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F0CAB1B-2BA5-4133-B81A-7059DF7D2122}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F0CAB1B-2BA5-4133-B81A-7059DF7D2122}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC0F156A-21C4-46B5-8428-82F08DDBD2A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC0F156A-21C4-46B5-8428-82F08DDBD2A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC0F156A-21C4-46B5-8428-82F08DDBD2A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC0F156A-21C4-46B5-8428-82F08DDBD2A3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FD253D47-5939-4DB7-94C4-E3919861CF93}
+	EndGlobalSection
+EndGlobal

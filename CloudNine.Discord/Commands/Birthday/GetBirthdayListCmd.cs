@@ -9,7 +9,7 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 
-namespace BirthdayBotTesting.Commands
+namespace CloudNine.Discord.Commands.Birthday
 {
     public class GetBirthdayListCmd : BaseCommandModule
     {
@@ -20,7 +20,7 @@ namespace BirthdayBotTesting.Commands
         {
             string str = $"{ctx.Guild.Name}'s Bday List:";
 
-            var data = Program.Bot.Birthdays.GetAllBirthdaysForServer(ctx.Guild.Id, !(prams is null) && prams.ToLower().StartsWith("s"));
+            var data = DiscordBot.Bot.Birthdays.GetAllBirthdaysForServer(ctx.Guild.Id, !(prams is null) && prams.ToLower().StartsWith("s"));
 
             if (data is null)
             {

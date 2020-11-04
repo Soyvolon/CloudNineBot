@@ -6,7 +6,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Converters;
 using DSharpPlus.Entities;
 
-namespace BirthdayBotTesting
+namespace CloudNine.Discord.Utilities
 {
     public static class AttributeConverters
     {

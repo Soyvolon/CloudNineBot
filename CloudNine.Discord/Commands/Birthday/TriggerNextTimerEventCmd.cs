@@ -3,7 +3,7 @@
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 
-namespace BirthdayBotTesting.Commands
+namespace CloudNine.Discord.Commands.Birthday
 {
     public class TriggerNextTimerEventCmd : BaseCommandModule
     {
@@ -12,9 +12,9 @@ namespace BirthdayBotTesting.Commands
         [Hidden]
         public async Task DebugTriggerAsync(CommandContext ctx)
         {
-            if (Program.IsDebug)
+            if (DiscordBot.IsDebug)
             {
-                Program.Bot.Birthdays.DebugTrigger = true;
+                DiscordBot.Bot.Birthdays.DebugTrigger = true;
                 await ctx.RespondAsync("Triggered").ConfigureAwait(false);
             }
         }

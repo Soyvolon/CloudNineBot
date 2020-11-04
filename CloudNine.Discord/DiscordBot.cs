@@ -3,30 +3,23 @@ using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 
+using CloudNine.Config.Bot;
+using CloudNine.Discord.Utilities;
+
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 using Newtonsoft.Json;
 
-using static BirthdayBotTesting.AttributeConverters;
+using static CloudNine.Discord.Utilities.AttributeConverters;
 
-namespace BirthdayBotTesting
+namespace CloudNine.Discord
 {
-    public struct BotConfig
-    {
-        [JsonProperty("token")]
-        public string Token { get; private set; }
-
-        [JsonProperty("prefix")]
-        public string Prefix { get; private set; }
-        [JsonProperty("trigger_bday_time")]
-        public int TriggerBday { get; private set; }
-    }
-
-    public class Program
+    public class DiscordBot : IDisposable
     {
         public static bool IsDebug
         {
@@ -41,12 +34,24 @@ namespace BirthdayBotTesting
         }
 
         public const string VERSION = "1.0.1";
+        private bool disposedValue;
 
-        public static Program Bot { get; private set; }
+        public static DiscordBot Bot { get; private set; }
 
         public DiscordClient Client { get; private set; }
         public DiscordRestClient Rest { get; private set; }
         public BirthdayManager Birthdays { get; private set; }
+
+        private LogLevel logLevel;
+        private ServiceProvider services;
+
+        public DiscordBot(LogLevel logLevel, ServiceProvider services)
+        {
+            this.logLevel = logLevel;
+            this.services = services;
+
+            Bot = this;
+        }
 
         static void Main(string[] args)
         {
@@ -69,9 +74,9 @@ namespace BirthdayBotTesting
             using StreamReader sr = new StreamReader(fs);
             var json = sr.ReadToEnd();
 
-            var botCfg = JsonConvert.DeserializeObject<BotConfig>(json);
+            var botCfg = JsonConvert.DeserializeObject<DiscordBotConfiguration>(json);
 
-            Bot = new Program();
+            //Bot = new DiscordBot();
 
             Bot.Start(botCfg).GetAwaiter().GetResult();
 
@@ -82,19 +87,19 @@ namespace BirthdayBotTesting
             Bot.Birthdays.SaveAllConfigurations();
         }
 
-        private static DiscordConfiguration GetDiscordConfiguration(BotConfig botCfg)
+        private DiscordConfiguration GetDiscordConfiguration(DiscordBotConfiguration botCfg)
         {
             var cfg = new DiscordConfiguration
             {
                 TokenType = TokenType.Bot,
                 Token = botCfg.Token,
-                MinimumLogLevel = LogLevel.Debug
+                MinimumLogLevel = logLevel
             };
 
             return cfg;
         }
 
-        private static CommandsNextConfiguration GetCommandsNextConfiguration(BotConfig botCfg)
+        private CommandsNextConfiguration GetCommandsNextConfiguration(DiscordBotConfiguration botCfg)
         {
             var cncfg = new CommandsNextConfiguration
             {
@@ -102,12 +107,13 @@ namespace BirthdayBotTesting
                 CaseSensitive = false,
                 EnableDms = false,
                 IgnoreExtraArguments = true,
+                Services = this.services
             };
 
             return cncfg;
         }
 
-        public async Task Start(BotConfig botCfg)
+        public async Task Start(DiscordBotConfiguration botCfg)
         {
             var cfg = GetDiscordConfiguration(botCfg);
 
@@ -137,11 +143,11 @@ namespace BirthdayBotTesting
             {
                 await Task.Delay(TimeSpan.FromSeconds(5));
                 await Client.UpdateStatusAsync(
-                    new DiscordActivity($"bbhelp | BBB {VERSION}", ActivityType.Playing));
+                    new DiscordActivity($"{botCfg.Prefix}help | {VERSION}", ActivityType.Playing));
             });
         }
 
-        private void InitalizeOtherParts(BotConfig cfg)
+        private void InitalizeOtherParts(DiscordBotConfiguration cfg)
         {
             Birthdays = new BirthdayManager(cfg.TriggerBday);
         }
@@ -171,6 +177,42 @@ namespace BirthdayBotTesting
             });
 
             return Task.CompletedTask;
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects)
+                    Client.DisconnectAsync().GetAwaiter().GetResult();
+                    Client.Dispose();
+
+                    Rest.Dispose();
+
+                    Birthdays.Dispose();
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+                // TODO: set large fields to null
+                Bot = null;
+                disposedValue = true;
+            }
+        }
+
+        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+        // ~DiscordBot()
+        // {
+        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        //     Dispose(disposing: false);
+        // }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -15,20 +15,21 @@ using Microsoft.Extensions.Logging;
 
 using Newtonsoft.Json;
 using DSharpPlus.CommandsNext;
+using CloudNine.Core.Birthdays;
 
-namespace BirthdayBotTesting
+namespace CloudNine.Discord.Utilities
 {
-    public class BirthdayManager
+    public class BirthdayManager : IDisposable
     {
         public bool DebugTrigger { get; set; } = false;
 
         private const string ConfigDir = "ServerConfigs";
 
-        private ConcurrentDictionary<ulong, ServerConfiguration> ServerConfigs;
+        private ConcurrentDictionary<ulong, BirthdayServerConfiguration> ServerConfigs;
 
         private Timer bdayChecker;
         private DateTime lastDay;
-
+        private bool disposedValue;
         private const int elapsedCounter = 1;
         public readonly int TriggerBdayAt = 12;
 
@@ -37,7 +38,7 @@ namespace BirthdayBotTesting
             if (!Directory.Exists(ConfigDir))
                 Directory.CreateDirectory(ConfigDir);
 
-            ServerConfigs = new ConcurrentDictionary<ulong, ServerConfiguration>();
+            ServerConfigs = new ConcurrentDictionary<ulong, BirthdayServerConfiguration>();
 
             PopulateInitialBirthdayWatchlist();
 
@@ -55,7 +56,7 @@ namespace BirthdayBotTesting
             {
                 if (DebugTrigger || ((DateTime.UtcNow.Date - lastDay.Date).TotalDays >= 1 && DateTime.UtcNow.Hour >= TriggerBdayAt))
                 {
-                    Program.Bot.Client.Logger.Log(LogLevel.Information, new EventId(elapsedCounter, "Bday Timer"), "Birthday Timer Elapsed", null);
+                    DiscordBot.Bot.Client.Logger.Log(LogLevel.Information, new EventId(elapsedCounter, "Bday Timer"), "Birthday Timer Elapsed", null);
 
                     lastDay = DateTime.UtcNow;
                     DebugTrigger = false;
@@ -73,7 +74,7 @@ namespace BirthdayBotTesting
 
                             if (toLockout is null) continue;
 
-                            var shard = Program.Bot.Client;
+                            var shard = DiscordBot.Bot.Client;
 
                             var guild = await shard.GetGuildAsync(server.Key);
 
@@ -94,6 +95,9 @@ namespace BirthdayBotTesting
                                         try
                                         {
                                             await chan.AddOverwriteAsync(member, Permissions.None, Permissions.AccessChannels, "Auto Brithday Lockout").ConfigureAwait(false);
+
+                                            var dm = await member.CreateDmChannelAsync();
+                                            await dm.SendMessageAsync($"Looks like your birthday is coming up soon! You are now locked out of {chan.Name} so people can plot your gifts in secret!");
                                             //await Program.Bot.Rest.EditChannelPermissionsAsync((ulong)server.Value.BirthdayChannel, id, Permissions.None, Permissions.AccessChannels, "member", "Auto Birthday Lockout").ConfigureAwait(false);
                                             //await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
                                         }
@@ -171,11 +175,11 @@ namespace BirthdayBotTesting
             }
             catch (Exception ex)
             {
-                Program.Bot.Client.Logger.LogError(ex, "Something went wrong in the Birthday Checker");
+                DiscordBot.Bot.Client.Logger.LogError(ex, "Something went wrong in the Birthday Checker");
             }
         }
 
-        private async Task UpdateChannelDescription(ulong c, ServerConfiguration server, ulong id)
+        private async Task UpdateChannelDescription(ulong c, BirthdayServerConfiguration server, ulong id)
         {
             var channelTopic = "Next Birthdays: ";
 
@@ -209,13 +213,13 @@ namespace BirthdayBotTesting
                 channelTopic = channelTopic[..1024];
             }
 
-            if (Program.IsDebug)
+            if (DiscordBot.IsDebug)
             { // Use this to get around the channel update rate limits.
-                await Program.Bot.Rest.CreateMessageAsync(755610860680118283, channelTopic, false, null, null).ConfigureAwait(false);
+                await DiscordBot.Bot.Rest.CreateMessageAsync(755610860680118283, channelTopic, false, null, null).ConfigureAwait(false);
             }
             else
             {
-                await Program.Bot.Rest.ModifyChannelAsync(c, x => x.Topic = channelTopic).ConfigureAwait(false);
+                await DiscordBot.Bot.Rest.ModifyChannelAsync(c, x => x.Topic = channelTopic).ConfigureAwait(false);
             }
         }
 
@@ -235,7 +239,7 @@ namespace BirthdayBotTesting
                 {
                     var json = File.ReadAllText(file);
 
-                    var config = JsonConvert.DeserializeObject<ServerConfiguration>(json);
+                    var config = JsonConvert.DeserializeObject<BirthdayServerConfiguration>(json);
 
                     if(ServerConfigs.TryAdd(result, config))
                     {
@@ -247,7 +251,7 @@ namespace BirthdayBotTesting
 
         private void SaveConfigFile(ulong server)
         {
-            if (ServerConfigs.TryGetValue(server, out ServerConfiguration? value))
+            if (ServerConfigs.TryGetValue(server, out BirthdayServerConfiguration? value))
             {
                 File.WriteAllText(Path.Combine(new string[] { ConfigDir, server.ToString() + ".json" }),
                     JsonConvert.SerializeObject(value, Formatting.Indented));
@@ -256,7 +260,7 @@ namespace BirthdayBotTesting
 
         public async Task<bool> ForceChannelUpdate(DiscordGuild g)
         {
-            if(ServerConfigs.TryGetValue(g.Id, out ServerConfiguration? config))
+            if(ServerConfigs.TryGetValue(g.Id, out BirthdayServerConfiguration? config))
             {
                 if (config.BirthdayChannel is null) return false;
 
@@ -281,9 +285,7 @@ namespace BirthdayBotTesting
 
         public void GenerateNewServerConfiguartionWithValue(ulong server, ulong? user, DateTime? date)
         {
-            var data = new ConcurrentDictionary<ulong, DateTime>();
-
-            var config = new ServerConfiguration(data);
+            var config = new BirthdayServerConfiguration();
 
             if (!(date is null || user is null))
             {
@@ -295,7 +297,7 @@ namespace BirthdayBotTesting
 
         public void UpdateBirthday(ulong server, ulong user, DateTime date)
         {
-            if (ServerConfigs.TryGetValue(server, out ServerConfiguration? cfg))
+            if (ServerConfigs.TryGetValue(server, out BirthdayServerConfiguration? cfg))
             {
                 cfg.UpdateBirthday(user, date);
             }
@@ -309,7 +311,7 @@ namespace BirthdayBotTesting
 
         public bool RemoveBirthday(ulong server, ulong user)
         {
-            if(ServerConfigs.TryGetValue(server, out ServerConfiguration? cfg))
+            if(ServerConfigs.TryGetValue(server, out BirthdayServerConfiguration? cfg))
             {
                 if (cfg.RemoveBirthday(user))
                 {
@@ -324,7 +326,7 @@ namespace BirthdayBotTesting
 
         public DateTime? GetBirthday(ulong server, ulong user)
         {
-            if (ServerConfigs.TryGetValue(server, out ServerConfiguration? cfg))
+            if (ServerConfigs.TryGetValue(server, out BirthdayServerConfiguration? cfg))
             {
                 return cfg.GetBirthday(user);
             }
@@ -346,7 +348,7 @@ namespace BirthdayBotTesting
 
         public List<ulong>? GetBrithdaysOnTodayForServer(ulong server)
         {
-            if (ServerConfigs.TryGetValue(server, out ServerConfiguration? config))
+            if (ServerConfigs.TryGetValue(server, out BirthdayServerConfiguration? config))
             {
                 return config.GetBirthdaysOnToday();
             }
@@ -356,7 +358,7 @@ namespace BirthdayBotTesting
 
         public SortedList<DateTime, List<ulong>>? GetAllBirthdaysForServer(ulong server, bool keepCurrentSort)
         {
-            if(ServerConfigs.TryGetValue(server, out ServerConfiguration? config))
+            if(ServerConfigs.TryGetValue(server, out BirthdayServerConfiguration? config))
             {
                 if (keepCurrentSort) return config.SortedBirthdays;
 
@@ -368,13 +370,13 @@ namespace BirthdayBotTesting
 
         public void UpdateBirthdayChannel(ulong server, DiscordChannel channel)
         {
-            if (ServerConfigs.TryGetValue(server, out ServerConfiguration? cfg))
+            if (ServerConfigs.TryGetValue(server, out BirthdayServerConfiguration? cfg))
             {
                 cfg.BirthdayChannel = channel.Id;
             }
             else
             {
-                cfg = new ServerConfiguration(new ConcurrentDictionary<ulong, DateTime>())
+                cfg = new BirthdayServerConfiguration()
                 {
                     BirthdayChannel = channel.Id
                 };
@@ -386,13 +388,13 @@ namespace BirthdayBotTesting
 
         public void UpdateBirthdayRole(ulong server, DiscordRole role)
         {
-            if (ServerConfigs.TryGetValue(server, out ServerConfiguration? cfg))
+            if (ServerConfigs.TryGetValue(server, out BirthdayServerConfiguration? cfg))
             {
                 cfg.BirthdayRole = role.Id;
             }
             else
             {
-                cfg = new ServerConfiguration(new ConcurrentDictionary<ulong, DateTime>())
+                cfg = new BirthdayServerConfiguration()
                 {
                     BirthdayRole = role.Id
                 };
@@ -402,170 +404,39 @@ namespace BirthdayBotTesting
             SaveConfigFile(server);
         }
 
-        private class ServerConfiguration
+        
+
+        protected virtual void Dispose(bool disposing)
         {
-            [JsonProperty("birthdays")]
-            public ConcurrentDictionary<ulong, DateTime> BirthdayDictionary { get; private set; }
-
-            [JsonProperty("bday_channel")]
-            public ulong? BirthdayChannel { get; set; }
-            [JsonProperty("bday_role")]
-            public ulong? BirthdayRole { get; set; }
-
-            [JsonIgnore]
-            public SortedList<DateTime, List<ulong>> SortedBirthdays { get; private set; }
-            [JsonIgnore]
-            private BirthdayDateComparer Comparer;
-
-            public ServerConfiguration(ConcurrentDictionary<ulong, DateTime> data)
+            if (!disposedValue)
             {
-                Comparer = new BirthdayDateComparer(DateTime.UtcNow);
-                BirthdayDictionary = data;
-                SortedBirthdays = new SortedList<DateTime, List<ulong>>(Comparer);
-            }
-
-            public void TickComparer()
-            {
-                Comparer.CurrentDay = Comparer.CurrentDay.AddDays(1);
-            }
-
-            public void ResetComparer()
-            {
-                Comparer = new BirthdayDateComparer(DateTime.UtcNow);
-            }
-
-            public void BuildInitalSortList()
-            {
-                foreach (var bday in BirthdayDictionary)
+                if (disposing)
                 {
-                    if (!SortedBirthdays.TryAdd(bday.Value, new List<ulong>() { bday.Key }))
-                        SortedBirthdays[bday.Value].Add(bday.Key);
-                }
-            }
-
-            public void TriggerResort()
-            {
-                SortedList<DateTime, List<ulong>> newData = new SortedList<DateTime, List<ulong>>(Comparer);
-
-                foreach (var item in SortedBirthdays)
-                    newData.Add(item.Key, item.Value);
-
-                SortedBirthdays = newData;
-            }
-
-            public void UpdateBirthday(ulong user, DateTime birthday)
-            {
-                if(BirthdayDictionary.ContainsKey(user))
-                    RemoveFromSortedList(user, BirthdayDictionary[user]);
-                
-                BirthdayDictionary[user] = birthday;
-
-                if (!SortedBirthdays.TryAdd(birthday, new List<ulong>() { user }))
-                    SortedBirthdays[birthday].Add(user);
-            }
-
-            public bool RemoveBirthday(ulong user)
-            {
-                if(BirthdayDictionary.TryRemove(user, out DateTime date))
-                {
-                    return RemoveFromSortedList(user, date);
+                    // TODO: dispose managed state (managed objects)
                 }
 
-                return false;
+                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+                // TODO: set large fields to null
+                ServerConfigs = null;
+
+                bdayChecker = null;
+                lastDay = DateTime.MinValue;
+                disposedValue = true;
             }
+        }
 
-            private bool RemoveFromSortedList(ulong user, DateTime date)
-            {
-                if (SortedBirthdays[date].Remove(user))
-                {
-                    if (SortedBirthdays[date].Count <= 0)
-                        SortedBirthdays.Remove(date);
+        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+        // ~BirthdayManager()
+        // {
+        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        //     Dispose(disposing: false);
+        // }
 
-                    return true;
-                }
-
-                return false;
-            }
-
-            public DateTime? GetBirthday(ulong user)
-            {
-                if (BirthdayDictionary.TryGetValue(user, out DateTime value))
-                    return value;
-
-                return null;
-            }
-
-            public List<ulong> GetBirthdaysOnToday()
-            {
-                var res = new List<ulong>(SortedBirthdays.FirstOrDefault(
-                        x => x.Key.Date.Month == Comparer.CurrentDay.Date.Month &&
-                        x.Key.Date.Day == Comparer.CurrentDay.Date.Day
-                    ).Value ?? new List<ulong>());
-
-                return res ?? new List<ulong>();
-            }
-
-            public SortedList<DateTime, List<ulong>> GetNextBirthdaysToLockout()
-            {
-                var res = new SortedList<DateTime, List<ulong>>(Comparer);
-
-                var c = 0;
-                foreach(var val in SortedBirthdays)
-                {
-                    if (c >= 3) break;
-
-                    if (c == 0 && (val.Key.Month != Comparer.CurrentDay.Month || val.Key.Day != Comparer.CurrentDay.Day))
-                    {
-                        c += 2;
-                        res.Add(val.Key, val.Value);
-                        continue;
-                    }
-
-                    if (c != 0)
-                        res.Add(val.Key, val.Value);
-
-                    c++;
-                }
-
-                return res;
-            }
-
-            public List<ulong>? GetBirthdaysWithinLockout_old()
-            {
-                var res = new List<ulong>();
-
-                foreach (var pair in BirthdayDictionary)
-                {
-                    var startDate = new DateTime(DateTime.UtcNow.Year, pair.Value.Month, pair.Value.Day) - TimeSpan.FromDays(30);
-                    var compareDate = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, DateTime.UtcNow.Day);
-
-                    var diff = compareDate - startDate;
-
-                    if (diff.Days < 30)
-                    {
-                        res.Add(pair.Key);
-                    }
-                }
-
-                return res;
-            }
-
-            public IEnumerable<ulong> GetNonLockoutNonBirthdayUsers()
-            {
-                var res = new List<ulong>();
-                var lockout = GetNextBirthdaysToLockout().Values;
-                var bdays = GetBirthdaysOnToday();
-
-                if (!(lockout is null))
-                    foreach (var v in lockout)
-                        res.AddRange(v);
-
-                if (!(bdays is null))
-                    res.AddRange(bdays);
-
-                return BirthdayDictionary.Keys.ToList().Where(x => !res.Contains(x));
-            }
-
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }
