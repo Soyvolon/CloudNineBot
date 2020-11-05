@@ -16,6 +16,8 @@ using Microsoft.Extensions.Logging.Console;
 
 using Newtonsoft.Json;
 
+using Newtonsoft.Json;
+
 namespace CloudNine
 {
     class Program
