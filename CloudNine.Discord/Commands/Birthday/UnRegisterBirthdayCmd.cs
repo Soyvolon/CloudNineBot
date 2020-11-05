@@ -5,7 +5,7 @@ using DSharpPlus.CommandsNext.Attributes;
 
 namespace CloudNine.Discord.Commands.Birthday
 {
-    public class UnRegisterBirthdayCmd : BaseCommandModule
+    public class UnRegisterBirthdayCmd : CommandModule
     {
         [Command("remove")]
         [Aliases("unregister")]

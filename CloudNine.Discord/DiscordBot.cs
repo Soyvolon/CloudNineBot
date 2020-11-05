@@ -33,7 +33,7 @@ namespace CloudNine.Discord
             }
         }
 
-        public const string VERSION = "1.0.1";
+        public const string VERSION = "alpha-2.0.0";
         private bool disposedValue;
 
         public static DiscordBot Bot { get; private set; }
@@ -51,40 +51,6 @@ namespace CloudNine.Discord
             this.services = services;
 
             Bot = this;
-        }
-
-        static void Main(string[] args)
-        {
-            var botCfgPath = Path.Combine(new string[] { "Config", "bot_config.json" });
-
-            botCfgPath = Path.GetFullPath(botCfgPath);
-
-            if (!Directory.Exists("Config"))
-                Directory.CreateDirectory("Config");
-
-            if (!File.Exists(botCfgPath))
-            {
-                File.WriteAllText(botCfgPath, @"{ ""token"": ""insert_token_here"", ""prefix"": ""bb"" }");
-                Console.WriteLine("Bot config was missing, please insert new token.");
-                Console.ReadLine();
-                Environment.Exit(-1);
-            }
-
-            using FileStream fs = new FileStream(botCfgPath, FileMode.Open);
-            using StreamReader sr = new StreamReader(fs);
-            var json = sr.ReadToEnd();
-
-            var botCfg = JsonConvert.DeserializeObject<DiscordBotConfiguration>(json);
-
-            //Bot = new DiscordBot();
-
-            Bot.Start(botCfg).GetAwaiter().GetResult();
-
-            //while (!Console.ReadLine().Equals("exit")) { }
-
-            Task.Delay(-1).GetAwaiter().GetResult();
-
-            Bot.Birthdays.SaveAllConfigurations();
         }
 
         private DiscordConfiguration GetDiscordConfiguration(DiscordBotConfiguration botCfg)

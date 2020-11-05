@@ -9,7 +9,7 @@ using DSharpPlus.Entities;
 
 namespace CloudNine.Discord.Commands.Birthday
 {
-    public class AdminOverrides : BaseCommandModule
+    public class AdminOverrides : CommandModule
     {
         [Command("aregister")]
         [RequireUserPermissions(DSharpPlus.Permissions.Administrator)]

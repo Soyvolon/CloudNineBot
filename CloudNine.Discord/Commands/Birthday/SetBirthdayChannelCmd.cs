@@ -7,7 +7,7 @@ using DSharpPlus.Entities;
 
 namespace CloudNine.Discord.Commands.Birthday
 {
-    public class SetBirthdayChannelCmd : BaseCommandModule
+    public class SetBirthdayChannelCmd : CommandModule
     {
         [Command("channel")]
         [Description("Sets the birthday channel for this server.")]

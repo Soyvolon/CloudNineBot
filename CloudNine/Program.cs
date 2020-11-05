@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
+using CloudNine.Config.Bot;
 using CloudNine.Core.Database;
 using CloudNine.Discord;
 
@@ -10,6 +12,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+
+using Newtonsoft.Json;
 
 namespace CloudNine
 {
@@ -40,9 +44,16 @@ namespace CloudNine
 
             using DiscordBot discord = new DiscordBot(MinimumLogLevel, serviceProvider);
 
+            string json = "";
+            using (FileStream fs = new FileStream("Config/bot_config.json", FileMode.Open))
+            {
+                using StreamReader sr = new StreamReader(fs);
+                json = await sr.ReadToEndAsync();
+            }
 
+            var botCfg = JsonConvert.DeserializeObject<DiscordBotConfiguration>(json);
 
-            //discord.Start();
+            await discord.Start(botCfg);
 
             await Task.Delay(-1);
         }

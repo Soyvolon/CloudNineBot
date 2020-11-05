@@ -6,7 +6,7 @@ using DSharpPlus.CommandsNext.Attributes;
 
 namespace CloudNine.Discord.Commands.Birthday
 {
-    public class RegisterBirthdayCmd : BaseCommandModule
+    public class RegisterBirthdayCmd : CommandModule
     {
 
         [Command("register")]

@@ -11,7 +11,7 @@ using DSharpPlus.Exceptions;
 
 namespace CloudNine.Discord.Commands.Birthday
 {
-    public class GetBirthdayListCmd : BaseCommandModule
+    public class GetBirthdayListCmd : CommandModule
     {
         [Command("list")]
         [Aliases("brithdays")]

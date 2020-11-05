@@ -6,7 +6,7 @@ using DSharpPlus.Entities;
 
 namespace CloudNine.Discord.Commands.Birthday
 {
-    public class SetBirthdayRoleCmd : BaseCommandModule
+    public class SetBirthdayRoleCmd : CommandModule
     {
         [Command("role")]
         [Description("Sets the role to be given to a user whos birthday is today.")]

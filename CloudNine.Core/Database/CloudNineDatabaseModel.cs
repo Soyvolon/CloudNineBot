@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
 using CloudNine.Core.Birthdays;
 using CloudNine.Core.Configuration;
+using CloudNine.Core.Quotes;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
@@ -15,7 +17,7 @@ namespace CloudNine.Core.Database
 {
     public class CloudNineDatabaseModel : DbContext
     {
-        public DbSet<DiscordServerConfiguration> ServerConfigurations { get; set; }
+        public DbSet<DiscordGuildConfiguration> ServerConfigurations { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -33,11 +35,17 @@ namespace CloudNine.Core.Database
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<DiscordServerConfiguration>()
+            modelBuilder.Entity<DiscordGuildConfiguration>()
                 .Property(b => b.BirthdayConfiguration)
                 .HasConversion(
                     v => JsonConvert.SerializeObject(v),
                     v => JsonConvert.DeserializeObject<BirthdayServerConfiguration>(v) ?? new BirthdayServerConfiguration());
+
+            modelBuilder.Entity<DiscordGuildConfiguration>()
+                .Property(b => b.Quotes)
+                .HasConversion(
+                    v => JsonConvert.SerializeObject(v),
+                    v => JsonConvert.DeserializeObject<ConcurrentDictionary<int, Quote>>(v) ?? new ConcurrentDictionary<int, Quote>());
         }
     }
 }

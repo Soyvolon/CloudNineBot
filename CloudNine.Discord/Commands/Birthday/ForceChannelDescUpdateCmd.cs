@@ -8,7 +8,7 @@ using DSharpPlus.CommandsNext.Attributes;
 
 namespace CloudNine.Discord.Commands.Birthday
 {
-    public class ForceChannelDescUpdateCmd : BaseCommandModule
+    public class ForceChannelDescUpdateCmd : CommandModule
     {
         [Command("forceupdate")]
         [Description("Forces the birthday channel description to update.")]

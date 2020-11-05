@@ -5,7 +5,7 @@ using DSharpPlus.CommandsNext.Attributes;
 
 namespace CloudNine.Discord.Commands.Birthday
 {
-    public class TriggerNextTimerEventCmd : BaseCommandModule
+    public class TriggerNextTimerEventCmd : CommandModule
     {
         [Command("trigger")]
         [RequireOwner]
