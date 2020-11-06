@@ -29,9 +29,19 @@ steps:
     command: 'publish'
     publishWebProjects: false
     projects: '**/CloudNine.csproj'
-    arguments: '--configuration $(BuildConfiguration) --output $(Build.ArtifactStagingDirectory) --runtime linux-x64'
+    arguments: '--configuration $(BuildConfiguration) --output ./build --runtime linux-x64'
     zipAfterPublish: false
 
+- task: Docker@2
+  inputs:
+    command: 'buildAndPush'
+    Dockerfile: '**/Dockerfile'
+  
+- task: CopyFiles@2
+  inputs:
+    Contents: '**/docker-compose.yml'
+    TargetFolder: '$(Build.ArtifcatStagingDirectory)'
+  
 - task: PublishBuildArtifacts@1
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
