@@ -22,8 +22,11 @@ stages:
     steps:
     - task: DotNetCoreCLI@2
       inputs:
-        command: 'build'
+        command: 'publish'
+        publishWebProjects: false
         projects: '$(Build.SourcesDirectory)/CloudNine/*.csproj'
+        zipAfterPublish: false
+        modifyOutputPath: false
     - task: Docker@2
       displayName: Build an image
       inputs:
