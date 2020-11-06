@@ -1,6 +1,6 @@
 FROM mcr.microsoft.com/dotnet/core/aspnet:3.1
 
-ARG PATH=CloudNine\bin\Release\netcoreapp3.1\publish
+ARG PATH=/root/CloudNine/src/build
 
 COPY $PATH App/
 WORKDIR /App
