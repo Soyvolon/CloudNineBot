@@ -19,15 +19,27 @@ namespace CloudNine.Core.Birthdays
         public ulong? BirthdayRole { get; set; }
 
         [JsonIgnore]
-        public SortedList<DateTime, List<ulong>> SortedBirthdays { get; private set; }
+        public SortedList<DateTime, List<ulong>> SortedBirthdays { get
+            {
+                if (!initialized) Initalize();
+                return _sortedBdays;
+            }
+        }
+
+        [JsonIgnore]
+        private SortedList<DateTime, List<ulong>> _sortedBdays;
+
+
         [JsonIgnore]
         private BirthdayDateComparer Comparer;
+        [JsonIgnore]
+        private bool initialized = false;
 
         public BirthdayServerConfiguration()
         {
             Comparer = new BirthdayDateComparer(DateTime.UtcNow);
             BirthdayDictionary = new ConcurrentDictionary<ulong, DateTime>();
-            SortedBirthdays = new SortedList<DateTime, List<ulong>>(Comparer);
+            _sortedBdays = new SortedList<DateTime, List<ulong>>(Comparer);
         }
 
         public void TickComparer()
@@ -40,38 +52,46 @@ namespace CloudNine.Core.Birthdays
             Comparer = new BirthdayDateComparer(DateTime.UtcNow);
         }
 
-        public void BuildInitalSortList()
+        public void Initalize()
         {
             foreach (var bday in BirthdayDictionary)
             {
-                if (!SortedBirthdays.TryAdd(bday.Value, new List<ulong>() { bday.Key }))
-                    SortedBirthdays[bday.Value].Add(bday.Key);
+                if (!_sortedBdays.TryAdd(bday.Value, new List<ulong>() { bday.Key }))
+                    _sortedBdays[bday.Value].Add(bday.Key);
             }
+
+            initialized = true;
         }
 
         public void TriggerResort()
         {
+            if (!initialized) Initalize();
+
             SortedList<DateTime, List<ulong>> newData = new SortedList<DateTime, List<ulong>>(Comparer);
 
-            foreach (var item in SortedBirthdays)
+            foreach (var item in _sortedBdays)
                 newData.Add(item.Key, item.Value);
 
-            SortedBirthdays = newData;
+            _sortedBdays = newData;
         }
 
         public void UpdateBirthday(ulong user, DateTime birthday)
         {
+            if (!initialized) Initalize();
+
             if (BirthdayDictionary.ContainsKey(user))
                 RemoveFromSortedList(user, BirthdayDictionary[user]);
 
             BirthdayDictionary[user] = birthday;
 
-            if (!SortedBirthdays.TryAdd(birthday, new List<ulong>() { user }))
-                SortedBirthdays[birthday].Add(user);
+            if (!_sortedBdays.TryAdd(birthday, new List<ulong>() { user }))
+                _sortedBdays[birthday].Add(user);
         }
 
         public bool RemoveBirthday(ulong user)
         {
+            if (!initialized) Initalize();
+
             if (BirthdayDictionary.TryRemove(user, out DateTime date))
             {
                 return RemoveFromSortedList(user, date);
@@ -82,10 +102,12 @@ namespace CloudNine.Core.Birthdays
 
         private bool RemoveFromSortedList(ulong user, DateTime date)
         {
-            if (SortedBirthdays[date].Remove(user))
+            if (!initialized) Initalize();
+
+            if (_sortedBdays[date].Remove(user))
             {
-                if (SortedBirthdays[date].Count <= 0)
-                    SortedBirthdays.Remove(date);
+                if (_sortedBdays[date].Count <= 0)
+                    _sortedBdays.Remove(date);
 
                 return true;
             }
@@ -95,6 +117,8 @@ namespace CloudNine.Core.Birthdays
 
         public DateTime? GetBirthday(ulong user)
         {
+            if (!initialized) Initalize();
+
             if (BirthdayDictionary.TryGetValue(user, out DateTime value))
                 return value;
 
@@ -103,7 +127,9 @@ namespace CloudNine.Core.Birthdays
 
         public List<ulong> GetBirthdaysOnToday()
         {
-            var res = new List<ulong>(SortedBirthdays.FirstOrDefault(
+            if (!initialized) Initalize();
+
+            var res = new List<ulong>(_sortedBdays.FirstOrDefault(
                     x => x.Key.Date.Month == Comparer.CurrentDay.Date.Month &&
                     x.Key.Date.Day == Comparer.CurrentDay.Date.Day
                 ).Value ?? new List<ulong>());
@@ -113,10 +139,12 @@ namespace CloudNine.Core.Birthdays
 
         public SortedList<DateTime, List<ulong>> GetNextBirthdaysToLockout()
         {
+            if (!initialized) Initalize();
+
             var res = new SortedList<DateTime, List<ulong>>(Comparer);
 
             var c = 0;
-            foreach (var val in SortedBirthdays)
+            foreach (var val in _sortedBdays)
             {
                 if (c >= 3) break;
 
@@ -138,6 +166,8 @@ namespace CloudNine.Core.Birthdays
 
         public List<ulong>? GetBirthdaysWithinLockout_old()
         {
+            if (!initialized) Initalize();
+
             var res = new List<ulong>();
 
             foreach (var pair in BirthdayDictionary)
@@ -158,6 +188,8 @@ namespace CloudNine.Core.Birthdays
 
         public IEnumerable<ulong> GetNonLockoutNonBirthdayUsers()
         {
+            if (!initialized) Initalize();
+
             var res = new List<ulong>();
             var lockout = GetNextBirthdaysToLockout().Values;
             var bdays = GetBirthdaysOnToday();

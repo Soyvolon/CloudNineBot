@@ -11,7 +11,7 @@ namespace CloudNine.Discord.Commands.Birthday
     {
         [Command("channel")]
         [Description("Sets the birthday channel for this server.")]
-        [RequireUserPermissions(Permissions.Administrator)]
+        [RequireUserPermissions(Permissions.ManageGuild)]
         public async Task SetBirthdayChannelAsync(CommandContext ctx, DiscordChannel channel)
         {
             DiscordBot.Bot.Birthdays.UpdateBirthdayChannel(ctx.Guild.Id, channel);

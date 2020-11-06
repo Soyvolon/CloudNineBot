@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
@@ -10,7 +11,7 @@ namespace CloudNine.Discord.Commands.Birthday
     {
         [Command("role")]
         [Description("Sets the role to be given to a user whos birthday is today.")]
-        [RequireUserPermissions(DSharpPlus.Permissions.Administrator)]
+        [RequireUserPermissions(Permissions.ManageGuild)]
         public async Task SetBirthdayRoleAsync(CommandContext ctx, DiscordRole role)
         {
             DiscordBot.Bot.Birthdays.UpdateBirthdayRole(ctx.Guild.Id, role);

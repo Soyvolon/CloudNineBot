@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
+using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
@@ -12,7 +13,7 @@ namespace CloudNine.Discord.Commands.Birthday
     public class AdminOverrides : CommandModule
     {
         [Command("aregister")]
-        [RequireUserPermissions(DSharpPlus.Permissions.Administrator)]
+        [RequireUserPermissions(Permissions.ManageGuild)]
         public async Task AdminRegisterUser(CommandContext ctx, DiscordUser m, [RemainingText] DateTime bday)
         {
             DiscordBot.Bot.Birthdays.UpdateBirthday(ctx.Guild.Id, m.Id, bday);
@@ -20,7 +21,7 @@ namespace CloudNine.Discord.Commands.Birthday
         }
 
         [Command("aremove")]
-        [RequireUserPermissions(DSharpPlus.Permissions.Administrator)]
+        [RequireUserPermissions(Permissions.ManageGuild)]
         public async Task AdminRemoveUser(CommandContext ctx, DiscordUser user)
         {
             DiscordBot.Bot.Birthdays.RemoveBirthday(ctx.Guild.Id, user.Id);

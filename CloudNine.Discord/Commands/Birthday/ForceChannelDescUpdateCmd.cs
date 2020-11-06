@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
+using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 
@@ -12,7 +13,7 @@ namespace CloudNine.Discord.Commands.Birthday
     {
         [Command("forceupdate")]
         [Description("Forces the birthday channel description to update.")]
-        [RequireUserPermissions(DSharpPlus.Permissions.Administrator)]
+        [RequireUserPermissions(Permissions.ManageGuild)]
         public async Task ForceChannelDescUpdateAsync(CommandContext ctx)
         {
             if (await DiscordBot.Bot.Birthdays.ForceChannelUpdate(ctx.Guild))

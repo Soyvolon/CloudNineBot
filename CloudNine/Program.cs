@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 
 using Newtonsoft.Json;
 
@@ -27,7 +28,7 @@ namespace CloudNine
         private static async Task Start()
         {
             ServiceCollection services = new ServiceCollection();
-            services.AddLogging();
+            services.AddLogging(o => o.AddConsole());
 
 #if DEBUG
             LogLevel MinimumLogLevel = LogLevel.Debug;
