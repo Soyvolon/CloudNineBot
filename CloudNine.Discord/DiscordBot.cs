@@ -4,11 +4,14 @@ using System.Reflection;
 using System.Threading.Tasks;
 
 using CloudNine.Config.Bot;
+using CloudNine.Core.Database;
 using CloudNine.Discord.Utilities;
 
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
+using DSharpPlus.Interactivity;
+using DSharpPlus.Interactivity.Extensions;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -41,6 +44,7 @@ namespace CloudNine.Discord
         public DiscordClient Client { get; private set; }
         public DiscordRestClient Rest { get; private set; }
         public BirthdayManager Birthdays { get; private set; }
+        public DiscordBotConfiguration BotConfiguration { get; private set; }
 
         private LogLevel logLevel;
         private ServiceProvider services;
@@ -79,8 +83,21 @@ namespace CloudNine.Discord
             return cncfg;
         }
 
+        private InteractivityConfiguration GetInteractivityConfiguration()
+        {
+            var icfg = new InteractivityConfiguration
+            {
+                PaginationBehaviour = DSharpPlus.Interactivity.Enums.PaginationBehaviour.WrapAround,
+                PaginationDeletion = DSharpPlus.Interactivity.Enums.PaginationDeletion.DeleteMessage
+            };
+
+            return icfg;
+        }
+
         public async Task Start(DiscordBotConfiguration botCfg)
         {
+            BotConfiguration = botCfg;
+
             var cfg = GetDiscordConfiguration(botCfg);
 
             Client = new DiscordClient(cfg);
@@ -95,15 +112,13 @@ namespace CloudNine.Discord
 
             commands.RegisterConverter(new DateTimeAttributeConverter());
 
-            Console.WriteLine(Client.GetCommandsNext());
+            Client.UseInteractivity(GetInteractivityConfiguration());
 
             Client.Ready += Client_Ready;
 
             InitalizeOtherParts(botCfg);
 
             await Client.ConnectAsync().ConfigureAwait(false);
-
-            Console.WriteLine("Starting");
 
             await Task.Run(async () =>
             {
@@ -115,25 +130,24 @@ namespace CloudNine.Discord
 
         private void InitalizeOtherParts(DiscordBotConfiguration cfg)
         {
-            Birthdays = new BirthdayManager(cfg.TriggerBday);
+            Birthdays = new BirthdayManager(cfg.TriggerBday, services);
         }
 
-        private Task Client_Ready(DSharpPlus.EventArgs.ReadyEventArgs e)
+        private Task Client_Ready(DiscordClient c, DSharpPlus.EventArgs.ReadyEventArgs e)
         {
-            Console.WriteLine("Entering Client_Ready");
-            e.Client?.Logger.LogInformation("Client Ready!");
+            c?.Logger.LogInformation("Client Ready!");
 
             return Task.CompletedTask;
         }
 
-        private Task Client_CommandExecuted(CommandExecutionEventArgs e)
+        private Task Client_CommandExecuted(CommandsNextExtension cnext, CommandEventArgs e)
         {
             e.Context.Client.Logger.LogInformation($"User {e.Context.User.Username} executed command: {e.Command.Name}");
 
             return Task.CompletedTask;
         }
 
-        private Task Client_CommandErrored(CommandErrorEventArgs e)
+        private Task Client_CommandErrored(CommandsNextExtension cnext, CommandErrorEventArgs e)
         {
             e.Context.Client.Logger.LogError(e.Exception, $"User {e.Context.User.Username} failed to execute command: {e.Command?.Name}");
 
