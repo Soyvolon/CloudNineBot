@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <LangVersion>8.0</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DSharpPlus" Version="4.0.0-nightly-00747" />
+    <PackageReference Include="DSharpPlus.CommandsNext" Version="4.0.0-nightly-00747" />
+    <PackageReference Include="DSharpPlus.Interactivity" Version="4.0.0-nightly-00747" />
+    <PackageReference Include="DSharpPlus.Rest" Version="4.0.0-nightly-00747" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CloudNine.Core\CloudNine.Core.csproj" />
+  </ItemGroup>
+
+</Project>
