@@ -1,25 +1,20 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
+
+using CloudNine.Core.Birthdays;
+using CloudNine.Core.Configuration;
+using CloudNine.Core.Database;
 
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 
-using Microsoft.Extensions.Logging;
-
-using Newtonsoft.Json;
-using DSharpPlus.CommandsNext;
-using CloudNine.Core.Birthdays;
-using CloudNine.Core.Database;
 using Microsoft.EntityFrameworkCore;
-using CloudNine.Core.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace CloudNine.Discord.Utilities
 {
@@ -274,7 +269,7 @@ namespace CloudNine.Discord.Utilities
         {
             var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
             var config = await _database.FindAsync<DiscordGuildConfiguration>(g.Id);
-            if(!(config is null))
+            if (!(config is null))
             {
                 if (config.BirthdayConfiguration.BirthdayChannel is null) return false;
 
@@ -430,7 +425,7 @@ namespace CloudNine.Discord.Utilities
             _database.SaveChanges();
         }
 
-        
+
 
         protected virtual void Dispose(bool disposing)
         {

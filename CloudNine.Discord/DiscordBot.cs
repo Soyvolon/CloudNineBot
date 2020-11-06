@@ -1,10 +1,8 @@
 ﻿using System;
-using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 
 using CloudNine.Config.Bot;
-using CloudNine.Core.Database;
 using CloudNine.Discord.Utilities;
 
 using DSharpPlus;
@@ -15,8 +13,6 @@ using DSharpPlus.Interactivity.Extensions;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-
-using Newtonsoft.Json;
 
 using static CloudNine.Discord.Utilities.AttributeConverters;
 

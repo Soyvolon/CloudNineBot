@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 using Newtonsoft.Json;
 
@@ -19,7 +18,9 @@ namespace CloudNine.Core.Birthdays
         public ulong? BirthdayRole { get; set; }
 
         [JsonIgnore]
-        public SortedList<DateTime, List<ulong>> SortedBirthdays { get
+        public SortedList<DateTime, List<ulong>> SortedBirthdays
+        {
+            get
             {
                 if (!initialized) Initalize();
                 return _sortedBdays;

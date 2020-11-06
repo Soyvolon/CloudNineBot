@@ -23,13 +23,13 @@ namespace CloudNine.Discord.Commands.Quotes.Admin
         [Description("Deltes a quote by its ID.")]
         [Aliases("delquote", "dquote")]
         [RequireUserPermissions(Permissions.ManageMessages)]
-        public async Task DeleteQuoteCommandAsync(CommandContext ctx, 
+        public async Task DeleteQuoteCommandAsync(CommandContext ctx,
             [Description("The ID of the quote to remove.")]
             int quoteId)
         {
             var cfg = await _database.FindAsync<DiscordGuildConfiguration>(ctx.Guild.Id);
 
-            if(cfg.TryRemoveQuote(quoteId, out var quote))
+            if (cfg.TryRemoveQuote(quoteId, out var quote))
             {
                 var embed = new DiscordEmbedBuilder()
                     .WithTitle($"Remved Quote `{quoteId}` by {quote.Author}")

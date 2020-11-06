@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
 using System.Threading.Tasks;
 
 using CloudNine.Core.Birthdays;
 using CloudNine.Core.Quotes;
-
-using Microsoft.EntityFrameworkCore.Storage;
 
 namespace CloudNine.Core.Configuration
 {
@@ -30,12 +26,12 @@ namespace CloudNine.Core.Configuration
         {
             get
             {
-                if(_keys is null)
+                if (_keys is null)
                 {
                     _keys = new HashSet<int>();
                     _keys.UnionWith(Quotes.Keys);
                 }
-                
+
                 return _keys;
             }
         }
@@ -50,9 +46,9 @@ namespace CloudNine.Core.Configuration
 
         public Task<bool> AddQuote(Quote quote)
         {
-            for(int i = 0; i <= Keys.Count; i++)
+            for (int i = 0; i <= Keys.Count; i++)
             {
-                if(!Keys.Contains(i))
+                if (!Keys.Contains(i))
                 {
                     quote.Id = i;
                     Keys.Add(i);
@@ -66,7 +62,7 @@ namespace CloudNine.Core.Configuration
 
         public bool TryRemoveQuote(int id, out Quote? quote)
         {
-            if(Keys.Remove(id))
+            if (Keys.Remove(id))
                 return Quotes.TryRemove(id, out quote);
 
             quote = null;

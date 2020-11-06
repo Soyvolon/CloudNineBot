@@ -42,7 +42,7 @@ namespace CloudNine.Discord.Commands.Quotes.Admin
             string quote)
         {
             var cfg = await _database.FindAsync<DiscordGuildConfiguration>(ctx.Guild.Id);
-            if(cfg is null)
+            if (cfg is null)
             {
                 cfg = new DiscordGuildConfiguration()
                 {

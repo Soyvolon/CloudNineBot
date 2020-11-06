@@ -1,13 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using CloudNine.Core.Configuration;
 using CloudNine.Core.Database;
 using CloudNine.Core.Extensions;
 
-using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
@@ -48,7 +44,7 @@ namespace CloudNine.Discord.Commands.Quotes
                 var quoteId = cfg.Keys.Random();
                 await SendQuoteByIdAsync(ctx, cfg, quoteId);
             }
-            else if(args[0].ToLower() == "help")
+            else if (args[0].ToLower() == "help")
             { // Display command help information.
                 var embed = new DiscordEmbedBuilder()
                     .WithColor(Color_Cloud)
@@ -64,20 +60,20 @@ namespace CloudNine.Discord.Commands.Quotes
                         $"Quote Id  :: The ID of the quote you want to get.\n" +
                         $"Returns   :: A specific quote." +
                         $"\n```");
-                    /*.AddField("global", "```http\n" +
-                        $"Usage     :: {ctx.Prefix}quote global\n" +
-                        $"Returns   :: A random globaly shared quote." +
-                        $"\n```");*/
+                /*.AddField("global", "```http\n" +
+                    $"Usage     :: {ctx.Prefix}quote global\n" +
+                    $"Returns   :: A random globaly shared quote." +
+                    $"\n```");*/
 
                 await ctx.RespondAsync(embed: embed);
             }
             else if (args[0] == "id")
             {
-                if(args.Length < 2)
+                if (args.Length < 2)
                 {
                     await ctx.RespondAsync("No ID provided. Make sure to include an ID for the quote you want to get.");
                 }
-                else if(int.TryParse(args[1], out int id))
+                else if (int.TryParse(args[1], out int id))
                 {
                     await SendQuoteByIdAsync(ctx, cfg, id);
                 }
@@ -94,7 +90,7 @@ namespace CloudNine.Discord.Commands.Quotes
 
         private async Task SendQuoteByIdAsync(CommandContext ctx, DiscordGuildConfiguration cfg, int quoteId)
         {
-            if(cfg.Quotes.TryGetValue(quoteId, out var quote))
+            if (cfg.Quotes.TryGetValue(quoteId, out var quote))
             {
                 var embed = new DiscordEmbedBuilder()
                     .WithColor(Color_Cloud)
