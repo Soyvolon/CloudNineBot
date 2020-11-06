@@ -64,14 +64,13 @@ namespace CloudNine.Core.Configuration
             return Task.FromResult(false);
         }
 
-        public async Task<Quote> GetQuote(int id)
+        public bool TryRemoveQuote(int id, out Quote? quote)
         {
-            throw new NotImplementedException();
-        }
+            if(Keys.Remove(id))
+                return Quotes.TryRemove(id, out quote);
 
-        public async Task<Quote> GetQuote()
-        {
-            throw new NotImplementedException();
+            quote = null;
+            return false;
         }
     }
 }

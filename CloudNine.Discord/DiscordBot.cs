@@ -88,7 +88,7 @@ namespace CloudNine.Discord
             var icfg = new InteractivityConfiguration
             {
                 PaginationBehaviour = DSharpPlus.Interactivity.Enums.PaginationBehaviour.WrapAround,
-                PaginationDeletion = DSharpPlus.Interactivity.Enums.PaginationDeletion.DeleteMessage
+                PaginationDeletion = DSharpPlus.Interactivity.Enums.PaginationDeletion.DeleteMessage,
             };
 
             return icfg;
