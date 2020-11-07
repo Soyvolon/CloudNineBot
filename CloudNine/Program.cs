@@ -1,6 +1,4 @@
-﻿using System;
-using System.Data;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -9,12 +7,8 @@ using CloudNine.Core.Database;
 using CloudNine.Discord;
 
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
-
-using Newtonsoft.Json;
 
 using Newtonsoft.Json;
 
@@ -63,7 +57,7 @@ namespace CloudNine
 
         private static async Task ApplyDatabaseMigrations(CloudNineDatabaseModel database)
         {
-            if(!(await database.Database.GetPendingMigrationsAsync()).Any())
+            if (!(await database.Database.GetPendingMigrationsAsync()).Any())
             {
                 return;
             }

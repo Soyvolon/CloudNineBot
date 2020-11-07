@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 
 namespace CloudNine.Core.Birthdays
 {
@@ -44,7 +43,7 @@ namespace CloudNine.Core.Birthdays
 
             var yearRes = xDate.Year.CompareTo(yDate.Year);
 
-            if(yearRes == 0)
+            if (yearRes == 0)
             {
                 var monthRes = xDate.Month.CompareTo(yDate.Month);
                 if (monthRes == 0)

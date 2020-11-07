@@ -1,19 +1,15 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 using CloudNine.Core.Birthdays;
 using CloudNine.Core.Configuration;
 using CloudNine.Core.Database;
 
-using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Logging;
 
 using Newtonsoft.Json;
@@ -36,7 +32,7 @@ namespace CloudNine.Discord.Commands.Developer
         {
             try
             {
-                if(args.Length < 1)
+                if (args.Length < 1)
                 {
                     await ctx.RespondAsync("No command entered.");
                 }
@@ -60,10 +56,10 @@ namespace CloudNine.Discord.Commands.Developer
             string folderPath = "ServerConfigs";
 
             var argsList = args.ToList();
-            if(argsList.Contains("--path") || argsList.Contains("-p"))
+            if (argsList.Contains("--path") || argsList.Contains("-p"))
             {
                 int startPos = 0;
-                if(argsList.Contains("--path"))
+                if (argsList.Contains("--path"))
                     startPos = argsList.IndexOf("--path");
                 else
                     startPos = argsList.IndexOf("-p");
@@ -85,7 +81,7 @@ namespace CloudNine.Discord.Commands.Developer
                     return;
                 }
 
-                if(Directory.Exists(fullPath))
+                if (Directory.Exists(fullPath))
                 {
                     folderPath = fullPath;
                 }

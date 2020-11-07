@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿using System.IO;
 using System.Threading.Tasks;
 
 using DSharpPlus.CommandsNext;
@@ -32,7 +29,7 @@ namespace CloudNine.Discord.Commands.Birthday
             {
                 str += $"\n\nBirthdays on: {date.Key.Date:dd MMMM}:";
 
-                foreach(var bday in date.Value)
+                foreach (var bday in date.Value)
                 {
                     if (ctx.Guild.Members.TryGetValue(bday, out DiscordMember? m))
                     {

@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
 using System.IO;
-using System.Text;
 
 using CloudNine.Core.Birthdays;
 using CloudNine.Core.Configuration;
 using CloudNine.Core.Quotes;
 
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 using Newtonsoft.Json;
 
