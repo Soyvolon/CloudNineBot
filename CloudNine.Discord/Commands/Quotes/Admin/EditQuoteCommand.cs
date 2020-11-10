@@ -51,6 +51,8 @@ namespace CloudNine.Discord.Commands.Quotes.Admin
                 return;
             }
 
+            _database.Update(cfg);
+
             for(int i = 0; i < args.Length; i++)
             {
                 switch (args[i].ToLower())
@@ -80,6 +82,8 @@ namespace CloudNine.Discord.Commands.Quotes.Admin
                         break;
                 }
             }
+
+            await _database.SaveChangesAsync();
 
             await ctx.RespondAsync($"Edited quote `{quoteId}`: ");
             var cnext = ctx.Client.GetCommandsNext();

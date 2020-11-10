@@ -21,5 +21,11 @@ namespace CloudNine.Discord.Commands
         {
             await ctx.RespondAsync(response);
         }
+
+        public static DiscordEmbedBuilder ErrorBase()
+        {
+            return new DiscordEmbedBuilder()
+                .WithColor(DiscordColor.Red);
+        }
     }
 }
