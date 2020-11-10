@@ -81,6 +81,8 @@ namespace CloudNine.Discord.Commands.Developer
                     return;
                 }
 
+                await ctx.RespondAsync($"Attempting read from `{fullPath}`");
+
                 if (Directory.Exists(fullPath))
                 {
                     folderPath = fullPath;
@@ -91,6 +93,8 @@ namespace CloudNine.Discord.Commands.Developer
                     return;
                 }
             }
+
+            await ctx.RespondAsync($"Attempting read from `{folderPath}`");
 
             await ReadFromLocalFolder(ctx, folderPath);
         }
