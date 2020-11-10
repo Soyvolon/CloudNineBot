@@ -113,14 +113,14 @@ namespace CloudNine.Discord.Commands.Quotes.Admin
                     .AddField("`-a | --author <new author>`", "```http\n" +
                         $"Usage        :: {ctx.Prefix}editquote -a \"Cloud Bot\"\n" +
                         $"Usage        :: {ctx.Prefix}editquote --author \"Cloud Bot\"\n" +
-                        $"New Quote    :: Replces the author of the quote with the next argument. Use \" around multi-word" +
+                        $"New Author   :: Replces the author of the quote with the next argument. Use \" around multi-word" +
                         $" authors.\n" +
                         $"Returns      :: The edited quote." +
                         $"\n```")
                     .AddField("`-s | --saved <new saved by message>`", "```http\n" +
                         $"Usage        :: {ctx.Prefix}editquote -s \"Someone saved this.\"\n" +
                         $"Usage        :: {ctx.Prefix}editquote --saved \"Someone saved this.\"\n" +
-                        $"New Quote    :: Replces the saved by message of the quote with the next argument. Use \" around multi-word" +
+                        $"New message  :: Replces the saved by message of the quote with the next argument. Use \" around multi-word" +
                         $" messages.\n" +
                         $"Returns      :: The edited quote." +
                         $"\n```")
