@@ -50,10 +50,10 @@ namespace CloudNine.Discord.Commands.Quotes
                     .WithColor(Color_Cloud)
                     .WithTitle("Quote Help")
                     .WithDescription("Detailed help for the quote command.\n" +
-                    "Using `.quote` without anything else will get you a random quote from this server.")
+                        $"Using `{ctx.Prefix}quote` without anything else will get you a random quote from this server.")
                     .AddField("help", "```http\n" +
                         $"Usage     :: {ctx.Prefix}quote help\n" +
-                        $"Retunrs   :: This embed." +
+                        $"Returns   :: This embed." +
                         $"\n```")
                     .AddField("id", "```http\n" +
                         $"Usage     :: {ctx.Prefix}quote id <quote id>\n" +
