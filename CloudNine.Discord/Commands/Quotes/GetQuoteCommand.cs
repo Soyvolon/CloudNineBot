@@ -82,6 +82,10 @@ namespace CloudNine.Discord.Commands.Quotes
                     await ctx.RespondAsync("Could not parse the provided ID. Please input a number value. `Ex: 5`");
                 }
             }
+            else if (int.TryParse(args[0], out int id))
+            {
+                await SendQuoteByIdAsync(ctx, cfg, id);
+            }
             else
             {
                 await ctx.RespondAsync("Something went wrong and no quote was found!");
