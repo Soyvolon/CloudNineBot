@@ -70,6 +70,14 @@ namespace CloudNine.Discord.Commands.Quotes.Admin
                         else
                             quote.Content = args[++i];
                         break;
+
+                    case "-s":
+                    case "--saved":
+                        if (args.Length < i + 1)
+                            await Respond("Failed to parse `--saved`, not enough paramaters.");
+                        else
+                            quote.SavedBy = args[++i];
+                        break;
                 }
             }
 
@@ -91,7 +99,8 @@ namespace CloudNine.Discord.Commands.Quotes.Admin
                     .WithDescription("Detailed help for the `editquote` command.\n" +
                         $"Using `{ctx.Prefix}editquote` without anything else will get you this help command.")
                     .AddField("Full Usage", "```http\n" +
-                        "Usage          :: !editquote <quote id> [(-q | --quote) <new quote> | (-a | --author) <new author>]\n" +
+                        "Usage          :: !editquote <quote id> [(-q | --quote) <new quote> | (-a | --author) <new author> | " +
+                        "(-s | --saved) <new saved by message>]\n" +
                         "Optional Usage :: !editquote 0 help\n" +
                         "```")
                     .AddField("`-q | --quote <new quote>`", "```http\n" +
@@ -106,6 +115,13 @@ namespace CloudNine.Discord.Commands.Quotes.Admin
                         $"Usage        :: {ctx.Prefix}editquote --author \"Cloud Bot\"\n" +
                         $"New Quote    :: Replces the author of the quote with the next argument. Use \" around multi-word" +
                         $" authors.\n" +
+                        $"Returns      :: The edited quote." +
+                        $"\n```")
+                    .AddField("`-s | --saved <new saved by message>`", "```http\n" +
+                        $"Usage        :: {ctx.Prefix}editquote -s \"Someone saved this.\"\n" +
+                        $"Usage        :: {ctx.Prefix}editquote --saved \"Someone saved this.\"\n" +
+                        $"New Quote    :: Replces the saved by message of the quote with the next argument. Use \" around multi-word" +
+                        $" messages.\n" +
                         $"Returns      :: The edited quote." +
                         $"\n```")
                     .AddField("`-h | --help`", "```http\n" +
