@@ -9,7 +9,7 @@ namespace CloudNine.Discord.Commands.Birthday
 {
     public class SetBirthdayChannelCmd : CommandModule
     {
-        [Command("channel")]
+        [Command("bdaychannel")]
         [Description("Sets the birthday channel for this server.")]
         [RequireUserPermissions(Permissions.ManageGuild)]
         public async Task SetBirthdayChannelAsync(CommandContext ctx, DiscordChannel channel)
