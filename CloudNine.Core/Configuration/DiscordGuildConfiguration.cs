@@ -18,6 +18,7 @@ namespace CloudNine.Core.Configuration
 
         public BirthdayServerConfiguration BirthdayConfiguration { get; set; }
         public ConcurrentDictionary<int, Quote> Quotes { get; set; }
+        public ConcurrentDictionary<string, Quote> HiddenQuotes { get; set; }
 
         [NotMapped]
         private HashSet<int>? _keys;
@@ -45,14 +46,22 @@ namespace CloudNine.Core.Configuration
 
         public Task<bool> AddQuote(Quote quote)
         {
-            for (int i = 0; i <= Keys.Count; i++)
-            {
-                if (!Keys.Contains(i))
+            if(quote.Id == -1)
+            { // Save hidden quote.
+                if (quote.CustomId is null) return Task.FromResult(false);
+                return Task.FromResult(HiddenQuotes.TryAdd(quote.CustomId, quote));
+            }
+            else
+            { // Save standard quote.
+                for (int i = 0; i <= Keys.Count; i++)
                 {
-                    quote.Id = i;
-                    Keys.Add(i);
-                    Quotes[i] = quote;
-                    return Task.FromResult(true);
+                    if (!Keys.Contains(i))
+                    {
+                        quote.Id = i;
+                        Keys.Add(i);
+                        Quotes[i] = quote;
+                        return Task.FromResult(true);
+                    }
                 }
             }
 
@@ -66,6 +75,11 @@ namespace CloudNine.Core.Configuration
 
             quote = null;
             return false;
+        }
+
+        public bool TryRemoveQuote(string id, out Quote? quote)
+        {
+            return HiddenQuotes.TryRemove(id, out quote);
         }
     }
 }

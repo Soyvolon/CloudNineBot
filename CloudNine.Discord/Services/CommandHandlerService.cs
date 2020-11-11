@@ -76,7 +76,7 @@ namespace CloudNine.Discord.Services
 					return; // Prefix is wrong, dont respond to this message.
 
 				var prefix = e.Message.Content.Substring(0, prefixPos);
-				string commandString = e.Message.Content.Replace(prefix, string.Empty);
+				string commandString = e.Message.Content.Substring(prefixPos);
 
 				var cnext = source.GetCommandsNext();
 

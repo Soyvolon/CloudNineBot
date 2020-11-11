@@ -24,6 +24,20 @@ namespace CloudNine.Discord.Commands.Quotes
             [Description("Quote serach arguments.")]
             params string[] args)
         {
+            if(args.Length <= 0 || args[0] == "-h" || args[0] == "--help")
+            {
+                await SearchQuotesHelpAsync(ctx);
+                return;
+            }
+
+            for(int i = 0; i < args.Length; i++)
+            {
+
+            }
+        }
+
+        private async Task SearchQuotesHelpAsync(CommandContext ctx)
+        {
 
         }
     }

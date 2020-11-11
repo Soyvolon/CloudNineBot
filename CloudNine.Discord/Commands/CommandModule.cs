@@ -1,4 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
@@ -26,6 +29,34 @@ namespace CloudNine.Discord.Commands
         {
             return new DiscordEmbedBuilder()
                 .WithColor(DiscordColor.Red);
+        }
+
+        public static DiscordEmbedBuilder InteractBase()
+        {
+            return new DiscordEmbedBuilder()
+                .WithColor(Color_Cloud);
+        }
+
+        public async Task InteractTimeout(string message = "Interactivty Timed Out.")
+        {
+            var embed = ErrorBase()
+                .WithDescription(message);
+
+            await ctx.RespondAsync(embed: embed);
+        }
+
+        public static string[] GetArgsString(string source)
+        {
+            return Regex.Matches(source, @"(['\""])(?<value>.+?)\1|(?<value>[^ ]+)")
+                .Cast<Match>()
+                .Select(m => m.Groups["value"].Value)
+                .ToArray();
+
+            return source.Split('"')
+                .Select((element, index) => index % 2 == 0
+                    ? element.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                    : new string[] { element })
+                .SelectMany(element => element).ToArray();
         }
     }
 }

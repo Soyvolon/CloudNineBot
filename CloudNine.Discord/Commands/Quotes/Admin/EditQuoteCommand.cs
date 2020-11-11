@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 
 using CloudNine.Core.Configuration;
 using CloudNine.Core.Database;
+using CloudNine.Core.Quotes;
 
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
@@ -25,8 +26,6 @@ namespace CloudNine.Discord.Commands.Quotes.Admin
         [RequireUserPermissions(Permissions.ManageMessages)]
         [Priority(2)]
         public async Task EditQuoteCommandAsync(CommandContext ctx,
-            [Description("ID of the quote to edit")]
-            int quoteId,
             
             [Description("Arguments for editing the command. Use `-h | --help` for more information.")]
             params string[] args)
@@ -45,15 +44,30 @@ namespace CloudNine.Discord.Commands.Quotes.Admin
                 return;
             }
 
-            if(!cfg.Quotes.TryGetValue(quoteId, out var quote))
+            Quote quote;
+            bool hidden = false;
+            if(int.TryParse(args[0], out int id))
             {
-                await Respond("Quote not found!");
-                return;
+                if (!cfg.Quotes.TryGetValue(id, out quote))
+                {
+                    await Respond("Quote not found!");
+                    return;
+                }
+            }
+            else
+            {
+                if(!cfg.HiddenQuotes.TryGetValue(args[0], out quote))
+                {
+                    await Respond("Quote not found!");
+                    return;
+                }
+
+                hidden = true;
             }
 
             _database.Update(cfg);
 
-            for(int i = 0; i < args.Length; i++)
+            for(int i = 1; i < args.Length; i++)
             {
                 switch (args[i].ToLower())
                 {
@@ -80,17 +94,43 @@ namespace CloudNine.Discord.Commands.Quotes.Admin
                         else
                             quote.SavedBy = args[++i];
                         break;
+
+                    case "-c":
+                    case "--custom":
+                        if (args.Length < i + 1)
+                            await Respond("Failed to parse `--custom`, not enough paramaters.");
+                        else
+                        {
+                            if (cfg.HiddenQuotes.TryRemove(args[0], out _))
+                                cfg.HiddenQuotes[args[i + 1]] = quote;
+
+                            quote.CustomId = args[++i];
+                        }
+                        break;
                 }
             }
 
             await _database.SaveChangesAsync();
 
-            await ctx.RespondAsync($"Edited quote `{quoteId}`: ");
+            string cmdFull;
+            string cmdArgs;
+            if(hidden)
+            {
+                cmdFull = $"{ctx.Prefix}quote id \"{quote.CustomId}\"";
+                cmdArgs = $"id \"{quote.CustomId}\"";
+            }
+            else
+            {
+                cmdFull = $"{ctx.Prefix}quote id {quote.Id}";
+                cmdArgs = $"id {quote.Id}";
+            }
+
+            await ctx.RespondAsync($"Edited quote `{args[0]}`: ");
             var cnext = ctx.Client.GetCommandsNext();
 
             var cmd = cnext.FindCommand("quote", out _);
 
-            var fakeCtx = cnext.CreateFakeContext(ctx.Member, ctx.Channel, $"{ctx.Prefix}quote id {quote.Id}", ctx.Prefix, cmd, $"id {quote.Id}");
+            var fakeCtx = cnext.CreateFakeContext(ctx.Member, ctx.Channel, cmdFull, ctx.Prefix, cmd, cmdArgs);
             await cnext.ExecuteCommandAsync(fakeCtx);
         }
 
@@ -128,9 +168,16 @@ namespace CloudNine.Discord.Commands.Quotes.Admin
                         $" messages.\n" +
                         $"Returns      :: The edited quote." +
                         $"\n```")
+                    .AddField("`-c | --custom <new custom ID>`", "```http\n" +
+                        $"Usage        :: {ctx.Prefix}editquote -c \"Quote One\"\n" +
+                        $"Usage        :: {ctx.Prefix}editquote --custom \"Quote One\"\n" +
+                        $"New message  :: Sets the custom ID for a quote. Use \" around multi-word" +
+                        $" quotes.\n" +
+                        $"Returns      :: The edited quote." +
+                        $"\n```")
                     .AddField("`-h | --help`", "```http\n" +
-                        $"Usage     :: {ctx.Prefix}editquote 0 -h\n" +
-                        $"Usage     :: {ctx.Prefix}editquote 0 --help\n" +
+                        $"Usage     :: {ctx.Prefix}editquote -h\n" +
+                        $"Usage     :: {ctx.Prefix}editquote --help\n" +
                         $"Returns   :: This embed." +
                         $"\n```");
 

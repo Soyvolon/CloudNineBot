@@ -1,4 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 using CloudNine.Core.Configuration;
 using CloudNine.Core.Database;
@@ -7,6 +10,7 @@ using CloudNine.Core.Extensions;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using DSharpPlus.Exceptions;
 
 namespace CloudNine.Discord.Commands.Quotes
 {
@@ -24,8 +28,11 @@ namespace CloudNine.Discord.Commands.Quotes
         [Aliases("getquote")]
         public async Task GetQuoteCommandAsync(CommandContext ctx,
             [Description("Arguments for the quote command. Use `help` for more information")]
-            params string[] args)
+            [RemainingText]
+            string argsString)
         {
+            var args = GetArgsString(argsString);
+
             var cfg = await _database.FindAsync<DiscordGuildConfiguration>(ctx.Guild.Id);
             if (cfg is null)
             {
@@ -77,6 +84,10 @@ namespace CloudNine.Discord.Commands.Quotes
                 {
                     await SendQuoteByIdAsync(ctx, cfg, id);
                 }
+                else if (cfg.HiddenQuotes.ContainsKey(args[1]))
+                {
+                    await SendHiddenQuoteById(ctx, cfg, args[1]);
+                }
                 else
                 {
                     await ctx.RespondAsync("Could not parse the provided ID. Please input a number value. `Ex: 5`");
@@ -86,9 +97,38 @@ namespace CloudNine.Discord.Commands.Quotes
             {
                 await SendQuoteByIdAsync(ctx, cfg, id);
             }
+            else if (cfg.HiddenQuotes.ContainsKey(args[0]))
+            {
+                await SendHiddenQuoteById(ctx, cfg, args[0]);
+            }
             else
             {
-                await ctx.RespondAsync("Something went wrong and no quote was found!");
+                await ctx.RespondAsync("No quote found!");
+            }
+        }
+
+        private async Task SendHiddenQuoteById(CommandContext ctx, DiscordGuildConfiguration cfg, string quoteId)
+        {
+            if (cfg.HiddenQuotes.TryGetValue(quoteId, out var quote))
+            {
+                try
+                {
+                    await ctx.Message.DeleteAsync();
+                }
+                catch (NotFoundException) { }
+
+                var embed = new DiscordEmbedBuilder()
+                    .WithColor(Color_Cloud)
+                    .WithTitle($"Quote - {quote.Author}")
+                    .WithDescription(quote.Content)
+                    .WithFooter($"Saved by: {quote.SavedBy}")
+                    .WithTimestamp(quote.SavedAt);
+
+                await ctx.RespondAsync(embed: embed);
+            }
+            else
+            {
+                await ctx.RespondAsync("No quote by that ID found.");
             }
         }
 
