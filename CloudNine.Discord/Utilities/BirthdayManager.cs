@@ -59,7 +59,8 @@ namespace CloudNine.Discord.Utilities
                         try
                         {
                             if (server.BirthdayConfiguration.BirthdayChannel is null) continue;
-                            if (!DiscordBot.Bot.Client.Guilds.ContainsKey(server.Id)) continue;
+                            var shard = await DiscordBot.Bot.GetClientForGuildId(server.Id);
+                            if (shard is null) continue;
 
                             server.BirthdayConfiguration.ResetComparer();
                             server.BirthdayConfiguration.TriggerResort();
@@ -67,8 +68,6 @@ namespace CloudNine.Discord.Utilities
                             var toLockout = server.BirthdayConfiguration.GetNextBirthdaysToLockout();
 
                             if (toLockout is null) continue;
-
-                            var shard = DiscordBot.Bot.Client;
 
                             var guild = await shard.GetGuildAsync(server.Id);
 

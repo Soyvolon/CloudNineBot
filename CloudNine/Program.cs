@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CloudNine.Config.Bot;
 using CloudNine.Core.Database;
 using CloudNine.Discord;
+using CloudNine.Discord.Services;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

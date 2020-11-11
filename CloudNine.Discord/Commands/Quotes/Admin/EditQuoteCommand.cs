@@ -51,6 +51,8 @@ namespace CloudNine.Discord.Commands.Quotes.Admin
                 return;
             }
 
+            _database.Update(cfg);
+
             for(int i = 0; i < args.Length; i++)
             {
                 switch (args[i].ToLower())
@@ -81,6 +83,8 @@ namespace CloudNine.Discord.Commands.Quotes.Admin
                 }
             }
 
+            await _database.SaveChangesAsync();
+
             await ctx.RespondAsync($"Edited quote `{quoteId}`: ");
             var cnext = ctx.Client.GetCommandsNext();
 
@@ -106,21 +110,21 @@ namespace CloudNine.Discord.Commands.Quotes.Admin
                     .AddField("`-q | --quote <new quote>`", "```http\n" +
                         $"Usage        :: {ctx.Prefix}editquote -q \"This is the new Quote\"\n" +
                         $"Usage        :: {ctx.Prefix}editquote --quote \"This is the new Quote\"\n" +
-                        $"New Quote    :: Replces the content of the quote with the next argument. Use \" around multi-word" +
+                        $"New Quote    :: Replaces the content of the quote with the next argument. Use \" around multi-word" +
                         $" quotes.\n" +
                         $"Returns      :: The edited quote." +
                         $"\n```")
                     .AddField("`-a | --author <new author>`", "```http\n" +
                         $"Usage        :: {ctx.Prefix}editquote -a \"Cloud Bot\"\n" +
                         $"Usage        :: {ctx.Prefix}editquote --author \"Cloud Bot\"\n" +
-                        $"New Author   :: Replces the author of the quote with the next argument. Use \" around multi-word" +
+                        $"New Author   :: Replaces the author of the quote with the next argument. Use \" around multi-word" +
                         $" authors.\n" +
                         $"Returns      :: The edited quote." +
                         $"\n```")
                     .AddField("`-s | --saved <new saved by message>`", "```http\n" +
                         $"Usage        :: {ctx.Prefix}editquote -s \"Someone saved this.\"\n" +
                         $"Usage        :: {ctx.Prefix}editquote --saved \"Someone saved this.\"\n" +
-                        $"New message  :: Replces the saved by message of the quote with the next argument. Use \" around multi-word" +
+                        $"New message  :: Replaces the saved by message of the quote with the next argument. Use \" around multi-word" +
                         $" messages.\n" +
                         $"Returns      :: The edited quote." +
                         $"\n```")

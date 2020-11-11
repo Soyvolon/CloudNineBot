@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 
 using CloudNine.Config.Bot;
+using CloudNine.Discord.Services;
 using CloudNine.Discord.Utilities;
 
 using DSharpPlus;
@@ -20,6 +21,13 @@ namespace CloudNine.Discord
 {
     public class DiscordBot : IDisposable
     {
+        #region Event Ids
+        // 127### - designates a Discord Bot event.
+        public static EventId Event_CommandResponder { get; } = new EventId(127001, "Command Responder");
+        public static EventId Event_CommandHandler { get; } = new EventId(127002, "Command Handler");
+        public static EventId Event_EventHandler { get; } = new EventId(127003, "Event Handler");
+        #endregion
+
         public static bool IsDebug
         {
             get
@@ -32,12 +40,12 @@ namespace CloudNine.Discord
             }
         }
 
-        public const string VERSION = "1.1.0";
+        public const string VERSION = "1.2.0";
         private bool disposedValue;
 
         public static DiscordBot Bot { get; private set; }
 
-        public DiscordClient Client { get; private set; }
+        public DiscordShardedClient Client { get; private set; }
         public DiscordRestClient Rest { get; private set; }
         public BirthdayManager Birthdays { get; private set; }
         public DiscordBotConfiguration BotConfiguration { get; private set; }
@@ -69,11 +77,11 @@ namespace CloudNine.Discord
         {
             var cncfg = new CommandsNextConfiguration
             {
-                StringPrefixes = new string[] { botCfg.Prefix },
                 CaseSensitive = false,
                 EnableDms = false,
                 IgnoreExtraArguments = true,
-                Services = this.services
+                Services = this.services,
+                UseDefaultCommandHandler = false,
             };
 
             return cncfg;
@@ -96,25 +104,30 @@ namespace CloudNine.Discord
 
             var cfg = GetDiscordConfiguration(botCfg);
 
-            Client = new DiscordClient(cfg);
+            Client = new DiscordShardedClient(cfg);
             Rest = new DiscordRestClient(cfg);
 
-            var commands = Client.UseCommandsNext(GetCommandsNextConfiguration(botCfg));
+            var commands = await Client.UseCommandsNextAsync(GetCommandsNextConfiguration(botCfg));
+            foreach (var c in commands.Values)
+            {
+                c.RegisterCommands(Assembly.GetExecutingAssembly());
 
-            commands.RegisterCommands(Assembly.GetExecutingAssembly());
+                c.CommandErrored += CommandResponder.RespondError;
+                c.CommandExecuted += CommandResponder.RespondSuccess;
 
-            commands.CommandErrored += Client_CommandErrored;
-            commands.CommandExecuted += Client_CommandExecuted;
+                c.RegisterConverter(new DateTimeAttributeConverter());
+            }
 
-            commands.RegisterConverter(new DateTimeAttributeConverter());
+            await Client.UseInteractivityAsync(GetInteractivityConfiguration());
 
-            Client.UseInteractivity(GetInteractivityConfiguration());
+            var commandHander = new CommandHandlerService(Client.Logger, services);
 
             Client.Ready += Client_Ready;
+            Client.MessageCreated += commandHander.MessageRecievedAsync;
 
             InitalizeOtherParts(botCfg);
 
-            await Client.ConnectAsync().ConfigureAwait(false);
+            await Client.StartAsync().ConfigureAwait(false);
 
             await Task.Run(async () =>
             {
@@ -136,23 +149,15 @@ namespace CloudNine.Discord
             return Task.CompletedTask;
         }
 
-        private Task Client_CommandExecuted(CommandsNextExtension cnext, CommandEventArgs e)
+        public async Task<DiscordClient?> GetClientForGuildId(ulong discordId)
         {
-            e.Context.Client.Logger.LogInformation($"User {e.Context.User.Username} executed command: {e.Command.Name}");
-
-            return Task.CompletedTask;
-        }
-
-        private Task Client_CommandErrored(CommandsNextExtension cnext, CommandErrorEventArgs e)
-        {
-            e.Context.Client.Logger.LogError(e.Exception, $"User {e.Context.User.Username} failed to execute command: {e.Command?.Name}");
-
-            Task.Run(async () =>
+            foreach(var shard in Client.ShardClients.Values)
             {
-                await e.Context.RespondAsync($"Command Errored:\n{e.Exception.Message}").ConfigureAwait(false);
-            });
+                if (shard.Guilds.ContainsKey(discordId))
+                    return shard;
+            }
 
-            return Task.CompletedTask;
+            return null;
         }
 
         protected virtual void Dispose(bool disposing)
@@ -162,8 +167,9 @@ namespace CloudNine.Discord
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects)
-                    Client.DisconnectAsync().GetAwaiter().GetResult();
-                    Client.Dispose();
+                    Client.StopAsync().GetAwaiter().GetResult();
+                    foreach (var c in Client.ShardClients.Values)
+                        c.Dispose();
 
                     Rest.Dispose();
 

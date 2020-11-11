@@ -56,7 +56,7 @@ namespace CloudNine.Discord.Commands.Quotes.Admin
             var quoteObject = new Quote()
             {
                 Content = quote,
-                Author = discordMember?.Username ?? "unkown",
+                Author = discordMember?.Username ?? "unknown",
                 SavedAt = DateTime.UtcNow,
                 SavedBy = ctx.Member.Username,
             };
