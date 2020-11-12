@@ -12,6 +12,8 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 
+using Microsoft.Extensions.Caching.Memory;
+
 namespace CloudNine.Discord.Commands.Quotes
 {
     public class GetQuoteCommand : CommandModule
