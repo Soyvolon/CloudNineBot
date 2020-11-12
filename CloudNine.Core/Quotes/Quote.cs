@@ -10,5 +10,6 @@ namespace CloudNine.Core.Quotes
         public string SavedBy { get; set; }
         public int Id { get; set; }
         public string? CustomId { get; set; }
+        public string? Attachment { get; set; }
     }
 }

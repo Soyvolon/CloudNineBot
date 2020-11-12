@@ -28,10 +28,8 @@ namespace CloudNine.Discord.Commands.Quotes
         [Aliases("getquote")]
         public async Task GetQuoteCommandAsync(CommandContext ctx,
             [Description("Arguments for the quote command. Use `help` for more information")]
-            [RemainingText]
-            string argsString)
+            params string[] args)
         {
-            var args = GetArgsString(argsString);
 
             var cfg = await _database.FindAsync<DiscordGuildConfiguration>(ctx.Guild.Id);
             if (cfg is null)
@@ -121,6 +119,7 @@ namespace CloudNine.Discord.Commands.Quotes
                     .WithColor(Color_Cloud)
                     .WithTitle($"Quote - {quote.Author}")
                     .WithDescription(quote.Content)
+                    .WithImageUrl(quote.Attachment ?? "")
                     .WithFooter($"Saved by: {quote.SavedBy}")
                     .WithTimestamp(quote.SavedAt);
 
@@ -140,6 +139,7 @@ namespace CloudNine.Discord.Commands.Quotes
                     .WithColor(Color_Cloud)
                     .WithTitle($"Quote {quote.Id} - {quote.Author}")
                     .WithDescription(quote.Content)
+                    .WithImageUrl(quote.Attachment ?? "")
                     .WithFooter($"Saved by: {quote.SavedBy}")
                     .WithTimestamp(quote.SavedAt);
 

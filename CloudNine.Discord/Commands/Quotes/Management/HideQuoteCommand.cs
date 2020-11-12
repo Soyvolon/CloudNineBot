@@ -12,7 +12,7 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Extensions;
 
-namespace CloudNine.Discord.Commands.Quotes.Admin
+namespace CloudNine.Discord.Commands.Quotes.Management
 {
     public class HideQuoteCommand : CommandModule
     {

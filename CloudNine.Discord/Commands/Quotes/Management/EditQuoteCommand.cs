@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿using System;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using CloudNine.Core.Configuration;
@@ -10,7 +12,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 
-namespace CloudNine.Discord.Commands.Quotes.Admin
+namespace CloudNine.Discord.Commands.Quotes.Management
 {
     public class EditQuoteCommand : CommandModule
     {
@@ -74,7 +76,7 @@ namespace CloudNine.Discord.Commands.Quotes.Admin
                     case "-a":
                     case "--author":
                         if (args.Length <= i + 1)
-                            await Respond("Failed to parse `--author`, not enough paramaters.");
+                            await RespondError("Failed to parse `--author`, not enough paramaters.");
                         else
                             quote.Author = args[++i];
                         break;
@@ -82,7 +84,7 @@ namespace CloudNine.Discord.Commands.Quotes.Admin
                     case "-q":
                     case "--quote":
                         if (args.Length <= i + 1)
-                            await Respond("Failed to parse `--quote`, not enough paramaters.");
+                            await RespondError("Failed to parse `--quote`, not enough paramaters.");
                         else
                             quote.Content = args[++i];
                         break;
@@ -90,7 +92,7 @@ namespace CloudNine.Discord.Commands.Quotes.Admin
                     case "-s":
                     case "--saved":
                         if (args.Length <= i + 1)
-                            await Respond("Failed to parse `--saved`, not enough paramaters.");
+                            await RespondError("Failed to parse `--saved`, not enough paramaters.");
                         else
                             quote.SavedBy = args[++i];
                         break;
@@ -98,13 +100,43 @@ namespace CloudNine.Discord.Commands.Quotes.Admin
                     case "-c":
                     case "--custom":
                         if (args.Length <= i + 1)
-                            await Respond("Failed to parse `--custom`, not enough paramaters.");
+                            await RespondError("Failed to parse `--custom`, not enough paramaters.");
                         else
                         {
                             if (cfg.HiddenQuotes.TryRemove(args[0], out _))
                                 cfg.HiddenQuotes[args[i + 1]] = quote;
 
                             quote.CustomId = args[++i];
+                        }
+                        break;
+                    case "-i":
+                    case "--image":
+                        string url = "";
+                        if (args.Length <= i + 1)
+                        {
+                            if (ctx.Message.Attachments.Count > 0)
+                                url = ctx.Message.Attachments.First().Url;
+
+                            await RespondError("Failed to parse `--image`, not enough paramaters, and/or image not attached.");
+                        }
+                        else
+                        {
+                            try
+                            {
+                                var uri = new Uri(args[++i]);
+                                url = uri.AbsoluteUri;
+                            }
+                            catch { } // just leave url as "", it will be skipped later.
+
+                        }
+
+                        if(url != "")
+                        {
+                            quote.Attachment = url;
+                        }
+                        else
+                        {
+                            await RespondError("Failed to get a valid URL.");
                         }
                         break;
                 }
@@ -173,6 +205,12 @@ namespace CloudNine.Discord.Commands.Quotes.Admin
                         $"Usage        :: {ctx.Prefix}editquote --custom \"Quote One\"\n" +
                         $"New message  :: Sets the custom ID for a quote. Use \" around multi-word" +
                         $" quotes.\n" +
+                        $"Returns      :: The edited quote." +
+                        $"\n```")
+                    .AddField("`-i | --image [Image URL]`", "```http\n" +
+                        $"Usage        :: {ctx.Prefix}editquote -i \"https://source.com/file.png\"\n" +
+                        $"Usage        :: {ctx.Prefix}editquote --image \"https://source.com/file.png\"\n" +
+                        $"Image URL    :: Image URL to use. Or, attach an image to the command message." +
                         $"Returns      :: The edited quote." +
                         $"\n```")
                     .AddField("`-h | --help`", "```http\n" +
