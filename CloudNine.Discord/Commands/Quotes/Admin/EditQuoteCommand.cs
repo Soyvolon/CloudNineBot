@@ -73,7 +73,7 @@ namespace CloudNine.Discord.Commands.Quotes.Admin
                 {
                     case "-a":
                     case "--author":
-                        if (args.Length < i + 1)
+                        if (args.Length <= i + 1)
                             await Respond("Failed to parse `--author`, not enough paramaters.");
                         else
                             quote.Author = args[++i];
@@ -81,7 +81,7 @@ namespace CloudNine.Discord.Commands.Quotes.Admin
 
                     case "-q":
                     case "--quote":
-                        if (args.Length < i + 1)
+                        if (args.Length <= i + 1)
                             await Respond("Failed to parse `--quote`, not enough paramaters.");
                         else
                             quote.Content = args[++i];
@@ -89,7 +89,7 @@ namespace CloudNine.Discord.Commands.Quotes.Admin
 
                     case "-s":
                     case "--saved":
-                        if (args.Length < i + 1)
+                        if (args.Length <= i + 1)
                             await Respond("Failed to parse `--saved`, not enough paramaters.");
                         else
                             quote.SavedBy = args[++i];
@@ -97,7 +97,7 @@ namespace CloudNine.Discord.Commands.Quotes.Admin
 
                     case "-c":
                     case "--custom":
-                        if (args.Length < i + 1)
+                        if (args.Length <= i + 1)
                             await Respond("Failed to parse `--custom`, not enough paramaters.");
                         else
                         {
@@ -143,9 +143,9 @@ namespace CloudNine.Discord.Commands.Quotes.Admin
                     .WithDescription("Detailed help for the `editquote` command.\n" +
                         $"Using `{ctx.Prefix}editquote` without anything else will get you this help command.")
                     .AddField("Full Usage", "```http\n" +
-                        "Usage          :: !editquote <quote id> [(-q | --quote) <new quote> | (-a | --author) <new author> | " +
+                        $"Usage          :: {ctx.Prefix}editquote <quote id> [(-q | --quote) <new quote> | (-a | --author) <new author> | " +
                         "(-s | --saved) <new saved by message>]\n" +
-                        "Optional Usage :: !editquote 0 help\n" +
+                        $"Optional Usage :: {ctx.Prefix}editquote --help\n" +
                         "```")
                     .AddField("`-q | --quote <new quote>`", "```http\n" +
                         $"Usage        :: {ctx.Prefix}editquote -q \"This is the new Quote\"\n" +

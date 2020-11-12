@@ -25,6 +25,11 @@ namespace CloudNine.Discord.Commands
             await ctx.RespondAsync(response);
         }
 
+        public async Task RespondError(string response)
+        {
+            await ctx.RespondAsync(embed: ErrorBase().WithDescription(response));
+        }
+
         public static DiscordEmbedBuilder ErrorBase()
         {
             return new DiscordEmbedBuilder()
