@@ -7,7 +7,7 @@ using DSharpPlus.Entities;
 
 namespace CloudNine.Discord.Commands.Fun
 {
-    public class SparkleCommand : BaseCommandModule
+    public class SparkleCommand : CommandModule
     {
         [Command("sparkle")]
         [Description("Makes your text sparkly")]
@@ -16,6 +16,12 @@ namespace CloudNine.Discord.Commands.Fun
             [RemainingText]
             string text)
         {
+            if (text is null || text == "")
+            {
+                await RespondError("No text provided!");
+                return;
+            }
+
             string start = ":sparkles: ***";
             string end = "*** :sparkles:";
 
@@ -32,6 +38,12 @@ namespace CloudNine.Discord.Commands.Fun
             [RemainingText]
             string text)
         {
+            if(text is null || text == "")
+            {
+                await RespondError("No text provided!");
+                return;
+            }
+
             string start = "```:sparkles: ***";
             string end = "*** :sparkles:```";
 
