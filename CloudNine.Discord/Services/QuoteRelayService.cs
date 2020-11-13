@@ -192,10 +192,10 @@ namespace CloudNine.Discord.Services
                         }
                         else
                         {
-                            string mode = args[++i].ToLower();
                             string command = args[++i].ToLower();
+                            string mode = args[++i].ToLower();
 
-                            if (mode == "default")
+                            if (command == "default")
                             {
                                 var defaultData = new RelayData();
                                 for (i = i; i < args.Count; i++)
@@ -381,7 +381,11 @@ namespace CloudNine.Discord.Services
                     }
                     else
                     {
-                        if (ulong.TryParse(args[++i], out var id))
+                        string toParse = args[++i];
+                        if (toParse.StartsWith("<#") && toParse.EndsWith(">"))
+                            toParse = toParse[2..(toParse.Length - 1)];
+
+                        if (ulong.TryParse(toParse, out var id))
                         {
                             data.ChannelId = id;
                         }
@@ -506,6 +510,8 @@ namespace CloudNine.Discord.Services
 
                                 if (int.TryParse(colorString, System.Globalization.NumberStyles.HexNumber, null, out int result))
                                 {
+                                    // Try Catch this because a value with 7 hex numbers will pass the if statment
+                                    // but fail the color creation.
                                     data.Color = new DiscordColor(result);
                                 }
                                 else
@@ -668,7 +674,7 @@ namespace CloudNine.Discord.Services
                         $"Default      :: Sets the default for the command. Only used with the DEFAULT mode.\n" +
                         $"Result       :: Sends a latch confirmation message." +
                         $"\n```")
-                    .AddField("`--shutdown`", "```http\n" +
+                    .AddField("`--shutdown` | `--abort`", "```http\n" +
                         $"Usage        :: --shutdown\n" +
                         $"Result       :: Stops the relay." +
                         $"\n```")
