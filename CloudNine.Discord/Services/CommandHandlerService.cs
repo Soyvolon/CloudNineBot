@@ -30,13 +30,12 @@ namespace CloudNine.Discord.Services
             this._logger = logger;
 			this._services = services;
 
+
             RunningCommands = new ConcurrentDictionary<MessageCreateEventArgs, Tuple<Task, CancellationTokenSource>>();
         }
 
         public Task MessageRecievedAsync(DiscordClient source, MessageCreateEventArgs e)
         {
-			if (e.Author.IsBot) return Task.CompletedTask;
-
 			var cancelSource = new CancellationTokenSource();
 			RunningCommands[e] = new Tuple<Task, CancellationTokenSource>(
 				Task.Run(async () => await ExecuteCommand(source, e, cancelSource.Token)),
