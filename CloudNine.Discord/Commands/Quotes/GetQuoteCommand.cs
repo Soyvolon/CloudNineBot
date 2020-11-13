@@ -117,13 +117,7 @@ namespace CloudNine.Discord.Commands.Quotes
                 }
                 catch (NotFoundException) { }
 
-                var embed = new DiscordEmbedBuilder()
-                    .WithColor(Color_Cloud)
-                    .WithTitle($"Quote - {quote.Author}")
-                    .WithDescription(quote.Content)
-                    .WithImageUrl(quote.Attachment ?? "")
-                    .WithFooter($"Saved by: {quote.SavedBy}")
-                    .WithTimestamp(quote.SavedAt);
+                var embed = quote.BuildQuote();
 
                 await ctx.RespondAsync(embed: embed);
             }
@@ -137,13 +131,7 @@ namespace CloudNine.Discord.Commands.Quotes
         {
             if (cfg.Quotes.TryGetValue(quoteId, out var quote))
             {
-                var embed = new DiscordEmbedBuilder()
-                    .WithColor(Color_Cloud)
-                    .WithTitle($"Quote {quote.Id} - {quote.Author}")
-                    .WithDescription(quote.Content)
-                    .WithImageUrl(quote.Attachment ?? "")
-                    .WithFooter($"Saved by: {quote.SavedBy}")
-                    .WithTimestamp(quote.SavedAt);
+                var embed = quote.BuildQuote();
 
                 await ctx.RespondAsync(embed: embed);
             }

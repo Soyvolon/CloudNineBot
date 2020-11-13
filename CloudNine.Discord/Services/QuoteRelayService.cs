@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -22,6 +23,34 @@ namespace CloudNine.Discord.Services
 {
     public class QuoteRelayService
     {
+        private static readonly Dictionary<string, object> RelayDefaults = new Dictionary<string, object>
+        {
+            { "--author", "Cloud Bot" },
+            { "--saved", "Cloud Bot" },
+            { "--image", "" },
+            { "--color",  CommandModule.Color_Cloud }
+        };
+
+        private static readonly HashSet<string> RelayCommands = new HashSet<string>()
+        {
+            "-c", "--channel",
+            "-a", "--author",
+            "-s", "--saved",
+            "-i", "--image",
+            "-C", "--color",
+            "-t", "--time",
+        };
+
+        private static readonly Dictionary<string, string> ShortToLongCommands = new Dictionary<string, string>()
+        {
+            { "-c", "--channel" },
+            { "-a", "--author" },
+            { "-s", "--saved" },
+            { "-i", "--image" },
+            { "-C", "--color" },
+            { "-t", "--time" }
+        };
+
         public enum LatchMode
         {
             Last,
@@ -46,6 +75,7 @@ namespace CloudNine.Discord.Services
             public string? SavedBy { get; set; }
             public string? ImageUrl { get; set; }
             public DiscordColor? Color { get; set; }
+            public DateTime? Time { get; set; }
         }
 
         public ConcurrentDictionary<DiscordUser, Relay> ActiveLinks { get; init; }
@@ -69,7 +99,8 @@ namespace CloudNine.Discord.Services
                 .ToList();
         }
 
-        public async Task<bool> TryOpenRelayAsync(DiscordUser source, DiscordChannel sourceChannel, ulong destGuildId, char actionKey)
+        public async Task<bool> TryOpenRelayAsync(DiscordUser source, DiscordChannel sourceChannel, 
+            ulong destGuildId, char actionKey)
         {
             if (ActiveLinks.ContainsKey(source)) return false;
 
@@ -116,7 +147,7 @@ namespace CloudNine.Discord.Services
                         else
                             return; // failed to separate the prefix. This should be impossible.
 
-                        await SendQuoteRelay(e.Message, r, args);
+                        await SendQuoteRelay(e.Message, r, args, source);
                     }
                 }
             }
@@ -130,89 +161,23 @@ namespace CloudNine.Discord.Services
             }
         }
 
-        private async Task SendQuoteRelay(DiscordMessage source, Relay relay, List<string> args)
+        private async Task SendQuoteRelay(DiscordMessage source, Relay relay, List<string> args, DiscordClient client)
         {
-            var quote = new Quote();
             var data = new RelayData();
 
             List<string> content = new List<string>();
-            for(int i = 0; i < args.Count; i++)
+
+            #region Argument Parser
+
+            for (int i = 0; i < args.Count; i++)
             {
+                bool isArgRun = false;
+                (i, data, isArgRun) = await ExecuteRelayArgumentChecks(args, i, data, source);
+
+                if (i == -1 || data is null) return;
+
                 switch(args[i])
                 {
-
-                    #region RELAY Commands
-                    case "-c":
-                    case "--channel":
-
-                        break;
-
-                    case "-a":
-                    case "--author":
-                        if (args.Count <= i + 1)
-                        {
-                            await source.Channel.SendMessageAsync("Failed to parse `--author`, not enough paramaters.");
-                            return;
-                        }
-                        else
-                            quote.Author = args[++i];
-                        break;
-
-                    case "-s":
-                    case "--saved":
-                        if (args.Count <= i + 1)
-                        {
-                            await source.Channel.SendMessageAsync("Failed to parse `--saved`, not enough paramaters.");
-                            return;
-                        }
-                        else
-                            quote.SavedBy = args[++i];
-                        break;
-
-                    case "-i":
-                    case "--image":
-                        string url = "";
-                        if (args.Count <= i + 1)
-                        {
-                            if (source.Attachments.Count > 0)
-                            {
-                                url = source.Attachments[0].Url;
-                            }
-                            else
-                            {
-                                await source.Channel.SendMessageAsync("Failed to parse `--image`, not enough paramaters, and/or image not attached.");
-                                return;
-                            }
-                        }
-                        else
-                        {
-                            try
-                            {
-                                var uri = new Uri(args[++i]);
-                                url = uri.AbsoluteUri;
-                            }
-                            catch { } // just leave url as "", it will be skipped later.
-
-                        }
-
-                        if (url != "")
-                        {
-                            quote.Attachment = url;
-                        }
-                        else
-                        {
-                            await source.Channel.SendMessageAsync("Failed to get a valid URL.");
-                            return;
-                        }
-                        break;
-
-                    case "-C":
-                    case "--color":
-
-                        break;
-
-                    #endregion
-
                     #region NON-RELAY Commands
                     case "-h":
                     case "--help":
@@ -221,7 +186,123 @@ namespace CloudNine.Discord.Services
 
                     case "-L":
                     case "--latch":
+                        if(args.Count <= i + 2)
+                        {
+                            await source.Channel.SendMessageAsync("Failed to parse `--latch`, not enough arguments.");
+                        }
+                        else
+                        {
+                            string mode = args[++i].ToLower();
+                            string command = args[++i].ToLower();
 
+                            if (mode == "default")
+                            {
+                                var defaultData = new RelayData();
+                                for (i = i; i < args.Count; i++)
+                                {
+                                    (i, defaultData, _) = await ExecuteRelayArgumentChecks(args, i, data, source);
+                                    if (i == -1 || data is null) return;
+                                }
+
+                                if (defaultData.ChannelId is not null)
+                                {
+                                    relay.Latches["--channel"] = LatchMode.Default;
+                                    relay.Data.ChannelId = defaultData.ChannelId;
+
+                                    await source.Channel.SendMessageAsync($"Set latching to `DEFAULT` for `--channel` with" +
+                                        $" default:\n{defaultData.ChannelId}");
+                                }
+
+                                if (defaultData.Author is not null)
+                                {
+                                    relay.Latches["--author"] = LatchMode.Default;
+                                    relay.Data.Author = defaultData.Author;
+
+                                    await source.Channel.SendMessageAsync($"Set latching to `DEFAULT` for `--author` with" +
+                                        $" default:\n{defaultData.Author}");
+                                }
+
+                                if (defaultData.SavedBy is not null)
+                                {
+                                    relay.Latches["--saved"] = LatchMode.Default;
+                                    relay.Data.SavedBy = defaultData.SavedBy;
+
+                                    await source.Channel.SendMessageAsync($"Set latching to `DEFAULT` for `--saved` with" +
+                                        $" default:\n{defaultData.SavedBy}");
+                                }
+
+                                if (defaultData.ImageUrl is not null)
+                                {
+                                    relay.Latches["--image"] = LatchMode.Default;
+                                    relay.Data.ImageUrl = defaultData.ImageUrl;
+
+                                    await source.Channel.SendMessageAsync($"Set latching to `DEFAULT` for `--image` with" +
+                                        $" default:\n{defaultData.ImageUrl}");
+                                }
+
+                                if (defaultData.Color is not null)
+                                {
+                                    relay.Latches["--color"] = LatchMode.Default;
+                                    relay.Data.Color = defaultData.Color;
+
+                                    await source.Channel.SendMessageAsync($"Set latching to `DEFAULT` for `--color` with" +
+                                        $" default:\n{defaultData.Color}");
+                                }
+
+                                if (defaultData.Time is not null)
+                                {
+                                    relay.Latches["--time"] = LatchMode.Default;
+                                    relay.Data.Time = defaultData.Time;
+
+                                    await source.Channel.SendMessageAsync($"Set latching to `DEFAULT` for `--time` with" +
+                                        $" default:\n{defaultData.Time}");
+                                }
+                            }
+                            else if (RelayCommands.Contains(command) || command == "all")
+                            {
+                                List<string> commandsToLatch;
+                                if (command == "all")
+                                {
+                                    commandsToLatch = RelayCommands.Where(x => x.StartsWith("--")).ToList();
+                                }
+                                else
+                                {
+                                    commandsToLatch = new List<string>();
+                                    if (command.StartsWith("--"))
+                                        commandsToLatch.Add(command);
+                                    else
+                                        commandsToLatch.Add(ShortToLongCommands[command]);
+                                }
+                                switch (mode)
+                                {
+                                    case "none":
+                                        foreach (var c in commandsToLatch)
+                                        {
+                                            relay.Latches.TryRemove(c, out _);
+                                        }
+
+                                        await source.Channel.SendMessageAsync($"Set latching to `NONE` for {command}");
+                                        break;
+
+                                    case "last":
+                                        foreach (var c in commandsToLatch)
+                                        {
+                                            relay.Latches[c] = LatchMode.Last;
+                                        }
+
+                                        await source.Channel.SendMessageAsync($"Set latching to `LAST` for {command}");
+                                        break;
+
+                                    default:
+                                        await source.Channel.SendMessageAsync("Failed to parse `--latch`, mode not found.");
+                                        break;
+                                }
+                            }
+                            else
+                            {
+                                await source.Channel.SendMessageAsync("Failed to parse `--latch`, command not found or ALL not specified.");
+                            }
+                        }
                         return;
 
                     case "--shutdown":
@@ -233,9 +314,280 @@ namespace CloudNine.Discord.Services
                     #endregion
 
                     default:
-                        content.Add(args[i]);
+                        if(!isArgRun)
+                            content.Add(args[i]);
                         break;
                 }
+            }
+
+            #endregion
+
+            // Make sure a channel object exsists.
+            ExecuteParamAssignment("--channel", relay,
+                data.ChannelId, d => data.ChannelId = (ulong?)d,
+                relay.Data.ChannelId, r => relay.Data.ChannelId = (ulong?)r);
+
+            if (data.ChannelId is null)
+            {
+                await source.Channel.SendMessageAsync("Missing required argument `--channel`");
+                return;
+            }
+
+            Quote quote = new()
+            {
+                // Quote Message
+                Content = string.Join(" ", content),
+                Id = -2
+            };
+
+            // Author
+            ExecuteParamAssignment("--author", relay, 
+                data.Author, d => quote.Author = (string)d,
+                relay.Data.Author, r => relay.Data.Author = (string)r);
+            // Saved By
+            ExecuteParamAssignment("--saved", relay,
+                data.SavedBy, d => quote.SavedBy = (string)d,
+                relay.Data.SavedBy, r => relay.Data.SavedBy = (string)r);
+            // Image
+            ExecuteParamAssignment("--image", relay,
+                data.ImageUrl, d => quote.Attachment = (string)d,
+                relay.Data.ImageUrl, r => relay.Data.ImageUrl = (string)r);
+            // Color
+            ExecuteParamAssignment("--color", relay,
+                data.Color, d => quote.Color = (DiscordColor)d,
+                relay.Data.Color, r => relay.Data.Color = (DiscordColor)r);
+            // Time
+            ExecuteParamAssignment("--time", relay,
+                data.Time, d => quote.SavedAt = (DateTime?)d,
+                relay.Data.Time, r => relay.Data.Time = (DateTime?)r);
+
+            await relay.Destination.GetChannel((ulong)data.ChannelId).SendMessageAsync(embed: quote.BuildQuote());
+            await source.CreateReactionAsync(DiscordEmoji.FromName(client, ":white_check_mark:"));
+        }
+
+        private async Task<(int, RelayData, bool)> ExecuteRelayArgumentChecks(List<string> args, int i, RelayData data, DiscordMessage source)
+        {
+            bool argRun = false;
+            switch(args[i])
+            {
+                #region RELAY Commands
+                case "-c":
+                case "--channel":
+                    argRun = true;
+                    if (args.Count <= i + 1)
+                    {
+                        await source.Channel.SendMessageAsync("Failed to parse `--channel`, not enough paramaters.");
+                        return (-1, null, false);
+                    }
+                    else
+                    {
+                        if (ulong.TryParse(args[++i], out var id))
+                        {
+                            data.ChannelId = id;
+                        }
+                        else
+                        {
+                            await source.Channel.SendMessageAsync("Failed to parse `--channel`, invalid ID.");
+                            return (-1, null, false);
+                        }
+                    }
+                    break;
+
+                case "-a":
+                case "--author":
+                    argRun = true;
+                    if (args.Count <= i + 1)
+                    {
+                        await source.Channel.SendMessageAsync("Failed to parse `--author`, not enough paramaters.");
+                        return (-1, null, false);
+                    }
+                    else
+                        data.Author = args[++i];
+                    break;
+
+                case "-s":
+                case "--saved":
+                    argRun = true;
+                    if (args.Count <= i + 1)
+                    {
+                        await source.Channel.SendMessageAsync("Failed to parse `--saved`, not enough paramaters.");
+                        return (-1, null, false);
+                    }
+                    else
+                        data.SavedBy = args[++i];
+                    break;
+
+                case "-i":
+                case "--image":
+                    argRun = true;
+                    string url = "";
+                    if (args.Count <= i + 1)
+                    {
+                        if (source.Attachments.Count > 0)
+                        {
+                            url = source.Attachments[0].Url;
+                        }
+                        else
+                        {
+                            await source.Channel.SendMessageAsync("Failed to parse `--image`, not enough paramaters, and/or image not attached.");
+                            return (-1, null, false);
+                        }
+                    }
+                    else
+                    {
+                        try
+                        {
+                            var uri = new Uri(args[++i]);
+                            url = uri.AbsoluteUri;
+                        }
+                        catch { } // just leave url as "", it will be skipped later.
+
+                    }
+
+                    if (url != "")
+                    {
+                        data.ImageUrl = url;
+                    }
+                    else
+                    {
+                        await source.Channel.SendMessageAsync("Failed to get a valid URL.");
+                        return (-1, null, false);
+                    }
+                    break;
+
+                case "-C":
+                case "--color":
+                    argRun = true;
+                    if (args.Count <= i + 1)
+                    {
+                        await source.Channel.SendMessageAsync("Failed to parse `--color`, not enough paramaters.");
+                        return (-1, null, false);
+                    }
+                    else
+                    {
+                        string colorString = args[++i];
+                        if (colorString.Contains(","))
+                        {
+                            var parts = colorString.Split(",", StringSplitOptions.RemoveEmptyEntries).ToArray();
+                            if (parts.Length < 3)
+                            {
+                                await source.Channel.SendMessageAsync("Failed to parse `--color`, not enough vlaues for an RGB value.");
+                                return (-1, null, false);
+                            }
+
+                            int[] values = new int[3];
+                            for (int c = 0; c < values.Length; c++)
+                            {
+                                if (byte.TryParse(parts[c], out byte v))
+                                {
+                                    if (v > 255 || v < 0)
+                                    {
+                                        await source.Channel.SendMessageAsync($"Failed to parse `--color`, RGB value #{c} is not within 0 and 255.");
+                                        return (-1, null, false);
+                                    }
+
+                                    values[c] = v;
+                                }
+                                else
+                                {
+                                    await source.Channel.SendMessageAsync($"Failed to parse `--color`, RGB value #{c} is not a number.");
+                                    return (-1, null, false);
+                                }
+                            }
+
+                            data.Color = new DiscordColor(values[0], values[1], values[2]);
+                        }
+                        else
+                        {
+                            if (colorString.Length == 6 || colorString.Length == 7)
+                            {
+                                if (colorString.StartsWith("#"))
+                                    colorString = colorString[1..];
+
+                                if (int.TryParse(colorString, System.Globalization.NumberStyles.HexNumber, null, out int result))
+                                {
+                                    data.Color = new DiscordColor(result);
+                                }
+                                else
+                                {
+                                    await source.Channel.SendMessageAsync($"Failed to parse `--color`, could not parse the Hex value.");
+                                    return (-1, null, false);
+                                }
+                            }
+                            else
+                            {
+                                await source.Channel.SendMessageAsync($"Failed to parse `--color`, could not parse a Hex or RGB value..");
+                                return (-1, null, false);
+                            }
+                        }
+                    }
+                    break;
+
+                case "-t":
+                case "--time":
+                    argRun = true;
+                    if (args.Count <= i + 1)
+                    {
+                        await source.Channel.SendMessageAsync("Failed to parse `--time`, not enough paramaters.");
+                        return (-1, null, false);
+                    }
+                    else
+                    {
+                        if (DateTime.TryParse(args[++i], CultureInfo.InvariantCulture, DateTimeStyles.None, out var result))
+                        {
+                            data.Time = result;
+                        }
+                        else
+                        {
+                            await source.Channel.SendMessageAsync("Failed to parse `--time`, unable to parse date time string.");
+                            return (-1, null, false);
+                        }
+                    }
+                    break;
+                    #endregion
+            }
+
+            return (i, data, argRun);
+        }
+
+        private void ExecuteParamAssignment(string propertyCommand, Relay r, object data, Action<object> assignData,
+            object latch, Action<object> assignLatch)
+        {
+#pragma warning disable CS8604 // Possible null reference argument. -- this must be handled outside of this method.
+            try
+            {
+                RelayDefaults.TryGetValue(propertyCommand, out object? d);
+
+                // if the data is null (no command for this was entered)...
+                if (data is null)
+                {
+                    // ... see if a latch exsists ...
+                    if (r.Latches.TryGetValue(propertyCommand, out _))
+                    { // ... and assigned the latched value to the data.
+                        assignData(latch ?? d);
+                    }
+                    else
+                    { // ... if it doesnt, assign the default to the data.
+                        assignData(d);
+                    }
+                }
+                else
+                { // ... if the command was entered ...
+                    if (r.Latches.TryGetValue(propertyCommand, out var mode))
+                    { // ... and latch with the mode LAST exsists ...
+                        if (mode == LatchMode.Last)
+                            // ... assign the data to the latch property.
+                            assignLatch(data);
+                    }
+
+                    assignData(data);
+                }
+#pragma warning restore CS8604 // Possible null reference argument.
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Param Assignement Failed");
+                throw new ArgumentException("Failed to parse an argument", ex);
             }
         }
 
@@ -288,8 +640,13 @@ namespace CloudNine.Discord.Services
                     .AddField("`-C | --color <color>` OPTIONAL", "```http\n" +
                         $"Usage        :: -c #6fa9de\n" +
                         $"Usage        :: --color \"64, 51, 83\"\n" +
-                        $"Color        :: Color to set the embed to. Must be a Hexadecimal value with an optial #, or an RGB value, where each color value" +
+                        $"Color        :: Color to set the embed to. Must be a Hexadecimal value with an optional #, or an RGB value, where each color value" +
                         $" is between 0 and 255 and is spearated by commas.\n" +
+                        $"\n```")
+                    .AddField("`-t | --time <time>` OPTIONAL", "```http\n" +
+                        $"Usage        :: -t 11/03/2020\n" +
+                        $"Usage        :: --time \"11/03/2020 15:23\"\n" +
+                        $"Time         :: Time to be displayed in the Saved By section.\n" +
                         $"\n```")
                     .AddField("NON-RELAY Commands", 
                         "Commands in the NON-RELAY category will not send a message to the relay if they are in the" +
@@ -300,13 +657,15 @@ namespace CloudNine.Discord.Services
                         $"Usage        :: --help\n" +
                         $"Result       :: Sends this help embed." +
                         $"\n```")
-                    .AddField("`-L | --latch <latch to> <latch mode>`", "```http\n" +
+                    .AddField("`-L | --latch <latch to> (<latch mode> | <defaults>)`", "```http\n" +
                         $"Usage        :: -L ALL LAST\n" +
                         $"Usage        :: --latch ALL LAST\n" +
                         $"Latch To     :: Specify an option from RELAY commands to latch to. Use the command name," +
-                        $" ex: -a, --author, or --image. Optionally, use ALL to set the latch option for all RELAY commands.\n" +
-                        $"Latch Mode   :: Select a mode from these options: LAST, DEFAULT, NONE." +
+                        $" ex: -a, --author, or --image. Optionally, use ALL to set the latch option for all RELAY commands," +
+                        $" or DEFAULT to set defaults for commands. See the Latch Target section for more information.\n" +
+                        $"Latch Mode   :: Select a mode from these options: LAST, NONE." +
                         $" See the Latch Mode section for more information.\n" +
+                        $"Default      :: Sets the default for the command. Only used with the DEFAULT mode.\n" +
                         $"Result       :: Sends a latch confirmation message." +
                         $"\n```")
                     .AddField("`--shutdown`", "```http\n" +
@@ -315,13 +674,21 @@ namespace CloudNine.Discord.Services
                         $"\n```")
                     .AddField("Final Notes",
                         "The following are not commands, but important information for using the bot.")
+                    .AddField("`Latch Target`", 
+                        "Avalible Targets: Any command name, `ALL`, `DEFAULT`\n" +
+                        "```http\n" +
+                        "Commmand Name :: The command to set a latch for. Requires a Latch Mode.\n" +
+                        "ALL           :: Targets every command. Requires a Latch Mode." +
+                        " Any existing latches will be overwritten.\n" +
+                        "DEFAULT       :: Latches customization to a deafult. If the relay option is not sepcified," +
+                        " it uses the set value. This option ignores the Latch Mode variable and isntead uses string" +
+                        " of RELAY commands to set defaults.\n" +
+                        "\n```")
                     .AddField("`Latch Mode`", 
-                        "Avalible Modes: `LAST`, `DEFAULT`, `NONE`\n" +
+                        "Avalible Modes: `LAST`, `NONE`\n" +
                         "```http\n" +
                         "LAST    :: Latches relay changes to the last changed value. All messages after the value" +
                         " is changed will use the same value.\n" +
-                        "DEFAULT :: Latches customization to a deafult. If the relay option is not sepcified," +
-                        " it uses the default value.\n" +
                         "NONE    :: Disables latching, and uses system default if no relay is provided." +
                         "\n```");
         }
