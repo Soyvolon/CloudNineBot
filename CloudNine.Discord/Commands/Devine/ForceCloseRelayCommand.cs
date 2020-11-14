@@ -26,7 +26,7 @@ namespace CloudNine.Discord.Commands.Devine
         {
             if(await _relay.TryCloseRelayAsync(ctx.User))
             {
-                await ctx.RespondAsync("Relay force closed succesffuly.");
+                await ctx.RespondAsync("Relay closed successfully.");
             }
             else
             {
