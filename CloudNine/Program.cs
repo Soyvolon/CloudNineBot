@@ -35,7 +35,7 @@ namespace CloudNine
 
             services.AddLogging(o => o.SetMinimumLevel(MinimumLogLevel))
                 .AddDbContext<CloudNineDatabaseModel>()
-                .AddSingleton<QuoteRelayService>();
+                .AddSingleton<QuoteService>();
 
             await using var serviceProvider = services.BuildServiceProvider();
 

@@ -15,6 +15,6 @@ namespace CloudNine.Discord.Commands.Devine
         [RequireUserPermissions(Permissions.ManageMessages)]
         [Hidden]
         public async Task RelayHelpCommandAsync(CommandContext ctx)
-         => await ctx.RespondAsync(embed: QuoteRelayService.GetQuoteRelayHelp(ctx.Prefix));
+         => await ctx.RespondAsync(embed: QuoteService.GetQuoteRelayHelp(ctx.Prefix));
     }
 }

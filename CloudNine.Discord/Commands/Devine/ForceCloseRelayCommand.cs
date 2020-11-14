@@ -11,9 +11,9 @@ namespace CloudNine.Discord.Commands.Devine
 {
     public class ForceCloseRelayCommand : BaseCommandModule
     {
-        private readonly QuoteRelayService _relay;
+        private readonly QuoteService _relay;
 
-        public ForceCloseRelayCommand(QuoteRelayService relay)
+        public ForceCloseRelayCommand(QuoteService relay)
         {
             this._relay = relay;
         }

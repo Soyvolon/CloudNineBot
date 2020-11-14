@@ -125,7 +125,7 @@ namespace CloudNine.Discord
             Client.Ready += Client_Ready;
             Client.MessageCreated += commandHander.MessageRecievedAsync;
 
-            var relay = services.GetRequiredService<QuoteRelayService>();
+            var relay = services.GetRequiredService<QuoteService>();
             Client.MessageCreated += relay.MessageRecievedAsync;
 
             InitalizeOtherParts(botCfg);

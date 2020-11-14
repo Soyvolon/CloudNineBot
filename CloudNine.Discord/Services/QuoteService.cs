@@ -21,9 +21,9 @@ using Microsoft.Extensions.Logging;
 
 namespace CloudNine.Discord.Services
 {
-    public class QuoteRelayService
+    public class QuoteService
     {
-        private static readonly Dictionary<string, object> RelayDefaults = new Dictionary<string, object>
+        public static readonly Dictionary<string, object> RelayDefaults = new Dictionary<string, object>
         {
             { "--author", "Cloud Bot" },
             { "--saved", "Cloud Bot" },
@@ -31,7 +31,7 @@ namespace CloudNine.Discord.Services
             { "--color",  CommandModule.Color_Cloud }
         };
 
-        private static readonly HashSet<string> RelayCommands = new HashSet<string>()
+        public static readonly HashSet<string> RelayCommands = new HashSet<string>()
         {
             "-c", "--channel",
             "-a", "--author",
@@ -41,7 +41,7 @@ namespace CloudNine.Discord.Services
             "-t", "--time",
         };
 
-        private static readonly Dictionary<string, string> ShortToLongCommands = new Dictionary<string, string>()
+        public static readonly Dictionary<string, string> ShortToLongCommands = new Dictionary<string, string>()
         {
             { "-c", "--channel" },
             { "-a", "--author" },
@@ -64,10 +64,10 @@ namespace CloudNine.Discord.Services
             public char ActionKey { get; set; }
 
             public ConcurrentDictionary<string, LatchMode> Latches { get; } = new ConcurrentDictionary<string, LatchMode>();
-            public RelayData Data { get; } = new RelayData();
+            public QuoteData Data { get; } = new QuoteData();
         }
 
-        public class RelayData
+        public class QuoteData
         {
             // Latch Variables
             public ulong? ChannelId { get; set; }
@@ -76,6 +76,8 @@ namespace CloudNine.Discord.Services
             public string? ImageUrl { get; set; }
             public DiscordColor? Color { get; set; }
             public DateTime? Time { get; set; }
+            public string? CustomId { get; set; }
+            public string? Content { get; set; }
         }
 
         public ConcurrentDictionary<DiscordUser, Relay> ActiveLinks { get; init; }
@@ -83,7 +85,7 @@ namespace CloudNine.Discord.Services
         private readonly ILogger _logger;
         private ConcurrentDictionary<MessageCreateEventArgs, Tuple<Task, CancellationTokenSource>> RunningRelays;
 
-        public QuoteRelayService(ILogger<QuoteRelayService> logger)
+        public QuoteService(ILogger<QuoteService> logger)
         {
             this._logger = logger;
 
@@ -163,7 +165,7 @@ namespace CloudNine.Discord.Services
 
         private async Task SendQuoteRelay(DiscordMessage source, Relay relay, List<string> args, DiscordClient client)
         {
-            var data = new RelayData();
+            var data = new QuoteData();
 
             List<string> content = new List<string>();
 
@@ -172,7 +174,7 @@ namespace CloudNine.Discord.Services
             for (int i = 0; i < args.Count; i++)
             {
                 bool isArgRun = false;
-                (i, data, isArgRun) = await ExecuteRelayArgumentChecks(args, i, data, source);
+                (i, data, isArgRun) = await ExecuteArgumentChecks(args, i, data, source);
 
                 if (i == -1 || data is null) return;
 
@@ -197,10 +199,10 @@ namespace CloudNine.Discord.Services
 
                             if (command == "default")
                             {
-                                var defaultData = new RelayData();
+                                var defaultData = new QuoteData();
                                 for (i = i; i < args.Count; i++)
                                 {
-                                    (i, defaultData, _) = await ExecuteRelayArgumentChecks(args, i, data, source);
+                                    (i, defaultData, _) = await ExecuteArgumentChecks(args, i, data, source);
                                     if (i == -1 || data is null) return;
                                 }
 
@@ -323,7 +325,7 @@ namespace CloudNine.Discord.Services
             #endregion
 
             // Make sure a channel object exsists.
-            ExecuteParamAssignment("--channel", relay,
+            ExecuteParamAssignment("--channel", relay, RelayDefaults,
                 data.ChannelId, d => data.ChannelId = (ulong?)d,
                 relay.Data.ChannelId, r => relay.Data.ChannelId = (ulong?)r);
 
@@ -341,23 +343,23 @@ namespace CloudNine.Discord.Services
             };
 
             // Author
-            ExecuteParamAssignment("--author", relay, 
+            ExecuteParamAssignment("--author", relay, RelayDefaults,
                 data.Author, d => quote.Author = (string)d,
                 relay.Data.Author, r => relay.Data.Author = (string)r);
             // Saved By
-            ExecuteParamAssignment("--saved", relay,
+            ExecuteParamAssignment("--saved", relay, RelayDefaults,
                 data.SavedBy, d => quote.SavedBy = (string)d,
                 relay.Data.SavedBy, r => relay.Data.SavedBy = (string)r);
             // Image
-            ExecuteParamAssignment("--image", relay,
+            ExecuteParamAssignment("--image", relay, RelayDefaults,
                 data.ImageUrl, d => quote.Attachment = (string)d,
                 relay.Data.ImageUrl, r => relay.Data.ImageUrl = (string)r);
             // Color
-            ExecuteParamAssignment("--color", relay,
+            ExecuteParamAssignment("--color", relay, RelayDefaults,
                 data.Color, d => quote.Color = (DiscordColor)d,
                 relay.Data.Color, r => relay.Data.Color = (DiscordColor)r);
             // Time
-            ExecuteParamAssignment("--time", relay,
+            ExecuteParamAssignment("--time", relay, RelayDefaults,
                 data.Time, d => quote.SavedAt = (DateTime?)d,
                 relay.Data.Time, r => relay.Data.Time = (DateTime?)r);
 
@@ -365,7 +367,7 @@ namespace CloudNine.Discord.Services
             await source.CreateReactionAsync(DiscordEmoji.FromName(client, ":white_check_mark:"));
         }
 
-        private async Task<(int, RelayData, bool)> ExecuteRelayArgumentChecks(List<string> args, int i, RelayData data, DiscordMessage source)
+        public async Task<(int, QuoteData, bool)> ExecuteArgumentChecks(List<string> args, int i, QuoteData data, DiscordMessage source)
         {
             bool argRun = false;
             switch(args[i])
@@ -479,7 +481,7 @@ namespace CloudNine.Discord.Services
                                 return (-1, null, false);
                             }
 
-                            int[] values = new int[3];
+                            byte[] values = new byte[3];
                             for (int c = 0; c < values.Length; c++)
                             {
                                 if (byte.TryParse(parts[c], out byte v))
@@ -550,19 +552,46 @@ namespace CloudNine.Discord.Services
                         }
                     }
                     break;
+
+                case "--custom":
+                    argRun = true;
+                    if(args.Count <= i + 1)
+                    {
+                        await source.Channel.SendMessageAsync("Failed to parse `--custom`, not enough paramaters.");
+                        return (-1, null, false);
+                    }
+                    else
+                    {
+                        data.CustomId = args[++i];
+                    }
+                    break;
+
+                case "-m":
+                case "--message":
+                    if (args.Count <= i + 1)
+                    {
+                        await source.Channel.SendMessageAsync("Failed to parse `--message`, not enough paramaters.");
+                        return (-1, null, false);
+                    }
+                    else
+                    {
+                        data.Content = args[++i];
+                    }
+                    break;
                     #endregion
             }
 
             return (i, data, argRun);
         }
 
-        private void ExecuteParamAssignment(string propertyCommand, Relay r, object data, Action<object> assignData,
-            object latch, Action<object> assignLatch)
+        public void ExecuteParamAssignment(string propertyCommand, Relay r, Dictionary<string, object> defaults,
+            object data, Action<object> assignData,
+            object? latch, Action<object>? assignLatch)
         {
 #pragma warning disable CS8604 // Possible null reference argument. -- this must be handled outside of this method.
             try
             {
-                RelayDefaults.TryGetValue(propertyCommand, out object? d);
+                defaults.TryGetValue(propertyCommand, out object? d);
 
                 // if the data is null (no command for this was entered)...
                 if (data is null)
@@ -583,7 +612,8 @@ namespace CloudNine.Discord.Services
                     { // ... and latch with the mode LAST exsists ...
                         if (mode == LatchMode.Last)
                             // ... assign the data to the latch property.
-                            assignLatch(data);
+                            if(assignLatch is not null)
+                                assignLatch(data);
                     }
 
                     assignData(data);

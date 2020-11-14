@@ -12,9 +12,9 @@ namespace CloudNine.Discord.Commands.Devine
 {
     public class OpenQuoteRelay : CommandModule
     {
-        private readonly QuoteRelayService _relay;
+        private readonly QuoteService _relay;
 
-        public OpenQuoteRelay(QuoteRelayService relay)
+        public OpenQuoteRelay(QuoteService relay)
         {
             this._relay = relay;
         }
