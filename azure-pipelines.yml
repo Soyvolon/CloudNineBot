@@ -24,12 +24,13 @@ steps:
     version: 5.x
     installationPath: $(Agent.ToolsDirectory)/dotnet
 
-- task: NuGetCommand@2
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet restore'
   inputs:
     command: 'restore'
-    restoreSolution: '$(solution)'
+    projects: '**/*.csproj'
     feedsToUse: 'config'
-    nugetConfigPath: 'NuGet.config'
+    nugetConfigPath: 'nuget.config'
 
 - task: DotNetCoreCLI@2
   inputs:
