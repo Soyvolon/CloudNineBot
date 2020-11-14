@@ -453,24 +453,20 @@ namespace CloudNine.Discord.Services
                     }
                     else
                     {
+
                         try
                         {
                             var uri = new Uri(args[++i]);
                             url = uri.AbsoluteUri;
                         }
-                        catch { } // just leave url as "", it will be skipped later.
-
+                        catch
+                        {
+                            await source.Channel.SendMessageAsync("Failed to parse `--image`, failed to get a valid URL.");
+                            return (-1, null, false);
+                        }
                     }
 
-                    if (url != "")
-                    {
-                        data.ImageUrl = url;
-                    }
-                    else
-                    {
-                        await source.Channel.SendMessageAsync("Failed to get a valid URL.");
-                        return (-1, null, false);
-                    }
+                    data.ImageUrl = url;
                     break;
 
                 case "-C":
