@@ -5,14 +5,15 @@ VisualStudioVersion = 16.0.30225.117
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudNine.Discord", "CloudNine.Discord\CloudNine.Discord.csproj", "{F087943A-2024-49A5-90A4-942EF2BDE026}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudNine.Core", "CloudNine.Core\CloudNine.Core.csproj", "{1F0CAB1B-2BA5-4133-B81A-7059DF7D2122}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudNine.Core", "CloudNine.Core\CloudNine.Core.csproj", "{1F0CAB1B-2BA5-4133-B81A-7059DF7D2122}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudNine", "CloudNine\CloudNine.csproj", "{EC0F156A-21C4-46B5-8428-82F08DDBD2A3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudNine", "CloudNine\CloudNine.csproj", "{EC0F156A-21C4-46B5-8428-82F08DDBD2A3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1. Project", "1. Project", "{9CA2308B-4B0D-40C1-B2B7-AFFC297064C9}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
 		Dockerfile = Dockerfile
+		Dockerfile.Local = Dockerfile.Local
 		NuGet.config = NuGet.config
 		README.md = README.md
 	EndProjectSection
