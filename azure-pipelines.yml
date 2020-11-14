@@ -18,11 +18,11 @@ steps:
 - task: NuGetToolInstaller@1
 
 - task: UseDotNet@2
+  displayName: 'Use .NET Core sdk'
   inputs:
-    packageType: 'sdk'
-    version: '5.0.100'
-    vsVersion: '16.8.0'
-    performMultiLevelLookup: true
+    packageType: sdk
+    version: 5.x
+    installationPath: $(Agent.ToolsDirectory)/dotnet
 
 - task: NuGetCommand@2
   inputs:
