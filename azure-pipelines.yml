@@ -16,14 +16,14 @@ variables:
 
 steps:
 - task: NuGetToolInstaller@1
+
+- task: 
+
 - task: UseDotNet@2
   inputs:
     version: '5.0.100'
+    vsVersion: '16.8.0'
     performMultiLevelLookup: true
-
-- task: MSBuild@1
-  inputs:
-    msbuildVersion: 'latest'
 
 - task: NuGetCommand@2
   inputs:
