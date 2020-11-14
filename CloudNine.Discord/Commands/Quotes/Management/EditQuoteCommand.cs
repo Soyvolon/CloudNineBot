@@ -77,17 +77,12 @@ namespace CloudNine.Discord.Commands.Quotes.Management
 
             var data = new QuoteData();
             var argsList = args[1..].ToList();
-            List<string> content = new();
 
             for(int i = 0; i < argsList.Count; i++)
             {
-                bool argRun;
-                (i, data, argRun) = await _quotes.ExecuteArgumentChecks(argsList, i, data, ctx.Message);
-                
-                if(!argRun)
-                {
-                    content.Add(argsList[i]);   
-                }
+                (i, data, _) = await _quotes.ExecuteArgumentChecks(argsList, i, data, ctx.Message);
+
+                if (i == -1 || data is null) return;
             }
 
             var defaults = new Dictionary<string, object>()

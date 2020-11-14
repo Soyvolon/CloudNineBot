@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.Json.Serialization;
 
 using DSharpPlus.Entities;
 
@@ -13,7 +14,27 @@ namespace CloudNine.Core.Quotes
         public int Id { get; set; }
         public string? CustomId { get; set; }
         public string? Attachment { get; set; }
-        public DiscordColor? Color { get; set; }
+
+        [JsonIgnore]
+        public DiscordColor? Color
+        {
+            get
+            {
+                if (ColorValue is null) return null;
+
+                return new DiscordColor((int)ColorValue);
+            }
+
+            set
+            {
+                if (value.HasValue)
+                    ColorValue = value.Value.Value;
+                else
+                    ColorValue = null;
+            }
+        }
+
+        public int? ColorValue { get; set; }
 
         public DiscordEmbedBuilder BuildQuote()
         {

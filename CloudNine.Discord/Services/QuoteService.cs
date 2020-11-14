@@ -409,31 +409,9 @@ namespace CloudNine.Discord.Services
                     }
                     else
                     {
-                        var author = args[++i];
+                        var author = await TryParseUserId(args[++i], source);
 
-                        if(author.StartsWith("<@") && author.EndsWith(">"))
-                        {
-                            if (ulong.TryParse(author[2..(author.Length - 1)], out ulong id))
-                            {
-                                try
-                                {
-                                    var user = await source.Channel.Guild.GetMemberAsync(id);
-                                    author = user.Username;
-                                }
-                                catch
-                                {
-                                    await source.Channel.SendMessageAsync("Failed to parse `--author`, invalid mention. Mentions must be from" +
-                                        " members on this server.");
-                                    return (-1, null, false);
-                                }
-                            }
-                            else
-                            {
-                                await source.Channel.SendMessageAsync("Failed to parse `--author`, invalid mention. Mentions must be from" +
-                                        " members on this server.");
-                                return (-1, null, false);
-                            }
-                        }
+                        if (author is null) return (-1, null, false);
 
                         data.Author = author;
                     }
@@ -448,7 +426,13 @@ namespace CloudNine.Discord.Services
                         return (-1, null, false);
                     }
                     else
-                        data.SavedBy = args[++i];
+                    {
+                        var author = await TryParseUserId(args[++i], source);
+
+                        if (author is null) return (-1, null, false);
+
+                        data.SavedBy = author;
+                    }
                     break;
 
                 case "-i":
@@ -653,6 +637,46 @@ namespace CloudNine.Discord.Services
                 _logger.LogError(ex, "Param Assignement Failed");
                 throw new ArgumentException("Failed to parse an argument", ex);
             }
+        }
+
+        private async Task<string?> TryParseUserId(string author, DiscordMessage source)
+        {
+            var res = "";
+            if (author.StartsWith("<@!") && author.EndsWith(">"))
+            {
+                res = author[3..(author.Length - 1)];
+            }
+            else if(author.StartsWith("<@"))
+            {
+                res = author[2..(author.Length - 1)];
+            }
+            else
+            {
+                return author;
+            }
+
+            if (ulong.TryParse(res, out ulong id))
+            {
+                try
+                {
+                    var user = await source.Channel.Guild.GetMemberAsync(id);
+                    res = user.Username;
+                }
+                catch
+                {
+                    await source.Channel.SendMessageAsync("Failed to parse `--author`, invalid mention. Mentions must be from" +
+                        " members on this server.");
+                    return null;
+                }
+            }
+            else
+            {
+                await source.Channel.SendMessageAsync("Failed to parse `--author`, invalid mention. Mentions must be from" +
+                        " members on this server.");
+                return null;
+            }
+
+            return res;
         }
 
         public Task<bool> TryCloseRelayAsync(DiscordUser source)
