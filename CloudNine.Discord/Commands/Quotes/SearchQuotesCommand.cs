@@ -29,6 +29,7 @@ namespace CloudNine.Discord.Commands.Quotes
         }
 
         [Command("searchquotes")]
+        [RequireGuild]
         [Description("Searches quotes by a specific serach")]
         [Aliases("searchquote", "quoteserach")]
         public async Task SearchQuotesCommandAsync(CommandContext ctx,

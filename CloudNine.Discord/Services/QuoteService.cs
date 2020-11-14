@@ -80,7 +80,7 @@ namespace CloudNine.Discord.Services
             public string? Content { get; set; }
         }
 
-        public ConcurrentDictionary<DiscordUser, Relay> ActiveLinks { get; init; }
+        public ConcurrentDictionary<ulong, Relay> ActiveLinks { get; init; }
 
         private readonly ILogger _logger;
         private ConcurrentDictionary<MessageCreateEventArgs, Tuple<Task, CancellationTokenSource>> RunningRelays;
@@ -89,7 +89,7 @@ namespace CloudNine.Discord.Services
         {
             this._logger = logger;
 
-            ActiveLinks = new ConcurrentDictionary<DiscordUser, Relay>();
+            ActiveLinks = new ConcurrentDictionary<ulong, Relay>();
             RunningRelays = new ConcurrentDictionary<MessageCreateEventArgs, Tuple<Task, CancellationTokenSource>>();
         }
 
@@ -104,7 +104,7 @@ namespace CloudNine.Discord.Services
         public async Task<bool> TryOpenRelayAsync(DiscordUser source, DiscordChannel sourceChannel, 
             ulong destGuildId, char actionKey)
         {
-            if (ActiveLinks.ContainsKey(source)) return false;
+            if (ActiveLinks.ContainsKey(source.Id)) return false;
 
             var client = await DiscordBot.Bot.GetClientForGuildId(destGuildId);
 
@@ -112,7 +112,7 @@ namespace CloudNine.Discord.Services
 
             var guild = await client.GetGuildAsync(destGuildId);
 
-            ActiveLinks[source] = new Relay
+            ActiveLinks[source.Id] = new Relay
             {
                 Destination = guild,
                 SourceId = sourceChannel.Id,
@@ -136,7 +136,7 @@ namespace CloudNine.Discord.Services
         {
             try
             {
-                if (ActiveLinks.TryGetValue(e.Author, out var r))
+                if (ActiveLinks.TryGetValue(e.Author.Id, out var r))
                 {
                     var args = GetParamsString(e.Message.Content);
 
@@ -681,7 +681,7 @@ namespace CloudNine.Discord.Services
 
         public Task<bool> TryCloseRelayAsync(DiscordUser source)
         {
-            return Task.FromResult(ActiveLinks.TryRemove(source, out _));
+            return Task.FromResult(ActiveLinks.TryRemove(source.Id, out _));
         }
 
         public static DiscordEmbedBuilder GetQuoteRelayHelp(string prefix)

@@ -26,6 +26,7 @@ namespace CloudNine.Discord.Commands.Quotes
         }
 
         [Command("quote")]
+        [RequireGuild]
         [Description("Gets a saved quote!")]
         [Aliases("getquote")]
         public async Task GetQuoteCommandAsync(CommandContext ctx,

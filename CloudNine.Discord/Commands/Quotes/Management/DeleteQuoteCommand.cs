@@ -20,6 +20,7 @@ namespace CloudNine.Discord.Commands.Quotes.Management
         }
 
         [Command("deletequote")]
+        [RequireGuild]
         [Description("Deltes a quote by its ID.")]
         [Aliases("delquote", "dquote")]
         [RequireUserPermissions(Permissions.ManageMessages)]

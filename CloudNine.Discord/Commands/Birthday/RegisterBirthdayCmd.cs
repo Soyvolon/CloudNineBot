@@ -10,6 +10,7 @@ namespace CloudNine.Discord.Commands.Birthday
     {
 
         [Command("register")]
+        [RequireGuild]
         [Description("Registers your birthday for the server you use this command on.")]
         public async Task RegisterBirthdayAsync(CommandContext ctx,
             [Description("What month and day to set your brithday to.\nFormat: MM/DD or Month DD")]

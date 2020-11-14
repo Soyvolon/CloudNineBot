@@ -30,6 +30,7 @@ namespace CloudNine.Discord.Commands.Quotes.Management
         }
 
         [Command("editquote")]
+        [RequireGuild]
         [Description("Edits an exsisting quote.")]
         [RequireUserPermissions(Permissions.ManageMessages)]
         [Priority(2)]

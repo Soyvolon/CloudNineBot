@@ -9,6 +9,7 @@ namespace CloudNine.Discord.Commands.Birthday
     public class ForceChannelDescUpdateCmd : CommandModule
     {
         [Command("forceupdate")]
+        [RequireGuild]
         [Description("Forces the birthday channel description to update.")]
         [RequireUserPermissions(Permissions.ManageGuild)]
         public async Task ForceChannelDescUpdateAsync(CommandContext ctx)

@@ -11,6 +11,7 @@ namespace CloudNine.Discord.Commands.Birthday
     public class AdminOverrides : CommandModule
     {
         [Command("aregister")]
+        [RequireGuild]
         [RequireUserPermissions(Permissions.ManageGuild)]
         public async Task AdminRegisterUser(CommandContext ctx, DiscordUser m, [RemainingText] DateTime bday)
         {

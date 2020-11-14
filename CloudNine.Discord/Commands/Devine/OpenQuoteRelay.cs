@@ -56,10 +56,10 @@ namespace CloudNine.Discord.Commands.Devine
 
         private async Task OpenRelayAsync(CommandContext ctx, ulong guildId)
         {
-            if (_relay.ActiveLinks.ContainsKey(ctx.User))
+            if (_relay.ActiveLinks.ContainsKey(ctx.User.Id))
             {
                 await RespondError($"You already have an open link!\n" +
-                    $"Use `{ctx.Prefix}forcecloselink` to force your open link to close.");
+                    $"Use `{ctx.Prefix}forcecloserelay` to force your open link to close.");
                 return;
             }
 

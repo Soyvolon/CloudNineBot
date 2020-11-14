@@ -9,6 +9,7 @@ namespace CloudNine.Discord.Commands.Birthday
     {
         [Command("remove")]
         [Aliases("unregister")]
+        [RequireGuild]
         [Description("Removes you from the birthday list on this server.")]
         public async Task UnregisterBirthdayAsync(CommandContext ctx)
         {

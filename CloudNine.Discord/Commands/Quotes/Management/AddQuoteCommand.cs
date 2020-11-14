@@ -29,6 +29,7 @@ namespace CloudNine.Discord.Commands.Quotes.Management
         }
 
         [Command("addquote")]
+        [RequireGuild]
         [Description("Adds a quote.")]
         [Aliases("aquote")]
         [Priority(1)]

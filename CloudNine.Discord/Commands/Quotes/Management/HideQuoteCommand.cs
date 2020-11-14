@@ -24,6 +24,7 @@ namespace CloudNine.Discord.Commands.Quotes.Management
         }
 
         [Command("hidequote")]
+        [RequireGuild]
         [Description("Adds a new hidden quote, or hides an exsisting one.")]
         [RequireUserPermissions(Permissions.ManageMessages)]
         [Hidden]
