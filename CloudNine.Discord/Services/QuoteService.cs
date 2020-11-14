@@ -408,7 +408,35 @@ namespace CloudNine.Discord.Services
                         return (-1, null, false);
                     }
                     else
-                        data.Author = args[++i];
+                    {
+                        var author = args[++i];
+
+                        if(author.StartsWith("<@") && author.EndsWith(">"))
+                        {
+                            if (ulong.TryParse(author[2..(author.Length - 1)], out ulong id))
+                            {
+                                try
+                                {
+                                    var user = await source.Channel.Guild.GetMemberAsync(id);
+                                    author = user.Username;
+                                }
+                                catch
+                                {
+                                    await source.Channel.SendMessageAsync("Failed to parse `--author`, invalid mention. Mentions must be from" +
+                                        " members on this server.");
+                                    return (-1, null, false);
+                                }
+                            }
+                            else
+                            {
+                                await source.Channel.SendMessageAsync("Failed to parse `--author`, invalid mention. Mentions must be from" +
+                                        " members on this server.");
+                                return (-1, null, false);
+                            }
+                        }
+
+                        data.Author = author;
+                    }
                     break;
 
                 case "-s":
