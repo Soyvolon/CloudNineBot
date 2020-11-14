@@ -6,6 +6,8 @@
 # Database Files
 *.db
 *Config/
+*build/
+*Dockerfile.Local
 
 # User-specific files
 *.rsuser

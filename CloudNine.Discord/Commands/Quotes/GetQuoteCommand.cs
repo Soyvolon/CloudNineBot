@@ -12,6 +12,8 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 
+using Microsoft.Extensions.Caching.Memory;
+
 namespace CloudNine.Discord.Commands.Quotes
 {
     public class GetQuoteCommand : CommandModule
@@ -24,6 +26,7 @@ namespace CloudNine.Discord.Commands.Quotes
         }
 
         [Command("quote")]
+        [RequireGuild]
         [Description("Gets a saved quote!")]
         [Aliases("getquote")]
         public async Task GetQuoteCommandAsync(CommandContext ctx,
@@ -115,13 +118,7 @@ namespace CloudNine.Discord.Commands.Quotes
                 }
                 catch (NotFoundException) { }
 
-                var embed = new DiscordEmbedBuilder()
-                    .WithColor(Color_Cloud)
-                    .WithTitle($"Quote - {quote.Author}")
-                    .WithDescription(quote.Content)
-                    .WithImageUrl(quote.Attachment ?? "")
-                    .WithFooter($"Saved by: {quote.SavedBy}")
-                    .WithTimestamp(quote.SavedAt);
+                var embed = quote.BuildQuote();
 
                 await ctx.RespondAsync(embed: embed);
             }
@@ -135,13 +132,7 @@ namespace CloudNine.Discord.Commands.Quotes
         {
             if (cfg.Quotes.TryGetValue(quoteId, out var quote))
             {
-                var embed = new DiscordEmbedBuilder()
-                    .WithColor(Color_Cloud)
-                    .WithTitle($"Quote {quote.Id} - {quote.Author}")
-                    .WithDescription(quote.Content)
-                    .WithImageUrl(quote.Attachment ?? "")
-                    .WithFooter($"Saved by: {quote.SavedBy}")
-                    .WithTimestamp(quote.SavedAt);
+                var embed = quote.BuildQuote();
 
                 await ctx.RespondAsync(embed: embed);
             }

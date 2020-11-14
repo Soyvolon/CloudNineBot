@@ -23,6 +23,7 @@ namespace CloudNine.Discord.Commands.Quotes.Management
         }
 
         [Command("listhiddenquotes")]
+        [RequireGuild]
         [Description("Lists the hidden quotes.")]
         [Aliases("lhquotes")]
         [RequireUserPermissions(Permissions.ManageMessages)]

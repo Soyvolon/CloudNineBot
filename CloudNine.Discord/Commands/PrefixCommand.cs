@@ -22,6 +22,7 @@ namespace CloudNine.Discord.Commands
         }
 
         [Command("prefix")]
+        [RequireGuild]
         [Description("Changes the prefix for your server.")]
         [RequireUserPermissions(Permissions.ManageGuild)]
         public async Task ChangePrefixCommandAsync(CommandContext ctx,

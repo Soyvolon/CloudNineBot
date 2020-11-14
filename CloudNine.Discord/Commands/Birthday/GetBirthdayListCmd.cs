@@ -11,6 +11,7 @@ namespace CloudNine.Discord.Commands.Birthday
     public class GetBirthdayListCmd : CommandModule
     {
         [Command("bdaylist")]
+        [RequireGuild]
         [Aliases("brithdays")]
         [Description("Sends you a list of the birthdays from the server you run this command on to your DMs.")]
         public async Task GetBirthdayListAsync(CommandContext ctx, [RemainingText] string prams)

@@ -22,6 +22,7 @@ namespace CloudNine.Discord.Commands.Quotes
         }
 
         [Command("listquotes")]
+        [RequireGuild]
         [Description("Lists all quotes on this server.")]
         [Aliases("lquotes")]
         public async Task ListQuotesCommandAsync(CommandContext ctx)

@@ -40,7 +40,7 @@ namespace CloudNine.Discord
             }
         }
 
-        public const string VERSION = "1.2.0";
+        public const string VERSION = "1.2.1";
         private bool disposedValue;
 
         public static DiscordBot Bot { get; private set; }
@@ -67,7 +67,9 @@ namespace CloudNine.Discord
             {
                 TokenType = TokenType.Bot,
                 Token = botCfg.Token,
-                MinimumLogLevel = logLevel
+                MinimumLogLevel = logLevel,
+                Intents = DiscordIntents.DirectMessages | DiscordIntents.GuildMessageReactions 
+                    | DiscordIntents.Guilds | DiscordIntents.GuildMessages
             };
 
             return cfg;
@@ -124,6 +126,9 @@ namespace CloudNine.Discord
 
             Client.Ready += Client_Ready;
             Client.MessageCreated += commandHander.MessageRecievedAsync;
+
+            var relay = services.GetRequiredService<QuoteService>();
+            Client.MessageCreated += relay.MessageRecievedAsync;
 
             InitalizeOtherParts(botCfg);
 

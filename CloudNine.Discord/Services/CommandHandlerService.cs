@@ -30,6 +30,7 @@ namespace CloudNine.Discord.Services
             this._logger = logger;
 			this._services = services;
 
+
             RunningCommands = new ConcurrentDictionary<MessageCreateEventArgs, Tuple<Task, CancellationTokenSource>>();
         }
 
@@ -38,12 +39,77 @@ namespace CloudNine.Discord.Services
 			if (e.Author.IsBot) return Task.CompletedTask;
 
 			var cancelSource = new CancellationTokenSource();
-			RunningCommands[e] = new Tuple<Task, CancellationTokenSource>(
-				Task.Run(async () => await ExecuteCommand(source, e, cancelSource.Token)),
-				cancelSource);
+
+			if (e.Guild is not null)
+			{ // This is a guild message.
+				RunningCommands[e] = new Tuple<Task, CancellationTokenSource>(
+					Task.Run(async () => await ExecuteCommand(source, e, cancelSource.Token)),
+					cancelSource);
+			}
+			else
+            { // This is a DM.
+				RunningCommands[e] = new Tuple<Task, CancellationTokenSource>(
+					Task.Run(async () => await ExecuteDMCommandAsync(source, e, cancelSource.Token)),
+					cancelSource);
+			}
 
             return Task.CompletedTask;
         }
+
+		private async Task ExecuteDMCommandAsync(DiscordClient source, MessageCreateEventArgs e, CancellationToken cancellationToken)
+        {
+			try
+			{
+				cancellationToken.ThrowIfCancellationRequested();
+
+				string mention = source.CurrentUser.Mention;
+				if (!e.Message.Content.StartsWith(mention))
+                {
+					var nick = mention.Insert(2, "!");
+					if (e.Message.Content.StartsWith(nick))
+						mention = nick;
+					else
+						return;
+                }
+
+				cancellationToken.ThrowIfCancellationRequested();
+
+				var prefix = e.Message.Content.Substring(0, mention.Length);
+				string commandString = e.Message.Content.Substring(mention.Length);
+
+				var cnext = source.GetCommandsNext();
+
+				var command = cnext.FindCommand(commandString, out string args);
+
+				cancellationToken.ThrowIfCancellationRequested();
+
+				if (command is null)
+				{ // Looks like that command does not exsist!
+					await CommandResponder.RespondCommandNotFound(e.Channel, prefix);
+				}
+				else
+				{ // We found a command, lets deal with it.
+					var ctx = cnext.CreateContext(e.Message, prefix, command, args);
+					// We are done here, its up to CommandsNext now.
+
+					cancellationToken.ThrowIfCancellationRequested();
+
+					await cnext.ExecuteCommandAsync(ctx);
+				}
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Command Handler failed.");
+			}
+			finally
+			{
+				if (RunningCommands.TryRemove(e, out var taskData))
+				{
+					taskData.Item2.Dispose();
+					taskData.Item1.Dispose();
+				}
+			}
+		}
 
         private async Task ExecuteCommand(DiscordClient source, MessageCreateEventArgs e, CancellationToken cancellationToken)
         {

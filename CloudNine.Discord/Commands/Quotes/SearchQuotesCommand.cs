@@ -29,6 +29,7 @@ namespace CloudNine.Discord.Commands.Quotes
         }
 
         [Command("searchquotes")]
+        [RequireGuild]
         [Description("Searches quotes by a specific serach")]
         [Aliases("searchquote", "quoteserach")]
         public async Task SearchQuotesCommandAsync(CommandContext ctx,
@@ -152,32 +153,32 @@ namespace CloudNine.Discord.Commands.Quotes
                     .WithDescription("Detailed help for the `searchquotes` command.\n" +
                         $"Using `{ctx.Prefix}searchquotes` without anything else will get you this help command.")
                     .AddField("Full Usage", "```http\n" +
-                        $"Usage   :: {ctx.Prefix}searchquote <(-a | --author) <query> | (-s | --saved) <query> | (-c | --content) <query>>\n" +
+                        $"Usage   :: {ctx.Prefix}searchquotes <(-a | --author) <query> | (-s | --saved) <query> | (-c | --content) <query>>\n" +
                         "```")
                     .AddField("`-a | --author <query>`", "```http\n" +
-                        $"Usage   :: {ctx.Prefix}searchquote -q \"Author Search\"\n" +
-                        $"Usage   :: {ctx.Prefix}searchquote --quote \"Author Search\"\n" +
+                        $"Usage   :: {ctx.Prefix}searchquotes -q \"Author Search\"\n" +
+                        $"Usage   :: {ctx.Prefix}searchquotes --quote \"Author Search\"\n" +
                         $"Query   :: Search query. Supports wildcards and basic string matching. Use \" around multi-word" +
                         $" queries.\n" +
                         $"Returns :: The edited quote." +
                         $"\n```")
                     .AddField("`-s | --saved <query>`", "```http\n" +
-                        $"Usage   :: {ctx.Prefix}searchquote -a \"Saved By Search\"\n" +
-                        $"Usage   :: {ctx.Prefix}searchquote --author \"Saved By Search\"\n" +
+                        $"Usage   :: {ctx.Prefix}searchquotes -a \"Saved By Search\"\n" +
+                        $"Usage   :: {ctx.Prefix}searchquotes --author \"Saved By Search\"\n" +
                         $"Query   :: Search query. Supports wildcards and basic string matching. Use \" around multi-word" +
                         $" queries.\n" +
                         $"Returns :: The edited quote." +
                         $"\n```")
                     .AddField("`-c | --content <query>`", "```http\n" +
-                        $"Usage   :: {ctx.Prefix}searchquote -s \"Content Search\"\n" +
-                        $"Usage   :: {ctx.Prefix}searchquote --saved \"Content Search\"\n" +
+                        $"Usage   :: {ctx.Prefix}searchquotes -s \"Content Search\"\n" +
+                        $"Usage   :: {ctx.Prefix}searchquotes --saved \"Content Search\"\n" +
                         $"Query   :: Search query. Supports wildcards and basic string matching. Use \" around multi-word" +
                         $" queries.\n" +
                         $"Returns :: The edited quote." +
                         $"\n```")
                     .AddField("`-h | --help`", "```http\n" +
-                        $"Usage   :: {ctx.Prefix}searchquote -h\n" +
-                        $"Usage   :: {ctx.Prefix}searchquote --help\n" +
+                        $"Usage   :: {ctx.Prefix}searchquotes -h\n" +
+                        $"Usage   :: {ctx.Prefix}searchquotes --help\n" +
                         $"Returns :: This embed." +
                         $"\n```")
                     .AddField("Query Matching Documentation:", "This command uses the Like Operator for searches.\n" +

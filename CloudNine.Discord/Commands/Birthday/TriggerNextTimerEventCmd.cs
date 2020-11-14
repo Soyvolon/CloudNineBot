@@ -8,6 +8,7 @@ namespace CloudNine.Discord.Commands.Birthday
     public class TriggerNextTimerEventCmd : CommandModule
     {
         [Command("bdaytrigger")]
+        [RequireGuild]
         [RequireOwner]
         [Hidden]
         public async Task DebugTriggerAsync(CommandContext ctx)
