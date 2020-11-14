@@ -46,7 +46,25 @@ namespace CloudNine.Discord.Commands.Devine
             var res = await DiscordBot.Bot.GetClientForGuildId(guildId);
             if(res is not null)
             {
-                await OpenRemoteQuoteBroadcasterAsync(ctx, await res.GetGuildAsync(guildId));
+                var guild = await res.GetGuildAsync(guildId);
+
+                var user = await guild.GetMemberAsync(ctx.User.Id);
+
+                if(user is null)
+                {
+                    await RespondError($"You are not a member of that server!");
+                    return;
+                }
+
+                if (user.PermissionsIn(guild.GetDefaultChannel()).HasPermission(Permissions.ManageMessages))
+                {
+                    await OpenRemoteQuoteBroadcasterAsync(ctx, guild);
+                }
+                else
+                {
+                    await RespondError($"You do not have permissions to preform this command on that server!");
+                    return;
+                }
             }
             else
             {
