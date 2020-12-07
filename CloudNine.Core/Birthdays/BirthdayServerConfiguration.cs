@@ -135,7 +135,7 @@ namespace CloudNine.Core.Birthdays
                     x.Key.Date.Day == Comparer.CurrentDay.Date.Day
                 ).Value ?? new List<ulong>());
 
-            return res ?? new List<ulong>();
+            return res;
         }
 
         public SortedList<DateTime, List<ulong>> GetNextBirthdaysToLockout()

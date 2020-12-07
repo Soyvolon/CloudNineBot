@@ -23,7 +23,7 @@ namespace CloudNine.Discord.Services
 {
     public class QuoteService
     {
-        public static readonly Dictionary<string, object> RelayDefaults = new Dictionary<string, object>
+        public static Dictionary<string, object> RelayDefaults { get; private set; } = new Dictionary<string, object>
         {
             { "--author", "Cloud Bot" },
             { "--saved", "Cloud Bot" },
@@ -31,7 +31,7 @@ namespace CloudNine.Discord.Services
             { "--color",  CommandModule.Color_Cloud }
         };
 
-        public static readonly HashSet<string> RelayCommands = new HashSet<string>()
+        public static HashSet<string> RelayCommands { get; private set; } = new HashSet<string>()
         {
             "-c", "--channel",
             "-a", "--author",
@@ -41,7 +41,7 @@ namespace CloudNine.Discord.Services
             "-t", "--time",
         };
 
-        public static readonly Dictionary<string, string> ShortToLongCommands = new Dictionary<string, string>()
+        public static Dictionary<string, string> ShortToLongCommands { get; private set; } = new Dictionary<string, string>()
         {
             { "-c", "--channel" },
             { "-a", "--author" },
@@ -200,7 +200,7 @@ namespace CloudNine.Discord.Services
                             if (command == "default")
                             {
                                 var defaultData = new QuoteData();
-                                for (i = i; i < args.Count; i++)
+                                for (_ = i; i < args.Count; i++)
                                 {
                                     (i, defaultData, _) = await ExecuteArgumentChecks(args, i, data, source);
                                     if (i == -1 || data is null) return;
