@@ -23,7 +23,7 @@ namespace CloudNine.Discord.Commands.Moderation
         [Priority(2)]
         [Description("Gets the Mod Logs for a user.")]
         [Aliases("mlogs")]
-        [RequireUserPermissions(Permissions.AccessChannels)]
+        [RequireUserPermissions(Permissions.ManageRoles)]
         public async Task ModLogsCommandAsync(CommandContext ctx,
             [Description("Member to get logs for")]
             DiscordMember member)
