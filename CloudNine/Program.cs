@@ -63,7 +63,7 @@ namespace CloudNine
             {
                 return;
             }
-
+            
             await database.Database.MigrateAsync();
             await database.SaveChangesAsync();
         }
