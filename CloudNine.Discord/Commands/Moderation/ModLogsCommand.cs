@@ -79,7 +79,7 @@ namespace CloudNine.Discord.Commands.Moderation
                             $"{warn.Message}" +
                             $"```\n" +
                             $"{(warn.Edits.Count > 0 ? $"*`... edited {warn.Edits.Count} times`*" : "")}\n" +
-                            $"Warn creaated by: {username}");
+                            $"Warn created by: {username}");
                     }
                 }
 
