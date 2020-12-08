@@ -10,6 +10,7 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using DSharpPlus.Exceptions;
 
 using static CloudNine.Core.Moderation.ModCore;
 using System;
@@ -26,16 +27,23 @@ namespace CloudNine.Discord.Commands.Moderation
         }
 
         [Command("warn")]
+        [Priority(2)]
         [Description("Warns a user against an action. Use --notify to send the warn message to the user.")]
         [RequireUserPermissions(Permissions.ManageRoles)]
         public async Task AddWarnCommandAsync(CommandContext ctx,
             [Description("Member to log a warning for.")]
-            DiscordMember toWarn,
+            DiscordMember? toWarn = null,
 
             [Description("Warn message to record.")]
             [RemainingText]
-            string warnMessage)
+            string warnMessage = "")
         {
+            if(toWarn is null)
+            {
+                await RespondError("Failed to get a user to warn. Make sure the user is on the server and the ID is correct, or use a mention.");
+                return;
+            }
+
             string msg;
             bool notify = false;
             if(warnMessage.Contains("--notify"))
@@ -84,6 +92,24 @@ namespace CloudNine.Discord.Commands.Moderation
             {
                 ctx.Client.Logger.LogError(ex, "Failed to generate a unique key.");
                 await RespondError("Failed to generate a unique warn key. Please try this command again.");
+            }
+        }
+
+        [Command("warn")]
+        public async Task AddWarnCommandAsync(CommandContext ctx,
+            [Description("User ID to warn")]
+            ulong userId,
+
+            [Description("Message to record")]
+            string warnMessage = "")
+        {
+            try
+            {
+                await AddWarnCommandAsync(ctx, await ctx.Guild.GetMemberAsync(userId), warnMessage);
+            }
+            catch(NotFoundException)
+            {
+                await RespondError("Failed to get a user to warn. Make sure the user is on the server and the ID is correct, or use a mention.");
             }
         }
     }
