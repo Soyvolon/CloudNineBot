@@ -43,7 +43,7 @@ namespace CloudNine.Discord.Commands.Moderation
 
             if(warn is not null)
             {
-                warn.AddEdit(newReason);
+                warn.AddEdit(newReason == "" ? "Deafult Warn." : newReason);
 
                 _database.Update(mod);
                 await _database.SaveChangesAsync();

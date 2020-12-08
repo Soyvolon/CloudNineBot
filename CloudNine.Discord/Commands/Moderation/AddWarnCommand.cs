@@ -29,7 +29,7 @@ namespace CloudNine.Discord.Commands.Moderation
 
         [Command("warn")]
         [Priority(2)]
-        [Description("Warns a user against an action. Use --notify to send the warn message to the user.")]
+        [Description("Warns a user against an action. Use `--notify` to send the warn message to the user.")]
         [RequireUserPermissions(Permissions.ManageMessages)]
         public async Task AddWarnCommandAsync(CommandContext ctx,
             [Description("Member to log a warning for.")]
@@ -49,6 +49,12 @@ namespace CloudNine.Discord.Commands.Moderation
             bool notify = false;
             if(warnMessage.Contains("--notify"))
             {
+                if(toWarn.IsBot)
+                {
+                    await RespondError("Cannot notify bot users.");
+                    return;
+                }
+
                 notify = true;
                 msg = warnMessage.Replace("--notify", string.Empty);
             }
@@ -56,6 +62,9 @@ namespace CloudNine.Discord.Commands.Moderation
             {
                 msg = warnMessage;
             }
+
+            if (msg == "")
+                msg = "Default Warn.";
 
             var mod = await _database.FindAsync<ModCore>(ctx.Guild.Id);
 
@@ -68,7 +77,7 @@ namespace CloudNine.Discord.Commands.Moderation
 
             try
             {
-                if (await mod.AddWarn(toWarn.Id, msg, ctx.User.Id))
+                if (mod.AddWarn(toWarn.Id, msg, ctx.User.Id, out var warn))
                 {
                     _database.Update(mod);
                     await _database.SaveChangesAsync();
@@ -81,7 +90,7 @@ namespace CloudNine.Discord.Commands.Moderation
                             $"Please send questions to {ctx.User.Mention}*");
                     }
 
-                    await RespondWarn($"Successfuly logged warning for user {toWarn.Mention}. {(notify ? "The user has been notified." : "")}");
+                    await RespondWarn($"Successfuly logged warning for user {toWarn.Mention} as `{warn.Key}`. {(notify ? "The user has been notified." : "")}");
                 }
                 else
                 {
@@ -97,6 +106,7 @@ namespace CloudNine.Discord.Commands.Moderation
         }
 
         [Command("warn")]
+        [Priority(1)]
         public async Task AddWarnCommandAsync(CommandContext ctx,
             [Description("User ID to warn")]
             ulong userId,
@@ -115,6 +125,7 @@ namespace CloudNine.Discord.Commands.Moderation
         }
 
         [Command("warn")]
+        [Priority(0)]
         public async Task ViewWarnCommand(CommandContext ctx,
             [Description("Warn to view")]
             string warnId)
@@ -161,7 +172,7 @@ namespace CloudNine.Discord.Commands.Moderation
                     embed.AddField($"*`{warn.Reverts.Count} reverts found:`*", $"`{data}`");
                 }
 
-                embed.AddField($"Last Edit: `{warn.LastEdit:g}`", $"```{warn.Message}```");
+                embed.AddField($"Last Edit: `{warn.LastEdit:g}`", $"```{(warn.Message == "" ? "Default warning." : warn.Message)}```");
 
                 if (warn.Edits.Count > 0)
                 {

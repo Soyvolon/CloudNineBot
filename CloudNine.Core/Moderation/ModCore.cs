@@ -55,9 +55,10 @@ namespace CloudNine.Core.Moderation
             _rand = new Random();
         }
 
-        public async Task<bool> AddWarn(ulong userid, string message, ulong savedby)
+        public bool AddWarn(ulong userid, string message, ulong savedby, out Warn w)
         {
-            return AddWarn(new(await GetGuildUniqueKey(), userid, message, savedby));
+            w = new(GetGuildUniqueKey(), userid, message, savedby);
+            return AddWarn(w);
         }
 
         public bool AddWarn(Warn w)
@@ -136,7 +137,7 @@ namespace CloudNine.Core.Moderation
             return _keys;
         }
 
-        public Task<string> GetGuildUniqueKey()
+        public string GetGuildUniqueKey()
         {
             int exitCounter = 0;
             while (exitCounter++ < 20) // attempt this generation 20 times.
@@ -157,7 +158,7 @@ namespace CloudNine.Core.Moderation
                 }
 
                 if (!Keys.Contains(output))
-                    return Task.FromResult(output);
+                    return output;
             }
 
             throw new InvalidUniqueKeyException("Failed to generate a unique key.");

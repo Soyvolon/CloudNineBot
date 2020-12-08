@@ -45,6 +45,7 @@ namespace CloudNine.Core.Moderation
             Key = key;
             UserId = user_id;
             Message = message;
+            SavedBy = saved_by;
             Edits = edits ?? new(new CustomDateTimeComparer());
             Reverts = reverts ?? new(new CustomDateTimeComparer());
             CreatedOn = created_on ?? DateTime.UtcNow;
