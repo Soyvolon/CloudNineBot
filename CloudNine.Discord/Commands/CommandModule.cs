@@ -11,6 +11,7 @@ namespace CloudNine.Discord.Commands
     public class CommandModule : BaseCommandModule
     {
         public static readonly DiscordColor Color_Cloud = new DiscordColor(0x3498db);
+        public static readonly DiscordColor Color_Warn = new DiscordColor(0xe07c10);
 
         private CommandContext ctx;
 
@@ -25,6 +26,11 @@ namespace CloudNine.Discord.Commands
             await ctx.RespondAsync(response);
         }
 
+        public async Task RespondWarn(string response)
+        {
+            await ctx.RespondAsync(embed: ModBase().WithDescription(response));
+        }
+
         public async Task RespondError(string response)
         {
             await ctx.RespondAsync(embed: ErrorBase().WithDescription(response));
@@ -34,6 +40,12 @@ namespace CloudNine.Discord.Commands
         {
             return new DiscordEmbedBuilder()
                 .WithColor(DiscordColor.Red);
+        }
+
+        public static DiscordEmbedBuilder ModBase()
+        {
+            return new DiscordEmbedBuilder()
+                .WithColor(Color_Warn);
         }
 
         public static DiscordEmbedBuilder InteractBase()
