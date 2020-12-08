@@ -1,4 +1,6 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 
 using CloudNine.Core.Birthdays;
@@ -52,10 +54,10 @@ namespace CloudNine.Core.Database
                     v => JsonConvert.DeserializeObject<ConcurrentDictionary<string, Quote>>(v) ?? new());
 
             modelBuilder.Entity<ModCore>()
-                .Property(b => b.Warns)
+                .Property(b => b.WarnSet)
                 .HasConversion(
                     v => JsonConvert.SerializeObject(v),
-                    v => JsonConvert.DeserializeObject<ConcurrentDictionary<ulong, ConcurrentStack<Warn>>>(v) ?? new());
+                    v => JsonConvert.DeserializeObject<HashSet<Warn>>(v) ?? new());
         }
     }
 }
