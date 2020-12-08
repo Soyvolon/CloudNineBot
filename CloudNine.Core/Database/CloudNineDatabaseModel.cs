@@ -3,6 +3,7 @@ using System.IO;
 
 using CloudNine.Core.Birthdays;
 using CloudNine.Core.Configuration;
+using CloudNine.Core.Moderation;
 using CloudNine.Core.Quotes;
 
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +15,7 @@ namespace CloudNine.Core.Database
     public class CloudNineDatabaseModel : DbContext
     {
         public DbSet<DiscordGuildConfiguration> ServerConfigurations { get; set; }
+        public DbSet<ModCore> Moderation { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -35,19 +37,25 @@ namespace CloudNine.Core.Database
                 .Property(b => b.BirthdayConfiguration)
                 .HasConversion(
                     v => JsonConvert.SerializeObject(v),
-                    v => JsonConvert.DeserializeObject<BirthdayServerConfiguration>(v) ?? new BirthdayServerConfiguration());
+                    v => JsonConvert.DeserializeObject<BirthdayServerConfiguration>(v) ?? new());
 
             modelBuilder.Entity<DiscordGuildConfiguration>()
                 .Property(b => b.Quotes)
                 .HasConversion(
                     v => JsonConvert.SerializeObject(v),
-                    v => JsonConvert.DeserializeObject<ConcurrentDictionary<int, Quote>>(v) ?? new ConcurrentDictionary<int, Quote>());
+                    v => JsonConvert.DeserializeObject<ConcurrentDictionary<int, Quote>>(v) ?? new());
 
             modelBuilder.Entity<DiscordGuildConfiguration>()
                 .Property(b => b.HiddenQuotes)
                 .HasConversion(
                     v => JsonConvert.SerializeObject(v),
-                    v => JsonConvert.DeserializeObject<ConcurrentDictionary<string, Quote>>(v) ?? new ConcurrentDictionary<string, Quote>());
+                    v => JsonConvert.DeserializeObject<ConcurrentDictionary<string, Quote>>(v) ?? new());
+
+            modelBuilder.Entity<ModCore>()
+                .Property(b => b.Warns)
+                .HasConversion(
+                    v => JsonConvert.SerializeObject(v),
+                    v => JsonConvert.DeserializeObject<ConcurrentDictionary<ulong, ConcurrentStack<Warn>>>(v) ?? new());
         }
     }
 }
