@@ -55,9 +55,9 @@ namespace CloudNine.Core.Moderation
             _rand = new Random();
         }
 
-        public async Task<bool> AddWarn(ulong userid, string message)
+        public async Task<bool> AddWarn(ulong userid, string message, ulong savedby)
         {
-            return AddWarn(new(await GetGuildUniqueKey(), userid, message));
+            return AddWarn(new(await GetGuildUniqueKey(), userid, message, savedby));
         }
 
         public bool AddWarn(Warn w)

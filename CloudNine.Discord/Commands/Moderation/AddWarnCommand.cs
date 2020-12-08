@@ -14,6 +14,7 @@ using DSharpPlus.Exceptions;
 
 using static CloudNine.Core.Moderation.ModCore;
 using System;
+using System.Collections.Generic;
 
 namespace CloudNine.Discord.Commands.Moderation
 {
@@ -29,7 +30,7 @@ namespace CloudNine.Discord.Commands.Moderation
         [Command("warn")]
         [Priority(2)]
         [Description("Warns a user against an action. Use --notify to send the warn message to the user.")]
-        [RequireUserPermissions(Permissions.ManageRoles)]
+        [RequireUserPermissions(Permissions.ManageMessages)]
         public async Task AddWarnCommandAsync(CommandContext ctx,
             [Description("Member to log a warning for.")]
             DiscordMember? toWarn = null,
@@ -67,7 +68,7 @@ namespace CloudNine.Discord.Commands.Moderation
 
             try
             {
-                if (await mod.AddWarn(toWarn.Id, msg))
+                if (await mod.AddWarn(toWarn.Id, msg, ctx.User.Id))
                 {
                     _database.Update(mod);
                     await _database.SaveChangesAsync();
@@ -110,6 +111,72 @@ namespace CloudNine.Discord.Commands.Moderation
             catch(NotFoundException)
             {
                 await RespondError("Failed to get a user to warn. Make sure the user is on the server and the ID is correct, or use a mention.");
+            }
+        }
+
+        [Command("warn")]
+        public async Task ViewWarnCommand(CommandContext ctx,
+            [Description("Warn to view")]
+            string warnId)
+        {
+            var mod = await _database.FindAsync<ModCore>(ctx.Guild.Id);
+
+            if (mod is null)
+            {
+                await RespondError("There are no warnings on this server!");
+                return;
+            }
+
+            var warn = mod.WarnSet.FirstOrDefault(x => x.Key == warnId);
+
+            if (warn is not null)
+            {
+                string username;
+                try
+                {
+                    var m = await ctx.Guild.GetMemberAsync(warn.SavedBy);
+                    if (m is not null)
+                        username = m.DisplayName;
+                    else
+                        username = warn.SavedBy.ToString();
+                }
+                catch (NotFoundException)
+                {
+                    username = warn.SavedBy.ToString();
+                }
+
+                var embed = new DiscordEmbedBuilder()
+                .WithColor(Color_Warn)
+                .WithTitle($"Warn: `{warn.Key}`")
+                .WithAuthor($"User: {warn.UserId}", null, null)
+                .WithFooter($"Saved By: {username}")
+                .WithTimestamp(warn.CreatedOn);
+
+                if (warn.Reverts.Count > 0)
+                {
+                    string data = "";
+                    foreach (var w in warn.Reverts.Keys)
+                        data += $"{w:g}";
+
+                    embed.AddField($"*`{warn.Reverts.Count} reverts found:`*", $"`{data}`");
+                }
+
+                embed.AddField($"Last Edit: `{warn.LastEdit:g}`", $"```{warn.Message}```");
+
+                if (warn.Edits.Count > 0)
+                {
+                    List<string> data = new List<string>();
+                    foreach (var w in warn.Edits.Keys)
+                        data.Add($"{w:g}");
+
+                    embed.AddField($"*`{warn.Edits.Count} edits found:`*", $"`{string.Join("`, `", data)}`");
+                }
+
+                await ctx.RespondAsync(embed: embed);
+            }
+            else
+            {
+                await RespondError("Warn not found.");
             }
         }
     }

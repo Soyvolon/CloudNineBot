@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 using CloudNine.Core.Database;
 using CloudNine.Core.Moderation;
@@ -7,6 +8,7 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using DSharpPlus.Exceptions;
 
 namespace CloudNine.Discord.Commands.Moderation
 {
@@ -22,8 +24,8 @@ namespace CloudNine.Discord.Commands.Moderation
         [Command("modlogs")]
         [Priority(2)]
         [Description("Gets the Mod Logs for a user.")]
-        [Aliases("mlogs")]
-        [RequireUserPermissions(Permissions.ManageRoles)]
+        [Aliases("mlogs", "warnings")]
+        [RequireUserPermissions(Permissions.ManageMessages)]
         public async Task ModLogsCommandAsync(CommandContext ctx,
             [Description("Member to get logs for")]
             DiscordMember member)
@@ -45,21 +47,48 @@ namespace CloudNine.Discord.Commands.Moderation
                     .WithFooter($"Total Warns: {warns.Count}", null);
 
                 int c = 0;
+                List<string>? extraWarns = null;
                 foreach (var warn in warns.Values)
                 {
-                    embed.AddField($"Warn: `{warn.Key}`", 
-                        $"Created On: `{warn.CreatedOn:g}` - Last Edit: `{warn.LastEdit:g}`\n" +
-                        $"{(warn.Reverts.Count > 0 ? $"*`reverted {warn.Reverts.Count} times ...`*" : "")}\n" +
-                        $"```\n" +
-                        $"{warn.Message}" +
-                        $"```\n" +
-                        $"{(warn.Edits.Count > 0 ? $"*`... edited {warn.Edits.Count} times`*" : "")}");
-
-                    if(c++ >= 4)
+                    if (c++ >= 10)
                     {
-                        embed.AddField("", $"*`... {warns.Count - 4} older warns not dispalyed`*");
-                        break;
+                        if (extraWarns is null) extraWarns = new();
+
+                        extraWarns.Add(warn.Key);
                     }
+                    else
+                    {
+                        string username;
+                        try
+                        {
+                            var m = await ctx.Guild.GetMemberAsync(warn.SavedBy);
+                            if (m is not null)
+                                username = m.DisplayName;
+                            else
+                                username = warn.SavedBy.ToString();
+                        }
+                        catch (NotFoundException)
+                        {
+                            username = warn.SavedBy.ToString();
+                        }
+
+                        embed.AddField($"Warn: `{warn.Key}`",
+                            $"Created On: `{warn.CreatedOn:g}` - Last Edit: `{warn.LastEdit:g}`\n" +
+                            $"{(warn.Reverts.Count > 0 ? $"*`reverted {warn.Reverts.Count} times ...`*" : "")}\n" +
+                            $"```\n" +
+                            $"{warn.Message}" +
+                            $"```\n" +
+                            $"{(warn.Edits.Count > 0 ? $"*`... edited {warn.Edits.Count} times`*" : "")}\n" +
+                            $"Warn creaated by: {username}");
+                    }
+                }
+
+                if(extraWarns is not null)
+                {
+                    var joined = string.Join("`, `", extraWarns);
+
+                    embed.AddField($"*`... {warns.Count - 10} older warns not dispalyed`*",
+                        $"`{joined}`");
                 }
 
                 await ctx.RespondAsync(embed: embed);
@@ -68,20 +97,6 @@ namespace CloudNine.Discord.Commands.Moderation
             {
                 await RespondWarn("No warning found for user.");
             }
-        }
-
-        [Command("modlogs")]
-        public async Task ShowLatestModLogsAsync(CommandContext ctx)
-        {
-            var mod = await _database.FindAsync<ModCore>(ctx.Guild.Id);
-
-            if (mod is null)
-            {
-                await RespondError("There are no warnings on this server!");
-                return;
-            }
-
-
         }
     }
 }
