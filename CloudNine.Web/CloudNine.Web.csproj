@@ -4,9 +4,12 @@
     <TargetFramework>net5.0</TargetFramework>
     <UserSecretsId>ed04a2e0-fad7-459c-be53-42c202fef895</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="DSharpPlus" Version="4.0.0-nightly-00766" />
+    <PackageReference Include="DSharpPlus.Rest" Version="4.0.0-nightly-00766" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9" />
   </ItemGroup>
 

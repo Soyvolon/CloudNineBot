@@ -18,7 +18,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1. Project", "1. Project", 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudNine.Web", "CloudNine.Web\CloudNine.Web.csproj", "{1397FDA0-B634-46B8-B6A3-9CD72FB32223}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudNine.Web", "CloudNine.Web\CloudNine.Web.csproj", "{1397FDA0-B634-46B8-B6A3-9CD72FB32223}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

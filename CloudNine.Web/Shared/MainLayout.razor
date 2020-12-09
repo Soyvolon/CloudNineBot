@@ -1,4 +1,21 @@
 ﻿@inherits LayoutComponentBase
+@inject NavigationManager _nav
+@using CloudNine.Web.User
+@inject LoginService _login
+
+<head>
+    <style>
+        .sidebar {
+            margin: 0;
+            padding: 0;
+            width: 200px;
+            background-color: #f1f1f1;
+            position: fixed;
+            height: 100%;
+            overflow: auto;
+        }
+    </style>
+</head>
 
 <div class="page">
     <div class="main">
@@ -23,10 +40,38 @@
                 </div>
             </div>
         </div>
+        <div>
+            @*@if(_nav.ToBaseRelativePath(_nav.Uri).StartsWith("dash"))
+        {
+            if (_login.LoggedIn)
+            {*@
+            <!-- Dash only menu goes here -->
+            <nav class="sidebar">
+                <ul class="nav nav-pills flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/dash">Dashboard</a>
+                    </li>
+                    <li>
+                        <Dropdown TItem="int">
+                            <InitialTip>Select Server</InitialTip>
+                            <ChildContent>
+                                @*<DropdownListItem Item="1">Guild</DropdownListItem>*@
+                            </ChildContent>
+                        </Dropdown>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dash/quotes">Quotes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dash/mod">Moderation</a>
+                    </li>
+                </ul>
+            </nav>
 
-        <div class="container">
             <div class="content px-4">
-                @Body
+                <div class="container">
+                    @Body
+                </div>
             </div>
         </div>
     </div>
