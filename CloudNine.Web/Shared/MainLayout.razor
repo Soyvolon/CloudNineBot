@@ -1,0 +1,33 @@
+﻿@inherits LayoutComponentBase
+
+<div class="page">
+    <div class="main">
+        <div class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container">
+                <a class="navbar-brand" href="#">Cloud Nine Bot</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarMain">
+                    <ul class="navbar-nav mr-auto">
+                        <li class="nav-item active">
+                            <a class="nav-link" href="#">
+                                <span class="sr-only">(current)</span>
+                            </a>
+                        </li>
+                    </ul>
+                    <a href="https://discord.com/api/oauth2/authorize?client_id=750486299789754389&redirect_uri=https%3A%2F%2Flocalhost%3A32770%2F&response_type=code&scope=identify%20guilds">
+                        <buttom class="btn-primary btn">Login</buttom>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="content px-4">
+                @Body
+            </div>
+        </div>
+    </div>
+</div>

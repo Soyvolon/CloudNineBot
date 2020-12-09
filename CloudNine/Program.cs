@@ -19,10 +19,10 @@ namespace CloudNine
     {
         static void Main(string[] args)
         {
-            Start().GetAwaiter().GetResult();
+            Start(args).GetAwaiter().GetResult();
         }
 
-        private static async Task Start()
+        private static async Task Start(string[] args)
         {
             ServiceCollection services = new ServiceCollection();
             services.AddLogging(o => o.AddConsole());
