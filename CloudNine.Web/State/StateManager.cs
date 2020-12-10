@@ -16,10 +16,7 @@ namespace CloudNine.Web.State
         public string GetUniqueState()
         {
             var g = Guid.NewGuid().ToString();
-            g = g.Replace("-", string.Empty);
-
-            var s = _sha.ComputeHash(Encoding.ASCII.GetBytes(g));
-            var res = Encoding.ASCII.GetString(s);
+            var res = g.Replace("-", string.Empty);
 
             return res;
         }

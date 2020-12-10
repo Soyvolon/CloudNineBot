@@ -1,17 +1,11 @@
 ﻿@inherits LayoutComponentBase
 @inject NavigationManager _nav
-
-@using CloudNine.Web.User
 @inject LoginService _login
-
-@using System.Web
 @inject HttpClient _client
-
-@using Microsoft.Extensions.Logging
 @inject ILogger<Startup> _logger
-
-@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @inject ProtectedLocalStorage _localStorage
+
+@using System.Text.RegularExpressions
 
 <head>
     <style>
@@ -76,31 +70,33 @@
                 {
                     if (_login.LoggedIn)
                     {
-                        <!-- Dash only menu goes here -->
-                        <nav class="sidebar">
-                            <ul class="nav nav-pills flex-column">
-                                <li class="nav-item">
-                                    <a class="nav-link active" href="/dash">Dashboard</a>
-                                </li>
-                                <li>
-                                    <Dropdown TItem="int">
-                                        <InitialTip>Select Server</InitialTip>
-                                        <ChildContent>
-                                            @*<DropdownListItem Item="1">Guild</DropdownListItem>*@
-                                        </ChildContent>
-                                    </Dropdown>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="/dash/quotes">Quotes</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="/dash/mod">Moderation</a>
-                                </li>
-                            </ul>
-                        </nav>
+                        if (dashNavR.IsMatch(_nav.ToBaseRelativePath(_nav.Uri)))
+                        {
+                            <!-- Dash only side menu goes here -->
+                            <nav class="sidebar">
+                                <ul class="nav nav-pills flex-column">
+                                    <li class="nav-item">
+                                        <a class="nav-link active" href="/dash">Dashboard</a>
+                                    </li>
+                                    @if (_login.Guilds is not null)
+                                    {
+                                        @foreach (var i in _login.Guilds)
+                                        {
+                                            <li class="nav-item">
+                                                <a class="nav-link" href="/dash/home?guild=@i.Key&p">
+                                                    <img class="rounded-circle z-depth-2" alt="25x25" width="25" src="@i.Value.IconUrl" />
+                                                    @i.Value.Name
+                                                </a>
+                                            </li>
+                                        }
+                                    }
+                                </ul>
+                            </nav>
+                        }
+
+                        <!-- Show the intro page which has guild selection and no sidebar -->
                     }
                 }
-
                 <div class="content px-4">
                     <div class="container">
                         @Body
@@ -117,6 +113,10 @@ else
 
 @code {
     private bool connected;
+    public Regex dashNavR = new Regex(@"^dash\/.");
+
+    [CascadingParameter(Name = "Cookies")]
+    public Dictionary<string, string> Cookies { get; set; }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -140,10 +140,9 @@ else
         if (code is not null && state is not null)
             return; // ignore this if it is a login attempt
 
-        var getState = await _localStorage.GetAsync<string>("login_sec", "state");
-        if (getState.Success)
+        if(Cookies.TryGetValue("login_state_key", out var stateVal))
         {
-            if (!await _login.RestoreAsync(getState.Value ?? ""))
+            if (!await _login.RestoreAsync(stateVal))
             {
                 await _localStorage.DeleteAsync("state");
             }

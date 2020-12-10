@@ -9,21 +9,22 @@ using DSharpPlus;
 
 namespace CloudNine.Web.User
 {
-    public class LoginManager : ILoginManager<LoginManager>
+    public class LoginManager : ILoginManager
     {
         public string ClientSecret { get; private set; }
 
         private ConcurrentDictionary<string, Timer> Expirations { get; init; }
         private ConcurrentDictionary<string, string> ActiveLogins { get; init; }
         private ConcurrentDictionary<string, string> CodeTokens { get; init; }
-        private DiscordRestClient Rest { get; init; }
+        public ConcurrentDictionary<string, string> WaitingForVerification { get; init; }
+        public DiscordRestClient Rest { get; init; }
 
         public LoginManager(DiscordRestClient rest, string clientSecret)
         {
             ActiveLogins = new();
             CodeTokens = new();
             Expirations = new();
-
+            WaitingForVerification = new();
             Rest = rest;
             ClientSecret = clientSecret;
         }

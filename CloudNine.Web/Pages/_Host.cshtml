@@ -1,5 +1,6 @@
 ﻿@page "/"
 @namespace CloudNine.Web.Pages
+@model HostModel
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
 @using System.Web; 
@@ -8,7 +9,6 @@
     Layout = null;
 
 }
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,12 +16,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CloudNine.Web</title>
     <base href="~/" />
-    <link rel="stylesheet" href="css/pulse/bootstrap.css" />
-    <link href="css/site.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/pulse/bootstrap.css" />
+    <link href="~/css/site.css" rel="stylesheet" />
     @*<link href="CloudNine.Web.styles.css" rel="stylesheet" />*@
 </head>
 <body>
-    <component type="typeof(App)" render-mode="ServerPrerendered" />
+    @*<partial name="_CookieConsentPartial" />*@
+    @*<component type="typeof(App)" render-mode="ServerPrerendered" />*@
+    @(await Html.RenderComponentAsync<App>(RenderMode.Server, new { Cookies = Model.Request.Cookies.ToDictionary(x => x.Key, y => y.Value) })) 
 
     <div id="blazor-error-ui">
         <environment include="Staging,Production">
@@ -35,5 +37,6 @@
     </div>
 
     <script src="_framework/blazor.server.js"></script>
+    <script src="~/js/cookies.js"></script>
 </body>
 </html>

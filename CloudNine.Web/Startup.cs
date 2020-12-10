@@ -21,6 +21,7 @@ using DSharpPlus;
 using CloudNine.Config.Bot;
 using Newtonsoft.Json;
 using System.IO;
+using Microsoft.AspNetCore.Http;
 
 namespace CloudNine.Web
 {
@@ -50,8 +51,6 @@ namespace CloudNine.Web
 
             Rest = new DiscordRestClient(GetDiscordConfiguration(botCfg.Token));
 
-            services.AddRazorPages();
-            services.AddServerSideBlazor();
             services.AddScoped<LoginService>()
                 .AddSingleton(x => new LoginManager(Rest, botCfg.Secret))
                 .AddLogging(o => o.AddConsole())
@@ -59,7 +58,15 @@ namespace CloudNine.Web
                 .AddHttpContextAccessor()
                 .AddHttpClient()
                 .AddScoped<HttpClient>()
-                .AddTransient<StateManager>();
+                .AddTransient<StateManager>()
+                .Configure<CookiePolicyOptions>(options =>
+                {
+                    options.CheckConsentNeeded = context => true;
+                    options.MinimumSameSitePolicy = SameSiteMode.None;
+                });
+
+            services.AddRazorPages();
+            services.AddServerSideBlazor();
         }
 
         public DiscordConfiguration GetDiscordConfiguration(string botToken)
@@ -89,6 +96,7 @@ namespace CloudNine.Web
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+            app.UseCookiePolicy();
 
             app.UseRouting();
 

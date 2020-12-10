@@ -8,7 +8,7 @@ using DSharpPlus;
 
 namespace CloudNine.Web.User
 {
-    public interface ILoginManager<T>
+    public interface ILoginManager
     {
         public Task<bool> AttemptRelogAsync(string state, out DiscordRestClient? userClient);
         public bool AttemptRelog(string state, out DiscordRestClient? userClient);

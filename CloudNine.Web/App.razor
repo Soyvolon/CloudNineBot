@@ -1,6 +1,8 @@
 <Router AppAssembly="@typeof(Program).Assembly">
     <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        <CascadingValue Value="@Cookies" Name="Cookies">
+            <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        </CascadingValue>
     </Found>
     <NotFound>
         <LayoutView Layout="@typeof(MainLayout)">
@@ -8,3 +10,9 @@
         </LayoutView>
     </NotFound>
 </Router>
+
+@code 
+{
+    [Parameter]
+    public Dictionary<string, string> Cookies { get; set; }
+}

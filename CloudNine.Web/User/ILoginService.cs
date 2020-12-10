@@ -5,12 +5,14 @@ using System.Threading.Tasks;
 
 namespace CloudNine.Web.User
 {
-    public interface ILoginService<T>
+    public interface ILoginService
     {
-        public string GetAuthUrl(string state);
+        public string GetAuthUrl();
         public void Logout(string? state);
-        public Task<bool> Login(string state, string code);
+        public Task<bool> Login(string code);
 
         public Task<bool> RestoreAsync(string state);
+        public void RegisterState(string key, string state);
+        public bool VerifyState(string returnedState);
     }
 }
