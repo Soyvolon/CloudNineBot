@@ -4,8 +4,14 @@
 @using CloudNine.Web.User
 @inject LoginService _login
 
+@using System.Web
+@inject HttpClient _client
+
 @using Microsoft.Extensions.Logging
 @inject ILogger<Startup> _logger
+
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProtectedLocalStorage _localStorage
 
 <head>
     <style>
@@ -22,73 +28,87 @@
 </head>
 @if (connected)
 {
-<div class="page">
-    <div class="main">
-        <div class="navbar navbar-expand-lg navbar-dark bg-dark">
-            <div class="container">
-                <a class="navbar-brand" href="#">Cloud Nine Bot</a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-
-                <div class="collapse navbar-collapse" id="navbarMain">
-                    <ul class="navbar-nav mr-auto">
-                        <li class="nav-item active">
-                            <a class="nav-link" href="#">
-                                <span class="sr-only">(current)</span>
-                            </a>
-                        </li>
-                        <li class="nav-item active">
-                            <a class="nav-link" href="/dash">
-                                Dashboard
-                                <span class="sr-only">(current)</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-                <a href="/login?start=true">
-                    <buttom class="btn-primary btn" type="submit">Login</buttom>
-                </a>
-            </div>
-        </div>
-        <div>
-        @if (_nav.ToBaseRelativePath(_nav.Uri).StartsWith("dash"))
-        {
-            if (_login.LoggedIn)
-            {
-            <!-- Dash only menu goes here -->
-            <nav class="sidebar">
-                <ul class="nav nav-pills flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="/dash">Dashboard</a>
-                    </li>
-                    <li>
-                        <Dropdown TItem="int">
-                            <InitialTip>Select Server</InitialTip>
-                            <ChildContent>
-                                @*<DropdownListItem Item="1">Guild</DropdownListItem>*@
-                            </ChildContent>
-                        </Dropdown>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/dash/quotes">Quotes</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/dash/mod">Moderation</a>
-                    </li>
-                </ul>
-            </nav>
-            }
-        }
-
-            <div class="content px-4">
+    <div class="page">
+        <div class="main">
+            <div class="navbar navbar-expand-lg navbar-dark bg-dark">
                 <div class="container">
-                    @Body
+                    <a class="navbar-brand" href="#">Cloud Nine Bot</a>
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <div class="collapse navbar-collapse" id="navbarMain">
+                        <ul class="navbar-nav mr-auto">
+                            <li class="nav-item active">
+                                <a class="nav-link" href="#">
+                                    <span class="sr-only">(current)</span>
+                                </a>
+                            </li>
+                            <li class="nav-item active">
+                                <a class="nav-link" href="/dash">
+                                    Dashboard
+                                    <span class="sr-only">(current)</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    @if (_login.LoggedIn)
+                    {
+                        <div class="btn btn-outline-success">
+                            <img class="rounded-circle z-depth-2" alt="25x25" width="25" src="@_login.ActiveUser?.AvatarUrl" />
+                            @(_login.ActiveUser?.Username ?? "user")
+                        </div>
+                        <div class="m-1"></div>
+                        <a href="/login?logout=true">
+                            <span class="btn-primary btn" type="submit">Logout</span>
+                        </a>
+                    }
+                    else
+                    {
+                        <a href="/login?start=true">
+                            <span class="btn-primary btn" type="submit">Login</span>
+                        </a>
+                    }
+                </div>
+            </div>
+            <div>
+                @if (_nav.ToBaseRelativePath(_nav.Uri).StartsWith("dash"))
+                {
+                    if (_login.LoggedIn)
+                    {
+                        <!-- Dash only menu goes here -->
+                        <nav class="sidebar">
+                            <ul class="nav nav-pills flex-column">
+                                <li class="nav-item">
+                                    <a class="nav-link active" href="/dash">Dashboard</a>
+                                </li>
+                                <li>
+                                    <Dropdown TItem="int">
+                                        <InitialTip>Select Server</InitialTip>
+                                        <ChildContent>
+                                            @*<DropdownListItem Item="1">Guild</DropdownListItem>*@
+                                        </ChildContent>
+                                    </Dropdown>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/dash/quotes">Quotes</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/dash/mod">Moderation</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    }
+                }
+
+                <div class="content px-4">
+                    <div class="container">
+                        @Body
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 }
 else
 {
@@ -100,7 +120,7 @@ else
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if(firstRender)
+        if (firstRender)
         {
             // Attempt to see if the user is already logged in.
             await AttemptReLogin();
@@ -113,6 +133,20 @@ else
 
     private async Task AttemptReLogin()
     {
+        var uri = new Uri(_nav.Uri);
+        string? code = HttpUtility.ParseQueryString(uri.Query).Get("code");
+        string? state = HttpUtility.ParseQueryString(uri.Query).Get("state");
 
+        if (code is not null && state is not null)
+            return; // ignore this if it is a login attempt
+
+        var getState = await _localStorage.GetAsync<string>("login_sec", "state");
+        if (getState.Success)
+        {
+            if (!await _login.RestoreAsync(getState.Value ?? ""))
+            {
+                await _localStorage.DeleteAsync("state");
+            }
+        }
     }
 }

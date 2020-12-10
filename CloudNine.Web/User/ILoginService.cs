@@ -8,10 +8,9 @@ namespace CloudNine.Web.User
     public interface ILoginService<T>
     {
         public string GetAuthUrl(string state);
-        public void Logout();
-        public Task<bool> Login(string code);
+        public void Logout(string? state);
+        public Task<bool> Login(string state, string code);
 
-        public Task RestoreAsync();
-        public void Restore();
+        public Task<bool> RestoreAsync(string state);
     }
 }

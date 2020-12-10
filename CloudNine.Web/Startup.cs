@@ -53,7 +53,7 @@ namespace CloudNine.Web
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddScoped<LoginService>()
-                .AddTransient(x => new LoginManager(Rest, botCfg.Secret))
+                .AddSingleton(x => new LoginManager(Rest, botCfg.Secret))
                 .AddLogging(o => o.AddConsole())
                 .AddDbContext<CloudNineDatabaseModel>()
                 .AddHttpContextAccessor()

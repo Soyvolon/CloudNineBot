@@ -48,6 +48,13 @@ else
             return;
         }
 
+        string? logout = HttpUtility.ParseQueryString(uri.Query).Get("logout");
+        if(logout is not null)
+        {
+            await StartLogout();
+            return;
+        }
+
         string? code = HttpUtility.ParseQueryString(uri.Query).Get("code");
         string? state = HttpUtility.ParseQueryString(uri.Query).Get("state");
 
@@ -69,14 +76,22 @@ else
         _nav.NavigateTo(uri);
     }
 
+    private async Task StartLogout()
+    {
+        var getState = await _localStorage.GetAsync<string>("login_sec", "state");
+
+        _login.Logout(getState.Value);
+
+        _nav.NavigateTo("#");
+    }
+
     private async Task VerifyLogin(string code, string state)
     {
         var getState = await _localStorage.GetAsync<string>("login_sec", "state");
 
         if(getState.Success)
         {
-            await _localStorage.DeleteAsync("state");
-            if (await _login.Login(code))
+            if (await _login.Login(state, code))
             {
                 _nav.NavigateTo("/dash");
 

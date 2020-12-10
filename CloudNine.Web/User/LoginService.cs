@@ -21,10 +21,8 @@ namespace CloudNine.Web.User
         public bool LoggedIn { get; set; }
         public DiscordGuild? ActiveGuild { get; private set; }
         public DiscordUser? ActiveUser { get; private set; }
-        public Dictionary<ulong, DiscordGuild> Guilds { get; private set; }
+        public Dictionary<ulong, DiscordGuild>? Guilds { get; private set; }
         public DiscordRestClient? UserRest { get; private set; }
-
-        private string? _code;
 
         private readonly ILogger _logger;
         private readonly IConfiguration _config;
@@ -35,15 +33,13 @@ namespace CloudNine.Web.User
         {
             _config = config;
             _logger = logger;
-            _code = null;
             _manager = manager;
             _http = http;
 
             LoggedIn = false;
             ActiveGuild = null;
             ActiveUser = null;
-
-            Guilds = new Dictionary<ulong, DiscordGuild>();
+            Guilds = null;
         }
 
         public string GetAuthUrl(string state)
@@ -57,19 +53,24 @@ namespace CloudNine.Web.User
                 $"&prompt={_config["Login:Prompt"]}";
         }
 
-        public void Logout()
+        public void Logout(string? state = null)
         {
-            _code = null;
-            Guilds.Clear();
+            Guilds = null;
             ActiveGuild = null;
+            ActiveUser = null;
             LoggedIn = false;
+
+            UserRest?.Dispose();
+            UserRest = null;
+
+            if(state is not null)
+            {
+                _manager.RemoveRegistration(state);
+            }
         }
 
-        public async Task<bool> Login(string code)
+        public async Task<bool> Login(string state, string code)
         {
-            _code = code;
-            LoggedIn = true;
-
             using var tokenRequest = new HttpRequestMessage(HttpMethod.Post, "https://discord.com/api/oauth2/token");
 
             var tokenRequestContent = new List<KeyValuePair<string?, string?>>()
@@ -86,24 +87,75 @@ namespace CloudNine.Web.User
 
             var tokenResponse = await _http.SendAsync(tokenRequest);
 
+            string? token = null;
+            int expiration = 0;
             try
             {
-                await InitalizeUserRestClient(tokenResponse);
+                var res = await InitalizeUserRestClient(tokenResponse);
+
+                if (res is null) return false;
+
+                token = res.Item1;
+                expiration = res.Item2;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to initalize User Rest client.");
             }
 
-            if(UserRest is not null)
+            if (token is not null && await LoadUserData())
+            {
+                if (Guilds is not null && ActiveUser is not null)
+                {
+                    _manager.RegisterLogin(state, code, token, TimeSpan.FromSeconds(expiration));
+                    LoggedIn = true;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private async Task<Tuple<string?, int>?> InitalizeUserRestClient(HttpResponseMessage tokenResponse)
+        {
+            if (tokenResponse.IsSuccessStatusCode)
+            {
+                var tokenJsonString = await tokenResponse.Content.ReadAsStringAsync();
+
+                var tokenJson = JObject.Parse(tokenJsonString);
+
+                if (tokenJson is not null)
+                {
+                    string? token = tokenJson["access_token"]?.ToString();
+                    if (token is not null)
+                    {
+                        var dcfg = new DiscordConfiguration()
+                        {
+                            Token = token,
+                            TokenType = TokenType.Bearer
+                        };
+
+                        UserRest = new DiscordRestClient(dcfg);
+                        return new(token, tokenJson["expires_in"]?.ToObject<int>() ?? 0);
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public async Task<bool> LoadUserData()
+        {
+            if (UserRest is not null)
             {
                 var guildTask = UserRest.GetCurrentUserGuildsAsync().ContinueWith(async (x) =>
                 {
                     IReadOnlyList<DiscordGuild>? res = await x;
 
-                    if(res is not null)
+                    if (res is not null)
                         Guilds = res.ToDictionary(x => x.Id);
                 });
+
                 var userTask = UserRest.GetCurrentUserAsync().ContinueWith(async (x) =>
                 {
                     var res = await x;
@@ -118,28 +170,31 @@ namespace CloudNine.Web.User
             return false;
         }
 
-        private async Task InitalizeUserRestClient(HttpResponseMessage tokenResponse)
+        public async Task<bool> RestoreAsync(string state)
         {
-            if (tokenResponse.IsSuccessStatusCode)
+            if(await _manager.AttemptRelogAsync(state, out var rest))
             {
-                var tokenJsonString = await tokenResponse.Content.ReadAsStringAsync();
-
-                var tokenJson = JObject.Parse(tokenJsonString);
-
-                if (tokenJson is not null)
+                UserRest = rest;
+                if (!await LoadUserData())
                 {
-                    var dcfg = new DiscordConfiguration()
-                    {
-                        Token = tokenJson["access_token"]?.ToString() ?? "",
-                        TokenType = TokenType.Bearer
-                    };
-
-                    UserRest = new DiscordRestClient(dcfg);
+                    Logout(state);
+                    return false;
                 }
-            }
-        }
+                else
+                {
+                    if (ActiveUser is null || Guilds is null)
+                    {
+                        Logout(state);
+                        return false;
+                    }
+                }
 
-        public Task RestoreAsync() => throw new NotImplementedException();
-        public void Restore() => throw new NotImplementedException();
+                LoggedIn = true;
+                return true;
+            }
+
+            Logout(state);
+            return false;
+        }
     }
 }
