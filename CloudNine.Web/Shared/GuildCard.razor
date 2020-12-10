@@ -1,0 +1,20 @@
+﻿<div class="col">
+    <div class="card text-white mb-3 @CardType" style="max-width: 20rem;">
+        <div class="card-header">@(Guild.IsOwner ? "Owner" : "Member")</div>
+        <div class="card-body">
+            <h4 class="card-title">@Guild.Name</h4>
+            <p class="card-text">@Guild.Description</p>
+            <a class="float-lg-right" href="/dash/menu?guild=@Guild.Id">
+                <span class="btn btn-secondary btn-lg">Launch</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+@code 
+{
+    [Parameter]
+    public DiscordGuild Guild { get; set; }
+    [Parameter]
+    public string CardType { get; set; }
+}

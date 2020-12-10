@@ -1,8 +1,91 @@
 ﻿@page "/dash"
+@inject LoginService _login;
 
+@if (!_login.LoggedIn)
+{
+    <RequireLogin />
+}
+else
+{
+    if (_login.OrderedGuilds is not null)
+    {
+        foreach (var g in _login.OrderedGuilds)
+        {
+            switch (c)
+            {
+                case 0:
+                    g1 = g.Value;
+                    break;
+                case 1:
+                    g2 = g.Value;
+                    break;
+                case 2:
+                    g3 = g.Value;
+                    break;
+            }
 
-<h3>Dashboard</h3>
+            if (c == 2)
+            {
+                <div class="row">
+                    @if (g1 is not null)
+                    {
+                        <GuildCard CardType="@GetCardType()" Guild="g1"></GuildCard>
+                    }
+                    @if (g2 is not null)
+                    {
+                        <GuildCard CardType="@GetCardType()" Guild="g2"></GuildCard>
+                    }
+                    @if (g3 is not null)
+                    {
+                        <GuildCard CardType="@GetCardType()" Guild="g3"></GuildCard>
+                    }
+                </div>
+
+                c = 0;
+                g1 = null;
+                g2 = null;
+                g3 = null;
+            }
+
+            c++;
+        }
+
+        if (g1 is not null)
+        {
+            <div class="row">
+                @if (g1 is not null)
+                {
+                    <GuildCard CardType="@GetCardType()" Guild="g1"></GuildCard>
+                }
+                @if (g2 is not null)
+                {
+                    <GuildCard CardType="@GetCardType()" Guild="g2"></GuildCard>
+                }
+                @if (g3 is not null)
+                {
+                    <GuildCard CardType="@GetCardType()" Guild="g3"></GuildCard>
+                }
+            </div>
+        }
+    }
+    else
+    {
+        <h3>No guilds found. Invite Cloud Bot to your server now <a href="">here!</a></h3>
+    }
+}
 
 @code {
+    public bool primaryCard = true;
 
+    private int c = 0;
+    private DiscordGuild? g1;
+    private DiscordGuild? g2;
+    private DiscordGuild? g3;
+
+    public string GetCardType()
+    {
+        var res = primaryCard ? "bg-primary" : "bg-secondary";
+        primaryCard = !primaryCard;
+        return res;
+    }
 }

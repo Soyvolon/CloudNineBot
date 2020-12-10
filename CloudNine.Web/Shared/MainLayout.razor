@@ -4,6 +4,7 @@
 @inject HttpClient _client
 @inject ILogger<Startup> _logger
 @inject ProtectedLocalStorage _localStorage
+@inject IRefreshRequestService _refresh
 
 @using System.Text.RegularExpressions
 
@@ -76,18 +77,21 @@
                             <nav class="sidebar">
                                 <ul class="nav nav-pills flex-column">
                                     <li class="nav-item">
-                                        <a class="nav-link active" href="/dash">Dashboard</a>
+                                        <a class="nav-link active" href="/dash">@(_login.ActiveGuild?.Name + " " ?? "")Dashboard</a>
                                     </li>
                                     @if (_login.Guilds is not null)
                                     {
                                         @foreach (var i in _login.Guilds)
                                         {
+                                            if (_login.ActiveGuild is null || i.Key != _login.ActiveGuild.Id)
+                                            {
                                             <li class="nav-item">
-                                                <a class="nav-link" href="/dash/home?guild=@i.Key&p">
+                                                <a class="nav-link" href="/dash/menu?guild=@i.Key">
                                                     <img class="rounded-circle z-depth-2" alt="25x25" width="25" src="@i.Value.IconUrl" />
                                                     @i.Value.Name
                                                 </a>
                                             </li>
+                                            }
                                         }
                                     }
                                 </ul>
@@ -108,7 +112,9 @@
 }
 else
 {
-    <h3>Loading, Please Wait...</h3>
+    <div class="progress">
+        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="@_login.LoadState" aria-valuemin="0" aria-valuemax="@LoginService.MaxLoad" style="width: 75%;"></div>
+    </div>
 }
 
 @code {
@@ -118,6 +124,14 @@ else
     [CascadingParameter(Name = "Cookies")]
     public Dictionary<string, string> Cookies { get; set; }
 
+    protected override void OnInitialized()
+    {
+        _refresh.RefreshRequested += RefreshSelf;
+        _login.LoadIncreased += RefreshSelf;
+
+        base.OnInitialized();
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -125,10 +139,32 @@ else
             // Attempt to see if the user is already logged in.
             await AttemptReLogin();
             connected = true;
-            StateHasChanged();
+            _refresh.CallRequestRefresh();
         }
 
+        if (await SetActiveGuild())
+            _refresh.CallRequestRefresh();
+
         await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private void RefreshSelf()
+    {
+        StateHasChanged();
+    }
+
+    private async Task<bool> SetActiveGuild()
+    {
+        var uri = new Uri(_nav.Uri);
+
+        string? guild = HttpUtility.ParseQueryString(uri.Query).Get("guild");
+        if (guild is not null)
+        {
+            if (ulong.TryParse(guild, out ulong guildId))
+                return await _login.SetActiveGuild(guildId);
+        }
+
+        return false;
     }
 
     private async Task AttemptReLogin()
@@ -140,7 +176,9 @@ else
         if (code is not null && state is not null)
             return; // ignore this if it is a login attempt
 
-        if(Cookies.TryGetValue("login_state_key", out var stateVal))
+        if (Cookies is null) return;
+
+        if (Cookies.TryGetValue("login_state_key", out var stateVal))
         {
             if (!await _login.RestoreAsync(stateVal))
             {

@@ -63,7 +63,8 @@ namespace CloudNine.Web
                 {
                     options.CheckConsentNeeded = context => true;
                     options.MinimumSameSitePolicy = SameSiteMode.None;
-                });
+                })
+                .AddScoped<IRefreshRequestService, RefreshRequestService>();
 
             services.AddRazorPages();
             services.AddServerSideBlazor();

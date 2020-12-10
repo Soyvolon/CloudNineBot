@@ -1,0 +1,39 @@
+﻿@page "/dash/mod"
+@inject NavigationManager _nav
+@inject LoginService _login
+@inject IRefreshRequestService _refresh;
+
+@if (_login.LoggedIn)
+{
+    if (_login.ActiveGuild is not null)
+    {
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/dash">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="/dash/menu?guild=@_login.ActiveGuild.Id">@_login.ActiveGuild.Name</a></li>
+            <li class="breadcrumb-item">Moderation</li>
+        </ol>
+    }
+    else
+    {
+        <h4>Loading...</h4>
+    }
+}
+else
+{
+    <RequireLogin />
+}
+
+@code
+{
+    protected override void OnInitialized()
+    {
+        _refresh.RefreshRequested += RefreshMe;
+
+        base.OnInitialized();
+    }
+
+    private void RefreshMe()
+    {
+        StateHasChanged();
+    }
+}

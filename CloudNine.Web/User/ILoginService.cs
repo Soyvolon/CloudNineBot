@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using DSharpPlus;
+using DSharpPlus.Entities;
+
 namespace CloudNine.Web.User
 {
     public interface ILoginService
@@ -14,5 +17,6 @@ namespace CloudNine.Web.User
         public Task<bool> RestoreAsync(string state);
         public void RegisterState(string key, string state);
         public bool VerifyState(string returnedState);
+        public Task<bool> SetActiveGuild(ulong id);
     }
 }

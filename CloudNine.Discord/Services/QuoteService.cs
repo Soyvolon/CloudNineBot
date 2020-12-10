@@ -152,13 +152,21 @@ namespace CloudNine.Discord.Services
                         await SendQuoteRelay(e.Message, r, args, source);
                     }
                 }
+
+                return;
             }
             finally
             {
                 if (RunningRelays.TryRemove(e, out var taskData))
                 {
-                    taskData.Item2.Dispose();
-                    taskData.Item1.Dispose();
+                    try
+                    {
+                        taskData.Item2.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Quote relay dispose failed");
+                    }
                 }
             }
         }
