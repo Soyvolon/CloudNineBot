@@ -10,7 +10,11 @@ namespace CloudNine.Config.Bot
 
         [JsonProperty("prefix")]
         public string Prefix { get; private set; }
+
         [JsonProperty("trigger_bday_time")]
         public int TriggerBday { get; private set; }
+
+        [JsonProperty("client_secret")]
+        public string Secret { get; private set; }
     }
 }

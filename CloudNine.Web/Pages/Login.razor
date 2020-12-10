@@ -1,0 +1,89 @@
+﻿@page "/login"
+@inject NavigationManager _nav
+
+@using CloudNine.Web.User
+@inject LoginService _login
+
+@using System.Web
+@inject HttpClient _client
+
+@using CloudNine.Web.State
+@inject StateManager _state
+
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProtectedLocalStorage _localStorage
+
+@if (isConnected)
+{
+    // Login with discord button that triggers the discord login.
+    <h3>How's life?</h3>
+}
+else
+{
+    <h3>Loading...</h3>
+}
+
+@code {
+    private bool isConnected;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            isConnected = true;
+            await RunLoginOperation();
+            StateHasChanged();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    protected async Task RunLoginOperation()
+    {
+        var uri = new Uri(_nav.Uri);
+        string? start = HttpUtility.ParseQueryString(uri.Query).Get("start");
+        if (start is not null)
+        {
+            await StartLogin();
+            return;
+        }
+
+        string? code = HttpUtility.ParseQueryString(uri.Query).Get("code");
+        string? state = HttpUtility.ParseQueryString(uri.Query).Get("state");
+
+        if (code is not null && state is not null)
+        {
+            await VerifyLogin(code, state);
+            return;
+        }
+    }
+
+    private async Task StartLogin()
+    {
+        var state = _state.GetUniqueState().ToString();
+
+        await _localStorage.SetAsync("login_sec", "state", state);
+
+        var uri = _login.GetAuthUrl(state);
+
+        _nav.NavigateTo(uri);
+    }
+
+    private async Task VerifyLogin(string code, string state)
+    {
+        var getState = await _localStorage.GetAsync<string>("login_sec", "state");
+
+        if(getState.Success)
+        {
+            await _localStorage.DeleteAsync("state");
+            if (await _login.Login(code))
+            {
+                _nav.NavigateTo("/dash");
+
+                return;
+            }
+        }
+
+        _nav.NavigateTo("/");
+    }
+}

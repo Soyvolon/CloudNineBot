@@ -1,6 +1,10 @@
 ﻿@using Microsoft.AspNetCore.Components.Web
 @typeparam TItem
-<div class="dropdown">
+<div class="dropdown" @onblur="e =>
+                               {
+                                   this.show = false;
+                                   StateHasChanged();
+                               }">
     <button class="btn btn-primary dropdown-toggle mr-4 w-100" data-toggle="dropdown" type="button" @onclick="e => this.show=!this.show "
             aria-haspopup="true" aria-expanded="false">
         @Tip

@@ -1,7 +1,11 @@
 ﻿@inherits LayoutComponentBase
 @inject NavigationManager _nav
+
 @using CloudNine.Web.User
 @inject LoginService _login
+
+@using Microsoft.Extensions.Logging
+@inject ILogger<Startup> _logger
 
 <head>
     <style>
@@ -16,7 +20,8 @@
         }
     </style>
 </head>
-
+@if (connected)
+{
 <div class="page">
     <div class="main">
         <div class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -33,18 +38,24 @@
                                 <span class="sr-only">(current)</span>
                             </a>
                         </li>
+                        <li class="nav-item active">
+                            <a class="nav-link" href="/dash">
+                                Dashboard
+                                <span class="sr-only">(current)</span>
+                            </a>
+                        </li>
                     </ul>
-                    <a href="https://discord.com/api/oauth2/authorize?client_id=750486299789754389&redirect_uri=https%3A%2F%2Flocalhost%3A32770%2F&response_type=code&scope=identify%20guilds">
-                        <buttom class="btn-primary btn">Login</buttom>
-                    </a>
                 </div>
+                <a href="/login?start=true">
+                    <buttom class="btn-primary btn" type="submit">Login</buttom>
+                </a>
             </div>
         </div>
         <div>
-            @*@if(_nav.ToBaseRelativePath(_nav.Uri).StartsWith("dash"))
+        @if (_nav.ToBaseRelativePath(_nav.Uri).StartsWith("dash"))
         {
             if (_login.LoggedIn)
-            {*@
+            {
             <!-- Dash only menu goes here -->
             <nav class="sidebar">
                 <ul class="nav nav-pills flex-column">
@@ -67,6 +78,8 @@
                     </li>
                 </ul>
             </nav>
+            }
+        }
 
             <div class="content px-4">
                 <div class="container">
@@ -76,3 +89,30 @@
         </div>
     </div>
 </div>
+}
+else
+{
+    <h3>Loading, Please Wait...</h3>
+}
+
+@code {
+    private bool connected;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if(firstRender)
+        {
+            // Attempt to see if the user is already logged in.
+            await AttemptReLogin();
+            connected = true;
+            StateHasChanged();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task AttemptReLogin()
+    {
+
+    }
+}
