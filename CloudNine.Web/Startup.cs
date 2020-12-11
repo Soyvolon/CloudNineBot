@@ -57,7 +57,7 @@ namespace CloudNine.Web
             services.AddScoped<LoginService>()
                 .AddSingleton(x => new LoginManager(Client, botCfg.Secret))
                 .AddLogging(o => o.AddConsole())
-                .AddDbContext<CloudNineDatabaseModel>()
+                .AddDbContext<CloudNineDatabaseModel>(ServiceLifetime.Transient, ServiceLifetime.Scoped)
                 .AddHttpContextAccessor()
                 .AddHttpClient()
                 .AddScoped<HttpClient>()
