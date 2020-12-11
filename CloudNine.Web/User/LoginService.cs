@@ -137,13 +137,18 @@ namespace CloudNine.Web.User
             {
                 var res = await InitalizeUserRestClient(tokenResponse);
 
-                if (res is null) return false;
+                if (res is null)
+                {
+                    _logger.LogWarning("Aborting login process, gracefuly failed initalizing the User Rest client.");
+                    return false;
+                }
 
                 token = res.Item1;
                 expiration = res.Item2;
             }
             catch (Exception ex)
             {
+                _logger.LogWarning($"Failed to initalize the User Rest client: {ex.Message}");
                 _logger.LogError(ex, "Failed to initalize User Rest client.");
             }
             _logger.LogInformation("Initalized Rest Client");
@@ -187,6 +192,11 @@ namespace CloudNine.Web.User
                         return new(token, tokenJson["expires_in"]?.ToObject<int>() ?? 0);
                     }
                 }
+            }
+            else
+            {
+                _logger.LogDebug($"{tokenResponse?.RequestMessage?.RequestUri} [{await tokenResponse?.RequestMessage?.Content?.ReadAsStringAsync() ?? ""}]");
+                _logger.LogWarning($"Token Request failed: {tokenResponse.StatusCode} - {tokenResponse.ReasonPhrase}");
             }
 
             return null;
