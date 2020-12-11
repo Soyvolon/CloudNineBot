@@ -28,7 +28,7 @@ namespace CloudNine.Web
 {
     public class Startup
     {
-        public DiscordRestClient Rest { get; private set; }
+        public DiscordShardedClient Client { get; private set; }
 
         public Startup(IConfiguration configuration)
         {
@@ -50,10 +50,12 @@ namespace CloudNine.Web
 
             var botCfg = JsonConvert.DeserializeObject<DiscordBotConfiguration>(json);
 
-            Rest = new DiscordRestClient(GetDiscordConfiguration(botCfg.Token));
+            Client = new DiscordShardedClient(GetDiscordConfiguration(botCfg.Token));
+
+            Client.StartAsync().GetAwaiter().GetResult();
 
             services.AddScoped<LoginService>()
-                .AddSingleton(x => new LoginManager(Rest, botCfg.Secret))
+                .AddSingleton(x => new LoginManager(Client, botCfg.Secret))
                 .AddLogging(o => o.AddConsole())
                 .AddDbContext<CloudNineDatabaseModel>()
                 .AddHttpContextAccessor()
@@ -76,7 +78,7 @@ namespace CloudNine.Web
             var dcfg = new DiscordConfiguration()
             {
                 TokenType = TokenType.Bot,
-                Token = botToken,
+                Token = botToken
             };
 
             return dcfg;

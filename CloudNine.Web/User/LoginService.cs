@@ -237,9 +237,11 @@ namespace CloudNine.Web.User
                         {
                             try
                             {
-                                _ = await _manager.Rest.GetGuildAsync(g.Id, false);
-                                finalSet.Add(g);
-                                await Task.Delay(TimeSpan.FromSeconds(0.10));
+                                if (_manager.GetGuildFromId(g.Id, out var botGuild))
+                                {
+                                    if(botGuild is not null)
+                                        finalSet.Add(botGuild);
+                                }
                             }
                             catch (UnauthorizedException)
                             {
@@ -409,7 +411,7 @@ namespace CloudNine.Web.User
         {
             try
             {
-                ActiveOwner = ActiveGuild?.IsOwner ?? false;
+                ActiveOwner = ActiveMember?.IsOwner ?? false;
             }
             catch
             {
@@ -424,7 +426,7 @@ namespace CloudNine.Web.User
                 ActiveGuild = g;
                 try
                 {
-                    ActiveMember = await _manager.Rest.GetGuildMemberAsync(ActiveGuild.Id, ActiveUser?.Id ?? default);
+                    ActiveMember = await g.GetMemberAsync(ActiveUser?.Id ?? default);
                 }
                 catch (UnauthorizedException)
                 { // Cant access this guild, go back to dash and remove this guild from the guild listings.
