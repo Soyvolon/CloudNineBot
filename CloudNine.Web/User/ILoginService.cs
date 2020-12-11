@@ -17,6 +17,7 @@ namespace CloudNine.Web.User
         public Task<bool> RestoreAsync(string state);
         public void RegisterState(string key, string state);
         public bool VerifyState(string returnedState);
-        public Task<bool> SetActiveGuild(ulong id);
+        public Task<int> SetActiveGuild(ulong id);
+        public bool GetModeratorValue();
     }
 }

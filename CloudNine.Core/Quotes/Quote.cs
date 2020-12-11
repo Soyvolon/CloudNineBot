@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 using DSharpPlus.Entities;
@@ -8,6 +9,8 @@ namespace CloudNine.Core.Quotes
     public class Quote
     {
         public string Author { get; set; }
+        [Required]
+        [StringLength(2048, ErrorMessage = "Quote content too long, max of 2040 characters.")]
         public string Content { get; set; }
         public DateTime? SavedAt { get; set; }
         public string SavedBy { get; set; }

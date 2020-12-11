@@ -1,0 +1,15 @@
+﻿@page "/dash/addquote" 
+@inject LoginService _login
+
+@if(_login.LoggedIn)
+{
+
+}
+else
+{
+    <RequireLogin />
+}
+
+@code {
+
+}

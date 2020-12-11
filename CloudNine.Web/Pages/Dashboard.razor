@@ -1,5 +1,6 @@
 ﻿@page "/dash"
 @inject LoginService _login;
+@inject NavigationManager _nav;
 
 @if (!_login.LoggedIn)
 {
@@ -7,6 +8,16 @@
 }
 else
 {
+    if (guildAuthError)
+    {
+        <div class="alert alert-dismissible alert-danger">
+            <a href="/dash" @onclick="StateHasChanged">
+                <span class="close">&times;</span>
+            </a>
+            <strong>An unathroized connection was attempted.</strong> That guild has been removed from the list as we cant seem to connect to it.
+        </div>
+    }
+
     if (_login.OrderedGuilds is not null)
     {
         foreach (var g in _login.OrderedGuilds)
@@ -29,19 +40,19 @@ else
                 <div class="row">
                     @if (g1 is not null)
                     {
-                        <GuildCard CardType="@GetCardType()" Guild="g1"></GuildCard>
+                        <GuildCard CardType="@GetCardType()" ButtonType="@GetButtonType()" Guild="g1"></GuildCard>
                     }
                     @if (g2 is not null)
                     {
-                        <GuildCard CardType="@GetCardType()" Guild="g2"></GuildCard>
+                        <GuildCard CardType="@GetCardType()" ButtonType="@GetButtonType()" Guild="g2"></GuildCard>
                     }
                     @if (g3 is not null)
                     {
-                        <GuildCard CardType="@GetCardType()" Guild="g3"></GuildCard>
+                        <GuildCard CardType="@GetCardType()" ButtonType="@GetButtonType()" Guild="g3"></GuildCard>
                     }
                 </div>
 
-                c = 0;
+                c = -1;
                 g1 = null;
                 g2 = null;
                 g3 = null;
@@ -52,20 +63,32 @@ else
 
         if (g1 is not null)
         {
-            <div class="row">
-                @if (g1 is not null)
-                {
-                    <GuildCard CardType="@GetCardType()" Guild="g1"></GuildCard>
-                }
-                @if (g2 is not null)
-                {
-                    <GuildCard CardType="@GetCardType()" Guild="g2"></GuildCard>
-                }
-                @if (g3 is not null)
-                {
-                    <GuildCard CardType="@GetCardType()" Guild="g3"></GuildCard>
-                }
-            </div>
+        <div class="row">
+            @if (g1 is not null)
+            {
+                <GuildCard CardType="@GetCardType()" ButtonType="@GetButtonType()" Guild="g1"></GuildCard>
+            }
+            else
+            {
+                <div class="col"></div>
+            }
+            @if (g2 is not null)
+            {
+                <GuildCard CardType="@GetCardType()" ButtonType="@GetButtonType()" Guild="g2"></GuildCard>
+            }
+            else
+            {
+                <div class="col"></div>
+            }
+            @if (g3 is not null)
+            {
+                <GuildCard CardType="@GetCardType()" ButtonType="@GetButtonType()" Guild="g3"></GuildCard>
+            }
+            else
+            {
+                <div class="col"></div>
+            }
+        </div>
         }
     }
     else
@@ -75,6 +98,7 @@ else
 }
 
 @code {
+    public bool guildAuthError = false;
     public bool primaryCard = true;
 
     private int c = 0;
@@ -87,5 +111,33 @@ else
         var res = primaryCard ? "bg-primary" : "bg-secondary";
         primaryCard = !primaryCard;
         return res;
+    }
+
+    public string GetButtonType()
+    {
+        return primaryCard ? "btn-primary" : "btn-secondary";
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+
+        bool newAuth = guildAuthError;
+        var uri = new Uri(_nav.Uri);
+        string? error = HttpUtility.ParseQueryString(uri.Query).Get("error");
+        if (error is not null && error == "guildauth")
+        {
+            newAuth = true;
+        }
+        else
+        {
+            newAuth = false;
+        }
+
+        if(newAuth != guildAuthError)
+        {
+            guildAuthError = newAuth;
+            StateHasChanged();
+        }
     }
 }

@@ -87,7 +87,7 @@
                                             {
                                             <li class="nav-item">
                                                 <a class="nav-link" href="/dash/menu?guild=@i.Key">
-                                                    <img class="rounded-circle z-depth-2" alt="25x25" width="25" src="@i.Value.IconUrl" />
+                                                    <img class="rounded-circle z-depth-2" alt="25x25" width="25" src="@GetIconUrl(i.Value)" />
                                                     @i.Value.Name
                                                 </a>
                                             </li>
@@ -153,6 +153,15 @@ else
         StateHasChanged();
     }
 
+    protected string GetIconUrl(DiscordGuild g)
+    {
+        var icon = g.IconUrl;
+        if (icon is null || icon == "")
+            icon = _login.ActiveUser.DefaultAvatarUrl;
+
+        return icon;
+    }
+
     private async Task<bool> SetActiveGuild()
     {
         var uri = new Uri(_nav.Uri);
@@ -161,7 +170,16 @@ else
         if (guild is not null)
         {
             if (ulong.TryParse(guild, out ulong guildId))
-                return await _login.SetActiveGuild(guildId);
+                switch(await _login.SetActiveGuild(guildId))
+                {
+                    case -1:
+                        _nav.NavigateTo("/dash?error=guildauth");
+                        return false;
+                    case 0:
+                        return false;
+                    case 1:
+                        return true;
+                }
         }
 
         return false;

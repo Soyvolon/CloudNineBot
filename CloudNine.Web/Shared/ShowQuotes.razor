@@ -1,0 +1,93 @@
+﻿@inject LoginService _login
+@inject IRefreshRequestService _refresh
+@inject CloudNineDatabaseModel _database
+
+@if (_login.LoggedIn)
+{
+    if (_login.ActiveGuild is not null && cfg is not null)
+    {
+        int c = 0;
+        foreach (var item in cfg.Quotes)
+        {
+            switch (c)
+            {
+                case 0:
+                    q1 = item.Value;
+                    break;
+                case 1:
+                    q2 = item.Value;
+                    break;
+            }
+
+            if (c == 1)
+            {
+                <div class="row">
+                    @if (q1 is not null)
+                    {
+                        <QuoteCard Q="q1"></QuoteCard>
+                    }
+                    @if (q2 is not null)
+                    {
+                        <QuoteCard Q="q2"></QuoteCard>
+                    }
+                </div>
+                c = -1;
+                q1 = null;
+                q2 = null;
+            }
+
+            c++;
+        }
+
+        if (q1 is not null)
+        {
+            <div class="row">
+                @if (q1 is not null)
+                {
+                    <QuoteCard Q="q1"></QuoteCard>
+                }
+                @if (q2 is not null)
+                {
+                    <QuoteCard Q="q2"></QuoteCard>
+                }
+            </div>
+        }
+    }
+    else
+    {
+        <h5>Loading...</h5>
+    }
+}
+else
+{
+    <RequireLogin />
+}
+
+
+@code {
+    public Quote? q1;
+    public Quote? q2;
+    public DiscordGuildConfiguration? cfg;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+    }
+
+    protected override void OnInitialized()
+    {
+        _refresh.RefreshRequested += RefreshMe;
+
+        base.OnInitialized();
+    }
+
+    private async void RefreshMe()
+    {
+        if (_login.ActiveGuild is not null)
+        {
+            cfg = await _database.FindAsync<DiscordGuildConfiguration>(_login.ActiveGuild.Id);
+        }
+
+        StateHasChanged();
+    }
+}

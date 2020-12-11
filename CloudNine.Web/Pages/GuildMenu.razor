@@ -14,10 +14,19 @@
 
         <div class="jumbotron">
             <h1 class="display-3">
-                <img class="rounded-circle z-depth-2" alt="75x75" width="75" src="@_login.ActiveGuild.IconUrl" />
+                <img class="rounded-circle z-depth-2" alt="(icon)" width="75" src="@_login.GetIconUrl()" />
                 @_login.ActiveGuild.Name
             </h1>
             <p class="lead">@_login.ActiveMember.DisplayName - @_login.PermString</p>
+            <hr class="my-4" />
+            <p class="lead">
+                <a class="btn btn-primary btn-lg" href="/dash/quotes?guild=@_login.ActiveGuild.Id">Quotes</a>
+                @if (_login.IsModerator)
+                {
+                    <span class="m-lg-2"></span>
+                    <a class="btn btn-warning btn-lg" href="/dash/mod?guild=@_login.ActiveGuild.Id">Moderation</a>
+                }
+            </p>
         </div>
     }
     else

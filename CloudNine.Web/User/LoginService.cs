@@ -1,14 +1,19 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
+using CloudNine.Core.Database;
+
 using DSharpPlus;
 using DSharpPlus.Entities;
+using DSharpPlus.Exceptions;
 
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 using Newtonsoft.Json.Linq;
@@ -22,6 +27,7 @@ namespace CloudNine.Web.User
         #region Loading bar stuff
         public int LoadState = 0;
         public event Action LoadIncreased;
+        // Total SetLoad refrences - 3
         public const int MaxLoad = 12;
         private Dispatcher dispatch;
         #endregion
@@ -29,13 +35,15 @@ namespace CloudNine.Web.User
         public bool LoggedIn { get; set; }
         public DiscordGuild? ActiveGuild { get; private set; }
         public DiscordUser? ActiveUser { get; private set; }
-        public IReadOnlyDictionary<ulong, DiscordGuild>? Guilds { get; private set; }
+        public ConcurrentDictionary<ulong, DiscordGuild>? Guilds { get; private set; }
         public SortedList<string, DiscordGuild>? OrderedGuilds { get; private set; }
         public DiscordRestClient? UserRest { get; private set; }
         public string? State { get; private set; }
         public string? StateKey { get; private set; }
 
         public string PermString { get; private set; }
+        public bool ActiveOwner { get; private set; }
+        public bool IsModerator { get; private set; }
 
         public DiscordMember? ActiveMember { get; private set; }
 
@@ -43,8 +51,9 @@ namespace CloudNine.Web.User
         private readonly IConfiguration _config;
         private readonly LoginManager _manager;
         private readonly HttpClient _http;
+        private readonly IServiceProvider _services;
 
-        public LoginService(IConfiguration config, ILogger<LoginService> logger, LoginManager manager, HttpClient http)
+        public LoginService(IServiceProvider services, IConfiguration config, ILogger<LoginService> logger, LoginManager manager, HttpClient http)
         {
             dispatch = Dispatcher.CreateDefault();
 
@@ -52,6 +61,7 @@ namespace CloudNine.Web.User
             _logger = logger;
             _manager = manager;
             _http = http;
+            _services = services;
 
             LoggedIn = false;
             ActiveGuild = null;
@@ -84,7 +94,12 @@ namespace CloudNine.Web.User
             ActiveUser = null;
             LoggedIn = false;
             State = null;
+
             LoadState = 0;
+
+            PermString = "";
+            ActiveOwner = false;
+            IsModerator = false;
 
             UserRest?.Dispose();
             UserRest = null;
@@ -188,29 +203,38 @@ namespace CloudNine.Web.User
                     if (res is not null)
                     {
                         var resSet = res.ToHashSet();
-                        var botRes = await _manager.Rest.GetGuildAsync();
+
+                        var db = _services.GetRequiredService<CloudNineDatabaseModel>();
 
                         StepLoad();
 
-                        if (botRes is not null)
+                        var secondSet = resSet.Where(x =>
                         {
-                            var botSet = botRes.ToHashSet();
+                            var dbRes = db.ServerConfigurations.Find(x.Id);
 
-                            var finalSet = new HashSet<DiscordGuild>();
+                            return dbRes is not null;
+                        });
 
-                            foreach (var v in resSet)
+                        StepLoad();
+                        var finalSet = new HashSet<DiscordGuild>();
+                        foreach(var g in secondSet)
+                        {
+                            try
                             {
-                                if (botRes.Any(x => x.Id == v.Id))
-                                {
-                                    finalSet.Add(v);
-                                }
+                                _ = await _manager.Rest.GetGuildAsync(g.Id, false);
+                                finalSet.Add(g);
+                                await Task.Delay(TimeSpan.FromSeconds(0.10));
                             }
-
-                            StepLoad();
-
-                            Guilds = finalSet.ToDictionary(x => x.Id);
-                            OrderedGuilds = new SortedList<string, DiscordGuild>(Guilds.ToDictionary(x => x.Value.Name, y => y.Value));
+                            catch (UnauthorizedException)
+                            {
+                                /* ignore this, we are adding to a new set not removing from the old one */
+                            }
                         }
+
+                        StepLoad();
+
+                        Guilds = new(finalSet.ToDictionary(x => x.Id));
+                        OrderedGuilds = new SortedList<string, DiscordGuild>(Guilds.ToDictionary(x => x.Value.Name, y => y.Value));
                     }
                 });
 
@@ -311,48 +335,110 @@ namespace CloudNine.Web.User
             return "Member";
         }
 
+        public bool GetModeratorValue()
+        {
+            if (ActiveOwner) return true;
+
+            var perms = GetPermBytes();
+
+            if ((perms & 0x8) == 0x8
+                || (perms & 0x2) == 0x2
+                || (perms & 0x4) == 0x4
+                || (perms & 0x10) == 0x10
+                || (perms & 0x20) == 0x20
+                || (perms & 0x2000) == 0x2000
+                || (perms & 0x10000000) == 0x10000000)
+                return true;
+
+            return false;
+        }
+
+        private byte GetPermBytes()
+        {
+            if (ActiveMember?.Roles is not null)
+            {
+                Permissions perms = 0x0;
+                foreach (var role in ActiveMember.Roles)
+                    perms |= role.Permissions;
+
+                return (byte)perms;
+            }
+
+            return 0x0;
+        }
+
         public void SetPermString()
         {
             if (ActiveGuild is not null)
             {
                 if (ActiveMember is not null)
                 {
-                    if (ActiveGuild.IsOwner)
+                    if (ActiveOwner)
                     {
                         PermString = "Owner";
                         return;
                     }
 
-                    if (ActiveMember.Roles is not null)
-                    {
-                        Permissions perms = 0x0;
-                        foreach (var role in ActiveMember.Roles)
-                            perms |= role.Permissions;
+                    var perms = GetPermBytes();
 
-                        PermString = MaxPermissionString((byte)perms);
-                        return;
-                    }
+                    PermString = MaxPermissionString(perms);
+                    return;
                 }
             }
 
             PermString = "n/a";
         }
 
-        public async Task<bool> SetActiveGuild(ulong id)
+        private void SetActiveOwner()
+        {
+            try
+            {
+                ActiveOwner = ActiveGuild?.IsOwner ?? false;
+            }
+            catch
+            {
+                ActiveOwner = false;
+            }
+        }
+
+        public async Task<int> SetActiveGuild(ulong id)
         {
             if(Guilds is not null && Guilds.TryGetValue(id, out var g))
             {
                 ActiveGuild = g;
-                ActiveMember = await _manager.Rest.GetGuildMemberAsync(ActiveGuild.Id, ActiveUser?.Id ?? default);
+                try
+                {
+                    ActiveMember = await _manager.Rest.GetGuildMemberAsync(ActiveGuild.Id, ActiveUser?.Id ?? default);
+                }
+                catch (UnauthorizedException)
+                { // Cant access this guild, go back to dash and remove this guild from the guild listings.
+                    Guilds.TryRemove(g.Id, out _);
+                    OrderedGuilds?.Remove(g.Name);
+                    ActiveGuild = null;
+                    ActiveMember = null;
+                    return -1;
+                }
+
                 SetPermString();
-                return true;
+                SetActiveOwner();
+                IsModerator = GetModeratorValue();
+                return 1;
             }
             else
             {
                 ActiveGuild = null;
                 ActiveMember = null;
-                return false;
+                return 0;
             }
+        }
+
+        public string GetIconUrl()
+        {
+            var icon = ActiveGuild?.IconUrl;
+            if (icon is null || icon == "")
+                icon = ActiveUser?.DefaultAvatarUrl ?? "";
+
+            return icon;
         }
     }
 }

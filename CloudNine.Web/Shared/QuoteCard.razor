@@ -1,0 +1,73 @@
+﻿<div class="col">
+    <div class="card @TextColor mb-3" style="background-color: @BackgroundColor !important;">
+        <h2 class="card-header">@Q.Id</h2>
+        <div class="card-body">
+            <h5 class="card-title">@Q.Author</h5>
+            <h6 class="card-subtitle">Saved By: @Q.SavedBy</h6>
+        </div>
+        <div class="card-body">
+            <p class="card-text">
+                @Q.Content
+            </p>
+        </div>
+        @if (Q.Attachment is not null)
+        {
+            <img class="d-block user-select-none" widht="100%" src="@Q.Attachment" />
+        }
+        @if (Q.SavedAt is not null)
+        {
+            <div class="card-footer">
+                @Q.SavedAt.Value.ToString("g")
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Quote Q { get; set; }
+
+    public string BackgroundColor { get; set; }
+    public string TextColor { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        if(Q.ColorValue is not null)
+        { // Do color calc
+            SetCustomColors();
+        }
+        else
+        {
+            BackgroundColor = "#3498db";
+            TextColor = "text-white";
+        }
+    }
+
+    public void SetCustomColors()
+    {
+        if (Q.ColorValue is not null)
+        {
+            BackgroundColor = "#" + Q.ColorValue.Value.ToString("X");
+
+            var dColor = new DiscordColor(Q.ColorValue.Value);
+
+            // W3C compliance for lumanace colors
+            double[] c = new double[] { dColor.R, dColor.G, dColor.B };
+            for(int i = 0; i < c.Length; i++)
+            {
+                c[i] /= 255.0;
+                if (c[i] <= 0.03928)
+                    c[i] /= 12.92;
+                else
+                    c[i] = Math.Pow((c[i] + 0.055) / 1.055, 2.4);
+            }
+
+            var L = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+
+            // use #000000 else use #ffffff
+            TextColor = L > 0.179 ? "" : "text-white";
+        }
+    }
+}

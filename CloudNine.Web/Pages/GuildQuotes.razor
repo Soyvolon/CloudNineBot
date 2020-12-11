@@ -12,6 +12,17 @@
             <li class="breadcrumb-item"><a href="/dash/menu?guild=@_login.ActiveGuild.Id">@_login.ActiveGuild.Name</a></li>
             <li class="breadcrumb-item">Quotes</li>
         </ol>
+        @if (_login.IsModerator)
+        {
+            <a href="/dash/addquote?guild=@_login.ActiveGuild.Id">
+                <span class="btn btn-primary btn-lg btn-block">
+                    Add New Quote
+                </span>
+            </a>
+            <hr />
+        }
+
+        <ShowQuotes></ShowQuotes>
     }
     else
     {
