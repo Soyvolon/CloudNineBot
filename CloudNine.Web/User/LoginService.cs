@@ -112,8 +112,9 @@ namespace CloudNine.Web.User
 
         public async Task<bool> Login(string code)
         {
+            _logger.LogInformation("Start Login Task");
             using var tokenRequest = new HttpRequestMessage(HttpMethod.Post, "https://discord.com/api/oauth2/token");
-
+            
             var tokenRequestContent = new List<KeyValuePair<string?, string?>>()
             {
                 new("client_id", _config["Client"]),
@@ -127,7 +128,7 @@ namespace CloudNine.Web.User
             tokenRequest.Content = new FormUrlEncodedContent(tokenRequestContent);
 
             var tokenResponse = await _http.SendAsync(tokenRequest);
-
+            _logger.LogInformation("Got Token");
             StepLoad();
 
             string? token = null;
@@ -145,7 +146,7 @@ namespace CloudNine.Web.User
             {
                 _logger.LogError(ex, "Failed to initalize User Rest client.");
             }
-
+            _logger.LogInformation("Initalized Rest Client");
             StepLoad();
 
             if (token is not null && await LoadUserData())
@@ -153,6 +154,7 @@ namespace CloudNine.Web.User
                 if (Guilds is not null && ActiveUser is not null)
                 {
                     _manager.RegisterLogin(State ?? "", code, token, TimeSpan.FromSeconds(expiration));
+                    _logger.LogInformation("Initalized User Data");
                     StepLoad();
                     LoggedIn = true;
                     return true;
@@ -192,12 +194,14 @@ namespace CloudNine.Web.User
 
         public async Task<bool> LoadUserData()
         {
+            _logger.LogInformation("Start Load User Data");
             if (UserRest is not null)
             {
                 var guildTask = UserRest.GetCurrentUserGuildsAsync().ContinueWith(async (x) =>
                 {
                     IReadOnlyList<DiscordGuild>? res = await x;
 
+                    _logger.LogInformation("Got Current Guild");
                     StepLoad();
 
                     if (res is not null)
@@ -214,7 +218,7 @@ namespace CloudNine.Web.User
 
                             return dbRes is not null;
                         });
-
+                        _logger.LogInformation("Got Database Set");
                         StepLoad();
                         var finalSet = new HashSet<DiscordGuild>();
                         foreach(var g in secondSet)
@@ -232,7 +236,7 @@ namespace CloudNine.Web.User
                         }
 
                         StepLoad();
-
+                        _logger.LogInformation("Loaded Guilds");
                         Guilds = new(finalSet.ToDictionary(x => x.Id));
                         OrderedGuilds = new SortedList<string, DiscordGuild>(Guilds.ToDictionary(x => x.Value.Name, y => y.Value));
                     }
@@ -243,7 +247,7 @@ namespace CloudNine.Web.User
                     var res = await x;
 
                     StepLoad();
-
+                    _logger.LogInformation("Loaded Active User");
                     ActiveUser = res;
                 });
 
@@ -255,7 +259,7 @@ namespace CloudNine.Web.User
                 StepLoad();
                 await loadU;
                 StepLoad();
-
+                _logger.LogInformation("Finished User Data Tasks");
                 return true;
             }
 
