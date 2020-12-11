@@ -28,7 +28,7 @@ jobs:
       - name: Install Dependencies
         run: dotnet restore
       - name: Build
-        run: dotnet build CloudNine.csproj --configuration Release --no-restore --output artifact/build/CloudNine
+        run: dotnet build CloudNine/CloudNine.csproj --configuration Release --no-restore --output artifact/build/CloudNine
       - name: Copy Discord Dockerfile to Artifact
         run: cp **Dockerfile artifact/
       - name: Upload Discord Artifact
@@ -47,7 +47,7 @@ jobs:
       - name: Install Dependencies
         run: dotnet restore
       - name: Build
-        run: dotnet build CloudNine.Web.csproj --configuration Relese --no-restore --output artifact/build/CloudNine.Web
+        run: dotnet build CloudNine.Web/CloudNine.Web.csproj --configuration Relese --no-restore --output artifact/build/CloudNine.Web
       - name: Copy Web Dockerfile to Artifact
         run: cp CloudNine.Web/**Dockerfile artifact/CloudNine.Web/
       - name: Upload Web Artifact
