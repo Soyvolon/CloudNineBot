@@ -28,22 +28,22 @@
             <div class="navbar navbar-expand-lg navbar-dark bg-dark">
                 <div class="container">
                     <a class="navbar-brand" href="#">Cloud Nine Bot</a>
-                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+                    <button class="navbar-toggler" type="button" @onclick="ToggleNavMenu" data-toggle="collapse" data-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
                         <span class="navbar-toggler-icon"></span>
                     </button>
 
-                    <div class="collapse navbar-collapse" id="navbarMain">
+                    <div class="@NavMenuCssClass navbar-collapse" @onclick="ToggleNavMenu" id="navbarMain">
                         <ul class="navbar-nav mr-auto">
                             <li class="nav-item active">
-                                <a class="nav-link" href="#">
+                                <NavLink class="nav-link" href="#">
                                     <span class="sr-only">(current)</span>
-                                </a>
+                                </NavLink>
                             </li>
                             <li class="nav-item active">
-                                <a class="nav-link" href="/dash">
+                                <NavLink class="nav-link" href="/dash">
                                     Dashboard
                                     <span class="sr-only">(current)</span>
-                                </a>
+                                </NavLink>
                             </li>
                         </ul>
                     </div>
@@ -73,8 +73,11 @@
                     {
                         if (dashNavR.IsMatch(_nav.ToBaseRelativePath(_nav.Uri)))
                         {
+                            <button class="navbar-toggler" type="button" @onclick="ToggleDashNavMenu" data-toggle="collapse" data-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+                                <span class="navbar-toggler-icon"></span>
+                            </button>
                             <!-- Dash only side menu goes here -->
-                            <nav class="sidebar">
+                            <nav class="sidebar navbar-collapse @NavMenuCssClass" @onclick="ToggleNavMenu">
                                 <ul class="nav nav-pills flex-column">
                                     <li class="nav-item">
                                         <a class="nav-link active" href="/dash">@(_login.ActiveGuild?.Name + " " ?? "")Dashboard</a>
@@ -85,12 +88,12 @@
                                         {
                                             if (_login.ActiveGuild is null || i.Key != _login.ActiveGuild.Id)
                                             {
-                                            <li class="nav-item">
-                                                <a class="nav-link" href="/dash/menu?guild=@i.Key">
-                                                    <img class="rounded-circle z-depth-2" alt="25x25" width="25" src="@GetIconUrl(i.Value)" />
-                                                    @i.Value.Name
-                                                </a>
-                                            </li>
+                                                <li class="nav-item">
+                                                    <a class="nav-link" href="/dash/menu?guild=@i.Key">
+                                                        <img class="rounded-circle z-depth-2" alt="25x25" width="25" src="@GetIconUrl(i.Value)" />
+                                                        @i.Value.Name
+                                                    </a>
+                                                </li>
                                             }
                                         }
                                     }
@@ -118,6 +121,23 @@ else
 }
 
 @code {
+    #region Nav Dashboard
+    private bool collapseDashNavMenu = true;
+
+    private string DashNavMenuCssClass => collapseDashNavMenu ? "collapse" : "";
+
+    private void ToggleDashNavMenu()
+        => collapseDashNavMenu = !collapseDashNavMenu;
+    #endregion
+    #region Nav Main
+    private bool collapseNavMenu = true;
+
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : "";
+
+    private void ToggleNavMenu()
+        => collapseNavMenu = !collapseNavMenu;
+    #endregion
+
     private bool connected;
     public Regex dashNavR = new Regex(@"^dash\/.");
 
