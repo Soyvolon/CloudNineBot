@@ -35,20 +35,20 @@ namespace CloudNine.Web.Pages
         {
             if(Request.Query.TryGetValue("start", out _))
             {
-                _logger.LogInformation("Starting Login");
+                _logger.LogDebug("Starting Login");
                 return await StartLogin();
             }
 
             if (Request.Query.TryGetValue("logout", out _))
             {
-                _logger.LogInformation("Start Logout");
+                _logger.LogDebug("Start Logout");
                 return await StartLogout();
             }
 
             if (Request.Query.TryGetValue("code", out var code) 
                 && Request.Query.TryGetValue("state", out var state))
             {
-                _logger.LogInformation("Finish Login");
+                _logger.LogDebug("Finish Login");
                 if(code.Count > 0 && state.Count > 0)
                     return await VerifyLogin(code[0], state[0]);
             }
@@ -78,7 +78,7 @@ namespace CloudNine.Web.Pages
 
             var uri = _login.GetAuthUrl();
 
-            _logger.LogInformation($"Redirecting to: {uri}");
+            _logger.LogDebug($"Redirecting to: {uri}");
 
             return Redirect(uri);
         }
@@ -92,7 +92,7 @@ namespace CloudNine.Web.Pages
                 Response.Cookies.Delete("login_state_key");
             }
 
-            _logger.LogInformation("Logout Complete");
+            _logger.LogDebug("Logout Complete");
 
             return Redirect("/");
         }
@@ -101,10 +101,10 @@ namespace CloudNine.Web.Pages
         {
             if (_login.VerifyState(state))
             {
-                _logger.LogInformation("Completed Verify State");
+                _logger.LogDebug("Completed Verify State");
                 if (await _login.Login(code))
                 {
-                    _logger.LogInformation("Completed Login Process");
+                    _logger.LogDebug("Completed Login Process");
                     return Redirect("/dash");
                 }
             }
