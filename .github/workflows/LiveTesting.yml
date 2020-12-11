@@ -71,11 +71,20 @@ jobs:
           username: ${{ secrets.RELEASE_USER }}
           passphrase: ${{ secrets.RELEASE_PASSPHRASE }}
           privateKey: ${{ secrets.RELEASE_PRIVATE_KEY }}
-      - name: Copy Files over SSH
+      - name: Copy Web Project
         uses: garygrossgarten/github-action-scp@release
         with:
           local: CloudNine.Web/
           remote: ${{ secrets.WEB_RELEASE_DEST }}
+          host: ${{ secrets.RELEASE_HOST }}
+          username: ${{ secrets.RELEASE_USER }}
+          passphrase: ${{ secrets.RELEASE_PASSPHRASE }}
+          privateKey: ${{ secrets.RELEASE_PRIVATE_KEY }}
+      - name: Copy Core Project
+        uses: garygrossgarten/github-action-scp@release
+        with:
+          local: CloudNine.Core/
+          remote: ${{ secrets.WEB_CORE_RELEASE_DEST }}
           host: ${{ secrets.RELEASE_HOST }}
           username: ${{ secrets.RELEASE_USER }}
           passphrase: ${{ secrets.RELEASE_PASSPHRASE }}
