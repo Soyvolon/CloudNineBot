@@ -25,7 +25,7 @@
 {
     <div class="page">
         <div class="main">
-            <div class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="navbar navbar-expand-lg navbar-dark bg-primary">
                 <div class="container">
                     <a class="navbar-brand" href="#">Cloud Nine Bot</a>
                     <button class="navbar-toggler" type="button" @onclick="ToggleNavMenu" data-toggle="collapse" data-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
@@ -45,23 +45,28 @@
                                     <span class="sr-only">(current)</span>
                                 </NavLink>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://cards.andrewbounds.com/">
+                                    Card Game
+                                </a>
+                            </li>
                         </ul>
                     </div>
                     @if (_login.LoggedIn)
                     {
-                        <div class="btn btn-outline-success">
+                        <div class="btn btn-secondary">
                             <img class="rounded-circle z-depth-2" alt="25x25" width="25" src="@_login.ActiveUser?.AvatarUrl" />
                             @(_login.ActiveUser?.Username ?? "user")
                         </div>
                         <div class="m-1"></div>
                         <a href="/login?logout=true">
-                            <span class="btn-primary btn" type="submit">Logout</span>
+                            <span class="btn-secondary btn" type="submit">Logout</span>
                         </a>
                     }
                     else
                     {
                         <a href="/login?start=true">
-                            <span class="btn-primary btn" type="submit">Login</span>
+                            <span class="btn-secondary btn" type="submit">Login</span>
                         </a>
                     }
                 </div>
@@ -73,9 +78,6 @@
                     {
                         if (dashNavR.IsMatch(_nav.ToBaseRelativePath(_nav.Uri)))
                         {
-                            <button class="navbar-toggler" type="button" @onclick="ToggleDashNavMenu" data-toggle="collapse" data-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
-                                <span class="navbar-toggler-icon"></span>
-                            </button>
                             <!-- Dash only side menu goes here -->
                             <nav class="sidebar navbar-collapse @NavMenuCssClass" @onclick="ToggleNavMenu">
                                 <ul class="nav nav-pills flex-column">
