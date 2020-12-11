@@ -10,6 +10,7 @@ using CloudNine.Web.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Logging;
 
 namespace CloudNine.Web.Pages
 {
@@ -18,12 +19,14 @@ namespace CloudNine.Web.Pages
         private readonly StateManager _state;
         private readonly LoginService _login;
         private readonly Random _rand;
+        private readonly ILogger _logger;
 
-        public LoginModel(StateManager state, LoginService login)
+        public LoginModel(StateManager state, LoginService login, ILogger<LoginModel> logger)
         {
             _state = state;
             _login = login;
             _rand = new Random();
+            _logger = logger;
         }
 
         public bool IsConnected { get; set; } = true;
@@ -32,17 +35,20 @@ namespace CloudNine.Web.Pages
         {
             if(Request.Query.TryGetValue("start", out _))
             {
+                _logger.LogInformation("Starting Login");
                 return await StartLogin();
             }
 
             if (Request.Query.TryGetValue("logout", out _))
             {
+                _logger.LogInformation("Start Logout");
                 return await StartLogout();
             }
 
             if (Request.Query.TryGetValue("code", out var code) 
                 && Request.Query.TryGetValue("state", out var state))
             {
+                _logger.LogInformation("Finish Login");
                 if(code.Count > 0 && state.Count > 0)
                     return await VerifyLogin(code[0], state[0]);
             }
@@ -84,6 +90,8 @@ namespace CloudNine.Web.Pages
                 Response.Cookies.Delete("login_state_key");
             }
 
+            _logger.LogInformation("Logout Complete");
+
             return Redirect("/");
         }
 
@@ -91,8 +99,10 @@ namespace CloudNine.Web.Pages
         {
             if (_login.VerifyState(state))
             {
+                _logger.LogInformation("Completed Verify State");
                 if (await _login.Login(code))
                 {
+                    _logger.LogInformation("Completed Login Process");
                     return Redirect("/dash");
                 }
             }
