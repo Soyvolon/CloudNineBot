@@ -1,5 +1,5 @@
 ﻿<div class="col-md-6 col-sm-12">
-    <div class="card @TextColor mb-3" style="background-color: @BackgroundColor !important;">
+    <div id="card-@Q.Id" class="card @TextColor mb-3" style="background-color: @BackgroundColor !important;">
         <h2 class="card-header">@Q.Id</h2>
         <div class="card-body">
             <h5 class="card-title">@Q.Author</h5>
@@ -34,7 +34,7 @@
     {
         base.OnParametersSet();
 
-        if(Q.ColorValue is not null)
+        if(Q.ColorValue is not null && Q.ColorValue.Value.ToString("X") != "3498DB")
         { // Do color calc
             SetCustomColors();
         }
@@ -67,7 +67,7 @@
             var L = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
 
             // use #000000 else use #ffffff
-            TextColor = L > 0.179 ? "" : "text-white";
+            TextColor = L > 0.179 ? "text-body" : "text-white";
         }
     }
 }

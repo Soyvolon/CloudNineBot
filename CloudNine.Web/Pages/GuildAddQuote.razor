@@ -1,9 +1,73 @@
-﻿@page "/dash/addquote" 
+﻿@page "/dash/addquote"
 @inject LoginService _login
+@inject IRefreshRequestService _refresh
+@inject CloudNineDatabaseModel _database
+@inject NavigationManager _nav
 
-@if(_login.LoggedIn)
+@if (_login.LoggedIn)
 {
+    if (_login.ActiveGuild is not null && cfg is not null)
+    {
+        if (_login.IsModerator)
+        {
+    <EditForm Model="quoteModel" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div class="row form-group">
+            <div class="col-sm-12">
+                <label for="author">Author</label>
+                <InputText class="form-control" id="author" @bind-Value="quoteModel.Author" />
+            </div>
+        </div>
+        <div class="row form-group">
+            <div class="col-sm-12">
+                <label for="content">Quote</label>
+                <InputTextArea class="form-control" rows="3" id="content" @bind-Value="quoteModel.Content" />
+            </div>
+        </div>
+        <div class="row form-group">
+            <div class="col-sm-12 col-md-6">
+                <label for="saveby">Saved By</label>
+                <InputText class="form-control" id="savedby" @bind-Value="quoteModel.SavedBy" />
+            </div>
+            <div class="col-sm-12 col-md-6">
+                <label for="color">Quote Color</label>
+                <input class="form-control" id="color" type="color" @bind-value="quoteModel.ColorHex" />
+            </div>
+        </div>
+        <div class="row form-group">
+            <div class="col-sm-12">
+                <label for="attachment">Attachment Link</label>
+                <InputText class="form-control" id="attachment" @bind-Value="quoteModel.Attachment" />
+            </div>
+        </div>
+        <div class="row form-group">
+            <div class="col-sm-12 col-md-6">
+                <label for="cid">Custom ID</label>
+                <InputText class="form-control" id="cid" @bind-Value="quoteModel.CustomId" />
+                <small id="cidHelp" class="form-text text-muted">Using a custom ID will hide the quote from the quote list.</small>
+            </div>
+            <div class="col-sm-12 col-md-6">
+                <label for="savedat">Saved At</label>
+                <InputDate class="form-control" id="savedat" @bind-Value="quoteModel.SavedAt" />
+            </div>
+        </div>
 
+        <button type="submit" class="btn btn-primary btn-block">Add Quote</button>
+    </EditForm>
+        }
+        else
+        {
+            <h3>You do not have authorization to view this page.</h3>
+            <a href="/dash/quotes?guild=@_login.ActiveGuild.Id">
+                <span class="btn btn-danger">Return to Quotes</span>
+            </a>
+        }
+    }
+    else
+    {
+        <h5>Loading...</h5>
+    }
 }
 else
 {
@@ -11,5 +75,39 @@ else
 }
 
 @code {
+    private QuoteModel quoteModel = new QuoteModel();
 
+    public DiscordGuildConfiguration? cfg;
+
+    private async Task HandleValidSubmit()
+    {
+        if (cfg is not null)
+        {
+            var q = quoteModel.Build(_login.ActiveUser?.Username);
+            bool didAdd = await cfg.AddQuote(q);
+
+            _database.Update(cfg);
+            _database.SaveChangesAsync();
+
+            _nav.NavigateTo($"/dash/quotes?guild={_login.ActiveGuild?.Id ?? default}" +
+                $"&added={(didAdd ? $"1&quote={q.Id}" : "0")}");
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        _refresh.RefreshRequested += RefreshMe;
+
+        base.OnInitialized();
+    }
+
+    private async void RefreshMe()
+    {
+        if (_login.ActiveGuild is not null)
+        {
+            cfg = await _database.FindAsync<DiscordGuildConfiguration>(_login.ActiveGuild.Id);
+        }
+
+        StateHasChanged();
+    }
 }

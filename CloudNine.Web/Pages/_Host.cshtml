@@ -18,12 +18,13 @@
     <base href="~/" />
     <link rel="stylesheet" href="~/css/cosmo/bootstrap.css" />
     <link href="~/css/site.css" rel="stylesheet" />
+    <link href="~/css/color/bootstrap-colorpicker.css" rel="stylesheet" />
     @*<link href="CloudNine.Web.styles.css" rel="stylesheet" />*@
 </head>
 <body>
     @*<partial name="_CookieConsentPartial" />*@
     @*<component type="typeof(App)" render-mode="ServerPrerendered" />*@
-    @(await Html.RenderComponentAsync<App>(RenderMode.Server, new { Cookies = Model.Request.Cookies.ToDictionary(x => x.Key, y => y.Value) })) 
+    @(await Html.RenderComponentAsync<App>(RenderMode.Server, new { Cookies = Model.Request.Cookies.ToDictionary(x => x.Key, y => y.Value) }))
 
     <div id="blazor-error-ui">
         <environment include="Staging,Production">

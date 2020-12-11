@@ -7,6 +7,19 @@
 {
     if (_login.ActiveGuild is not null)
     {
+        if (addFailed)
+        {
+            <div class="alert alert-dismissible alert-danger">
+                <strong>Failed to add quote:</strong> @alertMessage
+            </div>
+        }
+        else if (addComplete)
+        {
+            <div class="alert alert-dismissible alert-success">
+                <strong>Quote Added:</strong> @alertMessage
+            </div>
+        }
+
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="/dash">Dashboard</a></li>
             <li class="breadcrumb-item"><a href="/dash/menu?guild=@_login.ActiveGuild.Id">@_login.ActiveGuild.Name</a></li>
@@ -36,6 +49,65 @@ else
 
 @code
 {
+    protected bool addFailed = false;
+    protected bool addComplete = false;
+    protected string alertMessage = "";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+
+        await AddQuoteResponse();
+    }
+
+    public async Task AddQuoteResponse()
+    {
+        var uri = new Uri(_nav.Uri);
+
+        string? added = HttpUtility.ParseQueryString(uri.Query).Get("added");
+        if (added is not null)
+        {
+            if (int.TryParse(added, out var res))
+            {
+                if (res == 1)
+                {
+                    string? quote = HttpUtility.ParseQueryString(uri.Query).Get("quote");
+
+                    if (quote is not null)
+                    {
+                        if (quote == "-1")
+                        {
+                            alertMessage = "Succesfully added a Hidden Quote! It wont show up here, but its there!";
+                        }
+                        else
+                        {
+                            alertMessage = $"Succesfully added Quote {quote}!";
+                        }
+
+                        addComplete = true;
+                        return;
+                    }
+                }
+                else
+                {
+                    alertMessage = "Failed to save quote to the Database.";
+                }
+            }
+            else
+            {
+                alertMessage = "Request was invalid, failed to parse the quote result or server sent a quote add failed message.";
+            }
+
+            addFailed = true;
+            return;
+        }
+    }
+
     protected override void OnInitialized()
     {
         _refresh.RefreshRequested += RefreshMe;
