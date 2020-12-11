@@ -78,6 +78,8 @@ namespace CloudNine.Web.Pages
 
             var uri = _login.GetAuthUrl();
 
+            _logger.LogInformation($"Redirecting to: {uri}");
+
             return Redirect(uri);
         }
 

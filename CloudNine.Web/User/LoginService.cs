@@ -125,10 +125,12 @@ namespace CloudNine.Web.User
                 new("scope", _config["Login:RawScope"])
             };
 
+            _logger.LogInformation(code);
+
             tokenRequest.Content = new FormUrlEncodedContent(tokenRequestContent);
 
             var tokenResponse = await _http.SendAsync(tokenRequest);
-            _logger.LogInformation("Got Token");
+            _logger.LogInformation("Got Token Response");
             StepLoad();
 
             string? token = null;
