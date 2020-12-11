@@ -117,9 +117,9 @@ namespace CloudNine.Web.User
 
         public bool GetGuildFromId(ulong id, out DiscordGuild? guild)
         {
-            foreach(var shard in Client.ShardClients)
+            foreach (var shard in Client.ShardClients)
             {
-                if(shard.Value.Guilds.TryGetValue(id, out guild))
+                if (shard.Value.Guilds.TryGetValue(id, out guild))
                 {
                     return true;
                 }

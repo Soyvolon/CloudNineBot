@@ -239,7 +239,7 @@ namespace CloudNine.Web.User
                             {
                                 if (_manager.GetGuildFromId(g.Id, out var botGuild))
                                 {
-                                    if(botGuild is not null)
+                                    if (botGuild is not null)
                                         finalSet.Add(botGuild);
                                 }
                             }
