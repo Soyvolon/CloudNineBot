@@ -32,7 +32,7 @@ jobs:
       - name: Copy Discord Dockerfile to Artifact
         run: cp **Dockerfile artifact/
       - name: Copy Web Dockerfile to Artifact
-        run: cp CloudNine.Web/**Dockerfile artifact/CloudNIne.Web/
+        run: cp CloudNine.Web/**Dockerfile artifact/CloudNine.Web/
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v2.2.1
         with:
