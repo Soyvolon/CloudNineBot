@@ -57,7 +57,8 @@ namespace CloudNine.Web.Pages
                 MaxAge = TimeSpan.FromDays(1),
                 SameSite = SameSiteMode.Lax,
                 Secure = true,
-                HttpOnly = false
+                HttpOnly = false,
+                IsEssential = true
             };
         }
 
