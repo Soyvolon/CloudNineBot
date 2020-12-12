@@ -32,6 +32,9 @@ namespace CloudNine.Discord.Commands.Quotes.Management
 
             if (cfg.TryRemoveQuote(quoteId, out var quote))
             {
+                _database.Update(cfg);
+                await _database.SaveChangesAsync();
+
                 var embed = new DiscordEmbedBuilder()
                     .WithTitle($"Removed Quote `{quoteId}` by {quote.Author}")
                     .WithDescription(quote.Content);
@@ -53,6 +56,9 @@ namespace CloudNine.Discord.Commands.Quotes.Management
 
             if (cfg.TryRemoveQuote(quoteId, out var quote))
             {
+                _database.Update(cfg);
+                await _database.SaveChangesAsync();
+
                 var embed = new DiscordEmbedBuilder()
                     .WithTitle($"Removed Quote `{quoteId}` by {quote.Author}")
                     .WithDescription(quote.Content);
