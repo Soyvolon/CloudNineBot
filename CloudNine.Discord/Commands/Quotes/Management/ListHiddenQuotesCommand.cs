@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 
 using CloudNine.Core.Configuration;
@@ -11,15 +12,17 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Extensions;
 
+using Microsoft.Extensions.DependencyInjection;
+
 namespace CloudNine.Discord.Commands.Quotes.Management
 {
     public class ListHiddenQuotesCommand : CommandModule
     {
-        private readonly CloudNineDatabaseModel _database;
+        private readonly IServiceProvider _services;
 
-        public ListHiddenQuotesCommand(CloudNineDatabaseModel database)
+        public ListHiddenQuotesCommand(IServiceProvider services)
         {
-            this._database = database;
+            this._services = services;
         }
 
         [Command("listhiddenquotes")]
@@ -30,6 +33,7 @@ namespace CloudNine.Discord.Commands.Quotes.Management
         [Hidden]
         public async Task ListHiddenQuotesCommandAsync(CommandContext ctx)
         {
+            var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
             var cfg = await _database.FindAsync<DiscordGuildConfiguration>(ctx.Guild.Id);
             if (cfg is null)
             {

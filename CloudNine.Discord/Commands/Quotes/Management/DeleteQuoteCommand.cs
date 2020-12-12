@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 using CloudNine.Core.Configuration;
 using CloudNine.Core.Database;
@@ -8,15 +9,17 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 
+using Microsoft.Extensions.DependencyInjection;
+
 namespace CloudNine.Discord.Commands.Quotes.Management
 {
     public class DeleteQuoteCommand : CommandModule
     {
-        private readonly CloudNineDatabaseModel _database;
+        private readonly IServiceProvider _services;
 
-        public DeleteQuoteCommand(CloudNineDatabaseModel database)
+        public DeleteQuoteCommand(IServiceProvider services)
         {
-            this._database = database;
+            this._services = services;
         }
 
         [Command("deletequote")]
@@ -28,6 +31,7 @@ namespace CloudNine.Discord.Commands.Quotes.Management
             [Description("The ID of the quote to remove.")]
             int quoteId)
         {
+            var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
             var cfg = await _database.FindAsync<DiscordGuildConfiguration>(ctx.Guild.Id);
 
             if (cfg.TryRemoveQuote(quoteId, out var quote))
@@ -52,6 +56,7 @@ namespace CloudNine.Discord.Commands.Quotes.Management
             [Description("The ID of the quote to remove.")]
             string quoteId)
         {
+            var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
             var cfg = await _database.FindAsync<DiscordGuildConfiguration>(ctx.Guild.Id);
 
             if (cfg.TryRemoveQuote(quoteId, out var quote))

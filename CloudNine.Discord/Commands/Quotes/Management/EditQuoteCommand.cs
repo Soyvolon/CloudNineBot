@@ -14,18 +14,20 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 
+using Microsoft.Extensions.DependencyInjection;
+
 using static CloudNine.Discord.Services.QuoteService;
 
 namespace CloudNine.Discord.Commands.Quotes.Management
 {
     public class EditQuoteCommand : CommandModule
     {
-        private readonly CloudNineDatabaseModel _database;
+        private readonly IServiceProvider _services;
         private readonly QuoteService _quotes;
 
-        public EditQuoteCommand(CloudNineDatabaseModel database, QuoteService quotes)
+        public EditQuoteCommand(IServiceProvider services, QuoteService quotes)
         {
-            this._database = database;
+            this._services = services;
             this._quotes = quotes;
         }
 
@@ -44,7 +46,7 @@ namespace CloudNine.Discord.Commands.Quotes.Management
                 await EditQuoteHelpCommandAsync(ctx);
                 return;
             }
-
+            var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
             var cfg = await _database.FindAsync<DiscordGuildConfiguration>(ctx.Guild.Id);
 
             if(cfg is null)

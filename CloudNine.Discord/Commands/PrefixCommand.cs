@@ -10,15 +10,17 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 
+using Microsoft.Extensions.DependencyInjection;
+
 namespace CloudNine.Discord.Commands
 {
     public class PrefixCommand : CommandModule
     {
-        private readonly CloudNineDatabaseModel _database;
+        private readonly IServiceProvider _services;
 
-        public PrefixCommand(CloudNineDatabaseModel database)
+        public PrefixCommand(IServiceProvider services)
         {
-            this._database = database;
+            this._services = services;
         }
 
         [Command("prefix")]
@@ -29,6 +31,7 @@ namespace CloudNine.Discord.Commands
             [Description("New prefix to set. Leave blank to return to the default prefix.")]
             string? prefix = null)
         {
+            var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
             var cfg = await _database.FindAsync<DiscordGuildConfiguration>(ctx.Guild.Id);
             if(cfg is null)
             {

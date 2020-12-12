@@ -15,16 +15,17 @@ using DSharpPlus.Exceptions;
 using static CloudNine.Core.Moderation.ModCore;
 using System;
 using System.Collections.Generic;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CloudNine.Discord.Commands.Moderation
 {
     public class AddWarnCommand : CommandModule
     {
-        private readonly CloudNineDatabaseModel _database;
+        private readonly IServiceProvider _services;
 
-        public AddWarnCommand(CloudNineDatabaseModel database)
+        public AddWarnCommand(IServiceProvider services)
         {
-            this._database = database;
+            this._services = services;
         }
 
         [Command("warn")]
@@ -66,6 +67,7 @@ namespace CloudNine.Discord.Commands.Moderation
             if (msg == "")
                 msg = "Default Warn.";
 
+            var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
             var mod = await _database.FindAsync<ModCore>(ctx.Guild.Id);
 
             if(mod is null)
@@ -130,6 +132,7 @@ namespace CloudNine.Discord.Commands.Moderation
             [Description("Warn to view")]
             string warnId)
         {
+            var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
             var mod = await _database.FindAsync<ModCore>(ctx.Guild.Id);
 
             if (mod is null)

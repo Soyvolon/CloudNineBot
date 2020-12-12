@@ -12,15 +12,17 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Extensions;
 
+using Microsoft.Extensions.DependencyInjection;
+
 namespace CloudNine.Discord.Commands.Quotes.Management
 {
     public class HideQuoteCommand : CommandModule
     {
-        private readonly CloudNineDatabaseModel _database;
+        private readonly IServiceProvider _services;
 
-        public HideQuoteCommand(CloudNineDatabaseModel database)
+        public HideQuoteCommand(IServiceProvider services)
         {
-            this._database = database;
+            this._services = services;
         }
 
         [Command("hidequote")]
@@ -30,6 +32,7 @@ namespace CloudNine.Discord.Commands.Quotes.Management
         [Hidden]
         public async Task HideQuoteCommandAsync(CommandContext ctx)
         {
+            var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
             var cfg = await _database.FindAsync<DiscordGuildConfiguration>(ctx.Guild.Id);
             if (cfg is null)
             {

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 using CloudNine.Core.Database;
@@ -9,15 +10,17 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Interactivity.Extensions;
 
+using Microsoft.Extensions.DependencyInjection;
+
 namespace CloudNine.Discord.Commands.Moderation
 {
     public class DeleteWarnCommand : CommandModule
     {
-        private readonly CloudNineDatabaseModel _database;
+        private readonly IServiceProvider _services;
 
-        public DeleteWarnCommand(CloudNineDatabaseModel database)
+        public DeleteWarnCommand(IServiceProvider services)
         {
-            _database = database;
+            _services = services;
         }
 
         [Command("deletewarn")]
@@ -28,6 +31,7 @@ namespace CloudNine.Discord.Commands.Moderation
             [Description("ID of the warn to delete.")]
             string warnId)
         {
+            var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
             var mod = await _database.FindAsync<ModCore>(ctx.Guild.Id);
 
             if (mod is null)

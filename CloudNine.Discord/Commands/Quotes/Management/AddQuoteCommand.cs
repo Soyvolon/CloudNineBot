@@ -13,18 +13,20 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 
+using Microsoft.Extensions.DependencyInjection;
+
 using static CloudNine.Discord.Services.QuoteService;
 
 namespace CloudNine.Discord.Commands.Quotes.Management
 {
     public class AddQuoteCommand : CommandModule
     {
-        private readonly CloudNineDatabaseModel _database;
+        private readonly IServiceProvider _services;
         private readonly QuoteService _quotes;
 
-        public AddQuoteCommand(CloudNineDatabaseModel database, QuoteService quotes)
+        public AddQuoteCommand(IServiceProvider services, QuoteService quotes)
         {
-            this._database = database;
+            this._services = services;
             this._quotes = quotes;
         }
 
@@ -104,6 +106,7 @@ namespace CloudNine.Discord.Commands.Quotes.Management
 
             quote.Content = string.Join(" ", content);
 
+            var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
             var cfg = await _database.FindAsync<DiscordGuildConfiguration>(ctx.Guild.Id);
             if (cfg is null)
             {

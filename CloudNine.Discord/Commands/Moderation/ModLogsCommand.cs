@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using CloudNine.Core.Database;
@@ -10,15 +11,17 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 
+using Microsoft.Extensions.DependencyInjection;
+
 namespace CloudNine.Discord.Commands.Moderation
 {
     public class ModLogsCommand : CommandModule
     {
-        private readonly CloudNineDatabaseModel _database;
+        private readonly IServiceProvider _services;
 
-        public ModLogsCommand(CloudNineDatabaseModel database)
+        public ModLogsCommand(IServiceProvider services)
         {
-            _database = database;
+            _services = services;
         }
 
         [Command("modlogs")]
@@ -30,6 +33,7 @@ namespace CloudNine.Discord.Commands.Moderation
             [Description("Member to get logs for")]
             DiscordMember member)
         {
+            var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
             var mod = await _database.FindAsync<ModCore>(ctx.Guild.Id);
 
             if(mod is null)

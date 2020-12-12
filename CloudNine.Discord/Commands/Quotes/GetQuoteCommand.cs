@@ -13,16 +13,17 @@ using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CloudNine.Discord.Commands.Quotes
 {
     public class GetQuoteCommand : CommandModule
     {
-        private readonly CloudNineDatabaseModel _database;
+        private readonly IServiceProvider _services;
 
-        public GetQuoteCommand(CloudNineDatabaseModel database)
+        public GetQuoteCommand(IServiceProvider services)
         {
-            this._database = database;
+            this._services = services;
         }
 
         [Command("quote")]
@@ -33,7 +34,7 @@ namespace CloudNine.Discord.Commands.Quotes
             [Description("Arguments for the quote command. Use `help` for more information")]
             params string[] args)
         {
-
+            var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
             var cfg = await _database.FindAsync<DiscordGuildConfiguration>(ctx.Guild.Id);
             if (cfg is null)
             {

@@ -14,6 +14,7 @@ using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
 
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 
@@ -21,11 +22,11 @@ namespace CloudNine.Discord.Commands.Quotes
 {
     public class SearchQuotesCommand : CommandModule
     {
-        private readonly CloudNineDatabaseModel _database;
+        private readonly IServiceProvider _services;
 
-        public SearchQuotesCommand(CloudNineDatabaseModel database)
+        public SearchQuotesCommand(IServiceProvider services)
         {
-            this._database = database;
+            this._services = services;
         }
 
         [Command("searchquotes")]
@@ -36,6 +37,7 @@ namespace CloudNine.Discord.Commands.Quotes
             [Description("Quote serach arguments.")]
             params string[] args)
         {
+            var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
             var cfg = await _database.FindAsync<DiscordGuildConfiguration>(ctx.Guild.Id);
             if(cfg is null)
             {

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 using CloudNine.Core.Database;
@@ -8,15 +9,17 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 
+using Microsoft.Extensions.DependencyInjection;
+
 namespace CloudNine.Discord.Commands.Moderation
 {
     public class RedoWarnCommand : CommandModule
     {
-        private readonly CloudNineDatabaseModel _database;
+        private readonly IServiceProvider _services;
 
-        public RedoWarnCommand(CloudNineDatabaseModel database)
+        public RedoWarnCommand(IServiceProvider services)
         {
-            _database = database;
+            _services = services;
         }
 
         [Command("redo")]
@@ -26,6 +29,7 @@ namespace CloudNine.Discord.Commands.Moderation
             [Description("Warn to redo an edit for.")]
             string warnId)
         {
+            var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
             var mod = await _database.FindAsync<ModCore>(ctx.Guild.Id);
 
             if (mod is null)

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -52,7 +53,14 @@ namespace CloudNine
 
             var botCfg = JsonConvert.DeserializeObject<DiscordBotConfiguration>(json);
 
-            await discord.Start(botCfg);
+            try
+            {
+                await discord.Start(botCfg);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
 
             await Task.Delay(-1);
         }
