@@ -8,6 +8,7 @@ using System.Net.Http.Json;
 using System.Reflection;
 using System.Threading.Tasks;
 
+using CloudNine.Attributes;
 using CloudNine.Commands;
 using CloudNine.Core.Configuration;
 using CloudNine.Entities;
@@ -25,13 +26,15 @@ namespace CloudNine.Services
     public class SlashCommandHandlingService
     {
         private readonly ILogger _logger;
+        private readonly IServiceProvider _services;
         private readonly HttpClient _client;
         private readonly ulong _bot_id;
-        private ConcurrentDictionary<string, MethodInfo> Commands { get; init; }
+        private ConcurrentDictionary<string, SlashCommand> Commands { get; init; }
 
-        public SlashCommandHandlingService(ILogger<SlashCommandHandlingService> logger, HttpClient http)
+        public SlashCommandHandlingService(IServiceProvider services, ILogger<SlashCommandHandlingService> logger, HttpClient http)
         {
             _logger = logger;
+            _services = services;
             _client = http;
             _bot_id = Program.Discord.Client.CurrentApplication.Id;
 
@@ -41,27 +44,97 @@ namespace CloudNine.Services
 
         private async void LoadCommandTree()
         {
+            _logger.LogInformation("Building Slash Command Objects");
+            // Get the base command class type...
             var cmdType = typeof(SlashCommandBase);
+            // ... and all the methods in it...
             var commandMethods = cmdType.GetMethods();
-
-            HashSet<string> cmdNames = new();
+            //... and create a list for methods that are not subcommands...
+            List<MethodInfo> nonSubcommandCommands = new();
+            //... and a dict for all registered commands ...
+            Dictionary<string, SlashCommand> commands = new();
+            // ... and for every command ...
             foreach (var cmd in commandMethods)
             {
-                SlashCommandAttribute? attr;
-                if ((attr = cmd.GetCustomAttribute<SlashCommandAttribute>()) is not null)
-                {
-                    if (!cmdNames.Add(attr.Name))
-                        throw new Exception("Cant have two methods with the same command name!");
+                // ... try and get the SlashSubommandAttribute for it...
+                // (we will check for methods with just the SlashCommandAttribute later)
+                SlashSubcommandAttribute? attr;
+                if((attr = cmd.GetCustomAttribute<SlashSubcommandAttribute>(false)) is not null)
+                { //... if it is a subcommand, get the class that the subcommand is in...
+                    var subGroupClass = cmd.DeclaringType;
+                    // ... and the SubcommandGroup attribute for that class ...
+                    SlashSubcommandGroupAttribute? subGroupAttr;
+                    if(subGroupClass is not null 
+                        && (subGroupAttr = subGroupClass.GetCustomAttribute<SlashSubcommandGroupAttribute>(false)) is not null)
+                    { //... if it is a subcommand group, get the class the subcommand group is in...
+                        var slashCmdClass = cmd.DeclaringType;
+                        // ... and the SlashCommand attribute for that class...
+                        SlashCommandAttribute? slashAttr;
+                        if(slashCmdClass is not null
+                            && (slashAttr = slashCmdClass.GetCustomAttribute<SlashCommandAttribute>(false)) is not null)
+                        { //... if it is a slash command, get or add the SlashCommand for the command ...
+                            if (!commands.ContainsKey(slashAttr.Name))
+                                commands.Add(slashAttr.Name, new SlashCommand(slashAttr.Name, Array.Empty<SlashSubcommandGroup>()));
 
-                    if (cmd.GetParameters().Length <= 0 || cmd.GetParameters()[0].ParameterType != typeof(Interaction))
-                        throw new Exception("Slash commands first paramater must be of type Interaction");
+                            if(commands.TryGetValue(slashAttr.Name, out var slashCommand))
+                            { //... and then make sure it has subcommands ...
+                                if (slashCommand.Subcommands is null)
+                                    throw new Exception("Can't add a subcommand to a Slash Command without subcommands.");
+                                // ... then get or add the subcommand for this command method ...
+                                if(!slashCommand.Subcommands.ContainsKey(subGroupAttr.Name))
+                                    slashCommand.Subcommands.Add(subGroupAttr.Name, new SlashSubcommandGroup(subGroupAttr.Name));
+
+                                if (slashCommand.Subcommands.TryGetValue(subGroupAttr.Name, out var slashSubcommandGroup))
+                                { //... and ensure the command does not already exsist ...
+                                    if (slashSubcommandGroup.Commands.ContainsKey(attr.Name))
+                                        throw new Exception("Can't have two subcommands of the same name!");
+
+                                    // ... then build an instance of the command ...
+                                    // TODO: Actually make this dependency injection isntead of just passing the
+                                    // services into the base slash command class.
+                                    var instance = Activator.CreateInstance(slashCmdClass, _services);
+                                    // ... verify it was made correctly ...
+                                    if (instance is null)
+                                        throw new Exception("Failed to build command class instance");
+                                    // ... and save the subcommand.
+                                    slashSubcommandGroup.Commands.Add(attr.Name,
+                                        new SlashSubcommand(attr.Name, cmd,
+                                            (SlashCommandBase)instance
+                                            )
+                                        );
+                                }
+                                else
+                                { //... otherwise tell the user no subcommand was found.
+                                    throw new Exception("Failed to get a subcommand grouping!");
+                                }
+                            }
+                            else
+                            { // ... otherwise tell the user no slash command was found.
+                                throw new Exception("Failed to get Slash Command");
+                            }
+                        }
+                        else
+                        { // ... otherwise tell the user a subcommand group needs to be in a slash command class
+                            throw new Exception("A Subcommand Group is required to be inside a class marked with a SlashCommand attribute");
+                        }
+                    }
+                    else
+                    { // ... otherwise tell the user a subcommand needs to be in a subcommand group
+                        throw new Exception("A Subcommand is required to be inside a class marked with a SubcommandGroup attribute");
+                    }
+                }
+                else
+                { // ... if there was no subcommand attribute, store if for checking
+                    // if the method is a non-subcommand command.
+                    nonSubcommandCommands.Add(cmd);
                 }
             }
 
-            HashSet<Tuple<string, MethodInfo>> toUpdate = new();
-            HashSet<SlashCommandConfiguration> toDelete = new();
+            _logger.LogInformation("Added subcommand groupings, reading non-subcommand methods...");
 
-            _logger.LogInformation("Attempting to read slash state.");
+
+
+            _logger.LogInformation("Attempting to read previous slash command state.");
 
             string json;
             using (FileStream fs = new($"sccfg_{_bot_id}.json", FileMode.OpenOrCreate))
@@ -72,58 +145,7 @@ namespace CloudNine.Services
                 }
             }
 
-            List<SlashCommandConfiguration> slashCommands = new();
-            if (json is not null && json != "")
-            {
-                slashCommands = JsonConvert.DeserializeObject<List<SlashCommandConfiguration>>(json);
-            }
-
-            foreach (var c in commandMethods)
-            {
-                SlashCommandAttribute? attr;
-                if ((attr = c.GetCustomAttribute<SlashCommandAttribute>()) is not null)
-                {
-                    SlashCommandConfiguration? scfg;
-                    if ((scfg = slashCommands.FirstOrDefault(x => x.Name == attr.Name)) is not null)
-                    {
-                        if (attr.Version != scfg.Version)
-                        {
-                            toUpdate.Add(new(attr.Name, c));                            
-                        }
-                        else
-                        {
-                            await RegisterCommand(c, attr);
-                        }    
-                    }
-                    else
-                    {
-                        toUpdate.Add(new(attr.Name, c));
-                    }    
-                }
-            }
-
-            foreach (var slashC in slashCommands)
-            {
-                if (toUpdate.All(x => x.Item1 != slashC.Name))
-                {
-                    if (commandMethods.All(x =>
-                        {
-                            SlashCommandAttribute? attr;
-                            if ((attr = x.GetCustomAttribute<SlashCommandAttribute>()) is not null)
-                            {
-                                return attr.Name != slashC.Name;
-                            }
-
-                            return false;
-                        }))
-                    {
-                        toDelete.Add(slashC);
-                    }
-                }
-            }
-
-            await RemoveOldCommands(toDelete);
-            await UpdateOrAddCommand(toUpdate);
+            
         }
 
         private async Task RemoveOldCommands(HashSet<SlashCommandConfiguration> toRemove)
@@ -186,7 +208,7 @@ namespace CloudNine.Services
                     {
                         Name = p.Name ?? "unkown",
                         Description = p.GetCustomAttribute<DescriptionAttribute>()?.Description ?? "",
-                        Type = await GetOptionType(p) ?? throw new Exception("Failed to get valid option")
+                        Type = GetOptionType(p) ?? throw new Exception("Failed to get valid option")
                     };
                 }
 
@@ -206,7 +228,7 @@ namespace CloudNine.Services
             }
         }
 
-        private async Task<ApplicationCommandOptionType?> GetOptionType(ParameterInfo parameter)
+        private static ApplicationCommandOptionType? GetOptionType(ParameterInfo parameter)
         {
             if (parameter.ParameterType == typeof(string))
                 return ApplicationCommandOptionType.String;
@@ -220,8 +242,8 @@ namespace CloudNine.Services
                 return ApplicationCommandOptionType.Channel;
             else if (parameter.ParameterType == typeof(DiscordRole))
                 return ApplicationCommandOptionType.Role;
-
-            return null;
+            else
+                throw new Exception("Invalid paramter type for slash commands");
         }
 
         private async Task RegisterCommand(MethodInfo method, SlashCommandAttribute attr)

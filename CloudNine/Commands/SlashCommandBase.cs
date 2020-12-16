@@ -7,6 +7,11 @@ namespace CloudNine.Commands
 {
     public class SlashCommandBase
     {
+        protected readonly IServiceProvider _services;
 
+        public SlashCommandBase(IServiceProvider services)
+        {
+            _services = services;
+        }
     }
 }

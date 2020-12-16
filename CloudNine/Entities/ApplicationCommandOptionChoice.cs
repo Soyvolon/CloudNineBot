@@ -18,6 +18,8 @@ namespace CloudNine.Entities
         [JsonProperty("value")]
         public object Value { get; internal set; }
 
+        internal ApplicationCommandOptionChoice() : this("", 0) { }
+
         public ApplicationCommandOptionChoice(string n, int v)
         {
             Name = n;
