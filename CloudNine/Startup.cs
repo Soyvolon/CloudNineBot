@@ -5,7 +5,8 @@ using System.Net.Http;
 using System.Threading.Tasks;
 
 using CloudNine.Core.Database;
-using CloudNine.Services;
+
+using DSharpPlus.SlashCommands.Services;
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -31,7 +32,6 @@ namespace CloudNine
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
@@ -39,12 +39,25 @@ namespace CloudNine
             });
             services.AddTransient<SlashCommandHandlingService>()
                 .AddDbContext<CloudNineDatabaseModel>(ServiceLifetime.Transient, ServiceLifetime.Scoped)
-                .AddScoped<HttpClient>();
+                .AddSingleton<HttpClient>()
+                .AddHttpClient("discord", x =>
+                {
+                    x.DefaultRequestHeaders.Authorization = new("Bot", Program.DiscordConfig.Value.Token);
+                });
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, SlashCommandHandlingService slashCommands)
         {
+            // Startup the slash commands.
+
+            // Register the executing aseembly as the assembly with slash commands.
+            slashCommands.WithCommandAssembly(System.Reflection.Assembly.GetExecutingAssembly());
+            // This runs after the bot is started, so we know these values will be loaded.
+            // Start the slash command service.
+            slashCommands.Start(Program.DiscordConfig.Value.Token, Program.Discord.Client.CurrentApplication.Id).GetAwaiter().GetResult();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

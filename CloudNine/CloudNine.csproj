@@ -36,6 +36,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\DSharpPlus.SlashCommands\DSharpPlus.SlashCommands\DSharpPlus.SlashCommands.csproj" />
     <ProjectReference Include="..\CloudNine.Core\CloudNine.Core.csproj" />
     <ProjectReference Include="..\CloudNine.Discord\CloudNine.Discord.csproj" />
   </ItemGroup>

@@ -8,7 +8,6 @@ using CloudNine.Config.Bot;
 using CloudNine.Core.Database;
 using CloudNine.Discord;
 using CloudNine.Discord.Services;
-using CloudNine.Services;
 
 using DSharpPlus.Entities;
 

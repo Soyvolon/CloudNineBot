@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-using CloudNine.Attributes;
-using CloudNine.Core.Database;
-using CloudNine.Entities;
+using DSharpPlus.SlashCommands.Attributes;
+using DSharpPlus.SlashCommands.Entities;
 
 namespace CloudNine.Commands
 {

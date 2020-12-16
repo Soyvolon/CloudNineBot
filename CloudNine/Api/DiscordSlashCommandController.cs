@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
+using DSharpPlus.SlashCommands.Services;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,6 +18,13 @@ namespace CloudNine.Api
     [ApiController]
     public class DiscordSlashCommandController : ControllerBase
     {
+        private readonly SlashCommandHandlingService _commands;
+
+        public DiscordSlashCommandController(SlashCommandHandlingService commands)
+        {
+            _commands = commands;
+        }
+
         private struct DiscordChallenge
         {
             [JsonProperty("type")]
@@ -47,7 +56,7 @@ namespace CloudNine.Api
 
         private async Task<IActionResult> SlashCommandRouter(JObject json)
         {
-            
+            return BadRequest();
         }
     }
 }
