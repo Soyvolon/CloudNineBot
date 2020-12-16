@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,18 +8,27 @@ using CloudNine.Config.Bot;
 using CloudNine.Core.Database;
 using CloudNine.Discord;
 using CloudNine.Discord.Services;
+using CloudNine.Services;
 
+using DSharpPlus.Entities;
+
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 using Newtonsoft.Json;
 
 namespace CloudNine
 {
-    class Program
+    public class Program
     {
-        static void Main(string[] args)
+        public static DiscordBotConfiguration? DiscordConfig;
+        public static DiscordBot? Discord;
+
+        public static void Main(string[] args)
         {
             Start(args).GetAwaiter().GetResult();
         }
@@ -42,7 +52,7 @@ namespace CloudNine
 
             await ApplyDatabaseMigrations(serviceProvider.GetRequiredService<CloudNineDatabaseModel>());
 
-            using DiscordBot discord = new DiscordBot(MinimumLogLevel, serviceProvider);
+            Discord = new DiscordBot(MinimumLogLevel, serviceProvider);
 
             string json = "";
             using (FileStream fs = new FileStream("Config/bot_config.json", FileMode.Open))
@@ -51,16 +61,24 @@ namespace CloudNine
                 json = await sr.ReadToEndAsync();
             }
 
-            var botCfg = JsonConvert.DeserializeObject<DiscordBotConfiguration>(json);
+            DiscordConfig = JsonConvert.DeserializeObject<DiscordBotConfiguration>(json);
 
             try
             {
-                await discord.Start(botCfg);
+                await Discord.Start(DiscordConfig ?? new());
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
+
+            var host = Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseStartup<Startup>();
+                });
+
+            host.Build().Run();
 
             await Task.Delay(-1);
         }
@@ -71,7 +89,7 @@ namespace CloudNine
             {
                 return;
             }
-            
+
             await database.Database.MigrateAsync();
             await database.SaveChangesAsync();
         }

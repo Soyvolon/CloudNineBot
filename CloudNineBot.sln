@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudNine.Discord", "CloudN
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudNine.Core", "CloudNine.Core\CloudNine.Core.csproj", "{1F0CAB1B-2BA5-4133-B81A-7059DF7D2122}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudNine", "CloudNine\CloudNine.csproj", "{EC0F156A-21C4-46B5-8428-82F08DDBD2A3}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1. Project", "1. Project", "{9CA2308B-4B0D-40C1-B2B7-AFFC297064C9}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
@@ -19,6 +17,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1. Project", "1. Project", 
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudNine.Web", "CloudNine.Web\CloudNine.Web.csproj", "{1397FDA0-B634-46B8-B6A3-9CD72FB32223}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudNine.Old", "CloudNine.Old\CloudNine.Old.csproj", "{D04A8065-3BFE-4154-A0A4-35A2A007F9C6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudNine", "CloudNine\CloudNine.csproj", "{2AFB5175-1D3E-4B88-AEA8-212485376854}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -34,14 +36,18 @@ Global
 		{1F0CAB1B-2BA5-4133-B81A-7059DF7D2122}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1F0CAB1B-2BA5-4133-B81A-7059DF7D2122}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1F0CAB1B-2BA5-4133-B81A-7059DF7D2122}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EC0F156A-21C4-46B5-8428-82F08DDBD2A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EC0F156A-21C4-46B5-8428-82F08DDBD2A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EC0F156A-21C4-46B5-8428-82F08DDBD2A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EC0F156A-21C4-46B5-8428-82F08DDBD2A3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1397FDA0-B634-46B8-B6A3-9CD72FB32223}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1397FDA0-B634-46B8-B6A3-9CD72FB32223}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1397FDA0-B634-46B8-B6A3-9CD72FB32223}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1397FDA0-B634-46B8-B6A3-9CD72FB32223}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D04A8065-3BFE-4154-A0A4-35A2A007F9C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D04A8065-3BFE-4154-A0A4-35A2A007F9C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D04A8065-3BFE-4154-A0A4-35A2A007F9C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D04A8065-3BFE-4154-A0A4-35A2A007F9C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2AFB5175-1D3E-4B88-AEA8-212485376854}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2AFB5175-1D3E-4B88-AEA8-212485376854}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2AFB5175-1D3E-4B88-AEA8-212485376854}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2AFB5175-1D3E-4B88-AEA8-212485376854}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

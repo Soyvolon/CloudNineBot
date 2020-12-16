@@ -1,4 +1,8 @@
 ﻿
+using System.Collections.Generic;
+
+using CloudNine.Core.Configuration;
+
 using Newtonsoft.Json;
 
 namespace CloudNine.Config.Bot
@@ -16,5 +20,7 @@ namespace CloudNine.Config.Bot
 
         [JsonProperty("client_secret")]
         public string Secret { get; private set; }
+        //[JsonProperty("slash_commands")]
+        //public List<SlashCommandConfiguration> SlashCommands { get; private set; }
     }
 }
