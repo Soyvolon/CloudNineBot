@@ -24,6 +24,7 @@ using System.IO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using DSharpPlus.SlashCommands;
+using System.Reflection;
 
 namespace CloudNine.Web
 {
@@ -82,6 +83,8 @@ namespace CloudNine.Web
                 Token = botCfg.Token,
                 DefaultResponseType = DSharpPlus.SlashCommands.Enums.InteractionResponseType.ACKWithSource
             });
+
+            SlashClient.RegisterCommands(Assembly.GetExecutingAssembly());
         }
 
         public DiscordConfiguration GetDiscordConfiguration(string botToken)
