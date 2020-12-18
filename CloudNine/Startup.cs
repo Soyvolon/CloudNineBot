@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using CloudNine.Core.Database;
 
+using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Services;
 
 using Microsoft.AspNetCore.Builder;
@@ -22,9 +23,13 @@ namespace CloudNine
 {
     public class Startup
     {
+        public static DiscordSlashClient SlashClient { get; private set; }
+        public static string PublicKey { get; private set; }
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            PublicKey = Configuration["PublicKey"];
         }
 
         public IConfiguration Configuration { get; }
@@ -37,27 +42,20 @@ namespace CloudNine
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "CloudNine", Version = "v1" });
             });
-            services.AddTransient<SlashCommandHandlingService>()
-                .AddDbContext<CloudNineDatabaseModel>(ServiceLifetime.Transient, ServiceLifetime.Scoped)
-                .AddSingleton<HttpClient>()
-                .AddHttpClient("discord", x =>
-                {
-                    x.DefaultRequestHeaders.Authorization = new("Bot", Program.DiscordConfig.Value.Token);
-                });
+            services.AddDbContext<CloudNineDatabaseModel>(ServiceLifetime.Transient, ServiceLifetime.Scoped)
+                .AddSingleton<HttpClient>();
 
+            SlashClient = new DiscordSlashClient(new DiscordSlashConfiguration()
+            {
+                ClientId = Program.Discord.Client.CurrentApplication.Id,
+                Token = Program.DiscordConfig.Value.Token,
+                DefaultResponseType = DSharpPlus.SlashCommands.Enums.InteractionResponseType.ACKWithSource
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, SlashCommandHandlingService slashCommands)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            // Startup the slash commands.
-
-            // Register the executing aseembly as the assembly with slash commands.
-            slashCommands.WithCommandAssembly(System.Reflection.Assembly.GetExecutingAssembly());
-            // This runs after the bot is started, so we know these values will be loaded.
-            // Start the slash command service.
-            slashCommands.Start(Program.DiscordConfig.Value.Token, Program.Discord.Client.CurrentApplication.Id).GetAwaiter().GetResult();
-
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -75,6 +73,8 @@ namespace CloudNine
             {
                 endpoints.MapControllers();
             });
+
+            SlashClient.StartAsync().GetAwaiter().GetResult();
         }
     }
 }

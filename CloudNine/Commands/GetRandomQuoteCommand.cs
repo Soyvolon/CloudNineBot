@@ -8,12 +8,12 @@ using DSharpPlus.SlashCommands.Entities;
 
 namespace CloudNine.Commands
 {
-    public class GetRandomQuoteCommand : SlashCommandBase
+    public class GetRandomQuoteCommand : BaseSlashCommandModule
     {
         public GetRandomQuoteCommand(IServiceProvider s) : base(s) { }
 
         [SlashCommand("quote", 1, 750486424469372970)]
-        public async Task GetRandomQuoteCommandAsync(Interaction interact)
+        public async Task GetRandomQuoteCommandAsync(InteractionContext ctx)
         {
 
         }
