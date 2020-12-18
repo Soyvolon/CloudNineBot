@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace CloudNine
+namespace CloudNine.Web
 {
     public static class Utils
     {

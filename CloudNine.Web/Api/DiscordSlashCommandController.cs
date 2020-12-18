@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 using DSharpPlus.SlashCommands.Entities.Builders;
 using DSharpPlus.SlashCommands.Enums;
-using DSharpPlus.SlashCommands.Services;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -18,7 +17,7 @@ using Newtonsoft.Json.Linq;
 
 using Sodium;
 
-namespace CloudNine.Api
+namespace CloudNine.Web.Api
 {
     [Route("api/discordslash")]
     [ApiController]

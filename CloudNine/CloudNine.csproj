@@ -1,46 +1,33 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
-    <UserSecretsId>234f8283-6017-4195-8721-ef7cdd959a9a</UserSecretsId>
-    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Remove="Configuration Examples\bot_config.json" />
-    <Content Remove="Configuration Examples\database_config.json" />
-    <Content Remove="Config\608219250397544448.json" />
-    <Content Remove="Config\bot_config.json" />
-    <Content Remove="Config\database_config.json" />
-    <Content Remove="Config\ServerConfigs\608219250397544448.json" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="5.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Configuration Examples\bot_config.json">
+    <ProjectReference Include="..\CloudNine.Discord\CloudNine.Discord.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Configuration Examples\bot_config.json">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
-    <None Include="Configuration Examples\database_config.json" />
-    <None Include="Config\608219250397544448.json" />
-    <None Include="Config\bot_config.json" />
-    <None Include="Config\database_config.json" />
-    <None Include="Config\ServerConfigs\608219250397544448.json" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.1" NoWarn="NU1605" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="5.0.1" NoWarn="NU1605" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="Sodium.Core" Version="1.2.3" />
-    <PackageReference Include="Soyvolon.DSharpPlus.SlashCommands" Version="0.1.1" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\DSharpPlus.SlashCommands\DSharpPlus.SlashCommands\DSharpPlus.SlashCommands.csproj" />
-    <ProjectReference Include="..\CloudNine.Core\CloudNine.Core.csproj" />
-    <ProjectReference Include="..\CloudNine.Discord\CloudNine.Discord.csproj" />
+    <Folder Include="Config\Database\" />
   </ItemGroup>
 
 </Project>

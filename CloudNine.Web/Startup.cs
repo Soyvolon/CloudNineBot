@@ -23,16 +23,20 @@ using Newtonsoft.Json;
 using System.IO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
+using DSharpPlus.SlashCommands;
 
 namespace CloudNine.Web
 {
     public class Startup
     {
         public DiscordShardedClient Client { get; private set; }
+        public static DiscordSlashClient SlashClient { get; private set; }
+        public static string PublicKey { get; private set; }
 
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            PublicKey = Configuration["PublicKey"];
         }
 
         public IConfiguration Configuration { get; }
@@ -71,6 +75,13 @@ namespace CloudNine.Web
 
             services.AddRazorPages();
             services.AddServerSideBlazor();
+
+            SlashClient = new DiscordSlashClient(new DiscordSlashConfiguration()
+            {
+                ClientId = Client.CurrentApplication.Id,
+                Token = botCfg.Token,
+                DefaultResponseType = DSharpPlus.SlashCommands.Enums.InteractionResponseType.ACKWithSource
+            });
         }
 
         public DiscordConfiguration GetDiscordConfiguration(string botToken)
@@ -109,6 +120,8 @@ namespace CloudNine.Web
                 endpoints.MapBlazorHub();
                 endpoints.MapFallbackToPage("/_Host");
             });
+
+            SlashClient.StartAsync().GetAwaiter().GetResult();
         }
     }
 }

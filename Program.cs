@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,20 +9,25 @@ using CloudNine.Core.Database;
 using CloudNine.Discord;
 using CloudNine.Discord.Services;
 
+using DSharpPlus.Entities;
+
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 using Newtonsoft.Json;
 
 namespace CloudNine
 {
-    class Program
+    public class Program
     {
         public static DiscordBotConfiguration? DiscordConfig;
         public static DiscordBot? Discord;
 
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             Start(args).GetAwaiter().GetResult();
         }
@@ -64,6 +70,14 @@ namespace CloudNine
             {
                 Console.WriteLine(ex.Message);
             }
+
+            var host = Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseStartup<Startup>();
+                });
+
+            host.Build().Run();
 
             await Task.Delay(-1);
         }
