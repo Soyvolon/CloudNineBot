@@ -7,6 +7,7 @@ using CloudNine.Core.Configuration;
 using CloudNine.Core.Database;
 using CloudNine.Core.Extensions;
 
+using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.SlashCommands.Attributes;
 using DSharpPlus.SlashCommands.Entities;
 using DSharpPlus.SlashCommands.Entities.Builders;
@@ -20,6 +21,7 @@ namespace CloudNine.Web.Commands
         public GetQuoteCommand(IServiceProvider p) : base(p) { }
 
         [SlashCommand("quote", 1)]
+        [Description("Gets a random quote from this server.")]
         public async Task GetQuoteCommandAsync(InteractionContext ctx)
         {
             var db = _services.GetRequiredService<CloudNineDatabaseModel>();
