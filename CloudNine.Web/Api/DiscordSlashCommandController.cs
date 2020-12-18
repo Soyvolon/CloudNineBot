@@ -20,6 +20,7 @@ using Sodium;
 namespace CloudNine.Web.Api
 {
     [Route("api/discordslash")]
+    [IgnoreAntiforgeryToken(Order = 2000)]
     [ApiController]
     public class DiscordSlashCommandController : ControllerBase
     {

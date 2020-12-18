@@ -25,6 +25,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using DSharpPlus.SlashCommands;
 using System.Reflection;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CloudNine.Web
 {
@@ -74,15 +75,22 @@ namespace CloudNine.Web
                 })
                 .AddScoped<IRefreshRequestService, RefreshRequestService>();
 
-            services.AddRazorPages();
+            services.AddControllers();
+            services.AddRazorPages().AddRazorPagesOptions(o =>
+            {
+                o.Conventions.ConfigureFilter(new IgnoreAntiforgeryTokenAttribute());
+            });
             services.AddServerSideBlazor();
+
+            IServiceCollection c = new ServiceCollection()
+                .AddDbContext<CloudNineDatabaseModel>(ServiceLifetime.Transient, ServiceLifetime.Scoped);
 
             SlashClient = new DiscordSlashClient(new DiscordSlashConfiguration()
             {
                 ClientId = Client.CurrentApplication.Id,
                 Token = botCfg.Token,
                 DefaultResponseType = DSharpPlus.SlashCommands.Enums.InteractionResponseType.ACKWithSource
-            });
+            }, c);
 
             SlashClient.RegisterCommands(Assembly.GetExecutingAssembly());
         }
@@ -121,6 +129,7 @@ namespace CloudNine.Web
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapBlazorHub();
+                endpoints.MapControllers();
                 endpoints.MapFallbackToPage("/_Host");
             });
 
