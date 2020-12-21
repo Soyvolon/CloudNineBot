@@ -8,7 +8,7 @@
 {
     if (_login.ActiveGuild is not null)
     {
-        if (!_login.IsModerator)
+        if (_login.IsModerator)
         {
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="/dash">Dashboard</a></li>
@@ -16,17 +16,20 @@
             <li class="breadcrumb-item">Moderation</li>
         </ol>
         @* Data Tables *@
-        <div id="table">
-            <table class="table table-hover">
+        <div id="mod-table">
+            <table class="table table-hover" style="width:100%">
                 <thead>
                     <tr>
                         <th scope="col">User ID</th>
                         <th scope="col">Details</th>
-                        <th scope="col">@*This is for expansion buttons*@</th>
+                        <th scope="col" style="width:100%" align="right">@*This is for expansion buttons*@</th>
                     </tr>
                 </thead>
                 <tbody>
-                    
+                    @for(int i = 0; i < EnumerableWarnings.Count; i++)
+                    {
+                        <ModActionRow Warnings="EnumerableWarnings.ElementAt(i)" />
+                    }
                 </tbody>
             </table>
         </div>
@@ -51,6 +54,7 @@ else
 {
     protected const int BatchSize = 10;
     protected ModCore? Mod { get; private set; }
+    protected SortedList<ulong, SortedDictionary<DateTime, Warn>> EnumerableWarnings { get; set; }
 
     protected int CurrentBatch { get; private set; }
 
@@ -59,6 +63,7 @@ else
         await base.OnParametersSetAsync();
 
         Mod = await _database.FindAsync<ModCore>(_login.ActiveGuild?.Id);
+        EnumerableWarnings = new(dictionary: Mod.Warns);
     }
 
     protected override void OnInitialized()

@@ -412,7 +412,7 @@ namespace CloudNine.Web.User
         {
             try
             {
-                ActiveOwner = ActiveMember?.IsOwner ?? false;
+                ActiveOwner = ActiveMember.Id == ActiveGuild.OwnerId;
             }
             catch
             {

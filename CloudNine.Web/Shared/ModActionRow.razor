@@ -1,6 +1,6 @@
-﻿<tr class="row">
+﻿<tr style="width:auto">
     <th scope="row">@Warnings.Key</th>
-    <td>Total Warnings: @Warnings.Value.Count</td>
+    <td style="width:20%">Total Warnings: @Warnings.Value.Count</td>
     <td style="width:100%" align="right">
         <button @onclick="ToggleDetails" class="btn btn-outline-warning">
             Details
@@ -8,14 +8,27 @@
     </td>
 </tr>
 <tr class="@DetailsCssClass" id="@Warnings.Key-details">
-    <td width="100%">
-
+    <td width="100%" colspan="3">
+        <table class="table table-warning">
+            <thead>
+                <tr>
+                    <th scope="col">Date</th>
+                    <th scpoe="col" style="width:100%">Warnings</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(var warn in Warnings.Value)
+                {
+                    <ModWarnPart Time="warn.Key" Warning="warn.Value" />
+                }
+            </tbody>
+        </table>
     </td>
 </tr>
 
 @code {
     [Parameter]
-    public KeyValuePair<ulong, ConcurrentDictionary<DateTime, Warn>> Warnings { get; set; }
+    public KeyValuePair<ulong, SortedDictionary<DateTime, Warn>> Warnings { get; set; }
 
     private bool collapsed = true;
 
@@ -23,6 +36,4 @@
 
     private void ToggleDetails()
         => collapsed = !collapsed;
-
-
 }

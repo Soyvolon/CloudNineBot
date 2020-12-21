@@ -1,0 +1,39 @@
+﻿<tr>
+    <td>
+        @Time.ToString("g");
+    </td>
+    <td>
+        <div class="card border-warning mb-3">
+            <h3 class="card-header">Warn ID: @Warning.Key</h3>
+            <div class="card-body">
+                <h5 class="card-title">User Warned: @Warning.UserId</h5>
+                <h6 class="card-subtitle">Warned By: @Warning.SavedBy</h6>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    @Warning.Message
+                </p>
+            </div>
+            <div class="card-footer">
+                <table class="border-0">
+                    <tr>
+                        <td>
+                            @Warning.Reverts.Count Revisions
+                        </td>
+                        <td>
+                            @Warning.Edits.Count Edits
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </td>
+</tr>
+
+
+@code {
+    [Parameter]
+    public DateTime Time { get; set; }
+    [Parameter]
+    public Warn Warning { get; set; }
+}
