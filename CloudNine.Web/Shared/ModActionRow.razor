@@ -1,0 +1,28 @@
+﻿<tr class="row">
+    <th scope="row">@Warnings.Key</th>
+    <td>Total Warnings: @Warnings.Value.Count</td>
+    <td style="width:100%" align="right">
+        <button @onclick="ToggleDetails" class="btn btn-outline-warning">
+            Details
+        </button>
+    </td>
+</tr>
+<tr class="@DetailsCssClass" id="@Warnings.Key-details">
+    <td width="100%">
+
+    </td>
+</tr>
+
+@code {
+    [Parameter]
+    public KeyValuePair<ulong, ConcurrentDictionary<DateTime, Warn>> Warnings { get; set; }
+
+    private bool collapsed = true;
+
+    private string DetailsCssClass => collapsed ? "collapse" : "";
+
+    private void ToggleDetails()
+        => collapsed = !collapsed;
+
+
+}

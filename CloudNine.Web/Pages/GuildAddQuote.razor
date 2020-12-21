@@ -58,10 +58,7 @@
         }
         else
         {
-            <h3>You do not have authorization to view this page.</h3>
-            <a href="/dash/quotes?guild=@_login.ActiveGuild.Id">
-                <span class="btn btn-danger">Return to Quotes</span>
-            </a>
+            <UnathorizedUser />
         }
     }
     else

@@ -237,7 +237,8 @@ namespace CloudNine.Web.User
                         {
                             try
                             {
-                                if (_manager.GetGuildFromId(g.Id, out var botGuild))
+                                var botGuild = await _manager.Rest.GetGuildAsync(g.Id);
+                                if (botGuild is not null)
                                 {
                                     if (botGuild is not null)
                                         finalSet.Add(botGuild);

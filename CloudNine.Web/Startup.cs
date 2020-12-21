@@ -31,7 +31,7 @@ namespace CloudNine.Web
 {
     public class Startup
     {
-        public DiscordShardedClient Client { get; private set; }
+        public DiscordRestClient Rest { get; private set; }
         public static DiscordSlashClient SlashClient { get; private set; }
         public static string PublicKey { get; private set; }
 
@@ -56,12 +56,10 @@ namespace CloudNine.Web
 
             var botCfg = JsonConvert.DeserializeObject<DiscordBotConfiguration>(json);
 
-            Client = new DiscordShardedClient(GetDiscordConfiguration(botCfg.Token));
-
-            Client.StartAsync().GetAwaiter().GetResult();
+            Rest = new DiscordRestClient(GetDiscordConfiguration(botCfg.Token));
 
             services.AddScoped<LoginService>()
-                .AddSingleton(x => new LoginManager(Client, botCfg.Secret))
+                .AddSingleton(x => new LoginManager(Rest, botCfg.Secret))
                 .AddLogging(o => o.AddConsole())
                 .AddDbContext<CloudNineDatabaseModel>(ServiceLifetime.Transient, ServiceLifetime.Scoped)
                 .AddHttpContextAccessor()
@@ -87,7 +85,7 @@ namespace CloudNine.Web
 
             SlashClient = new DiscordSlashClient(new DiscordSlashConfiguration()
             {
-                ClientId = Client.CurrentApplication.Id,
+                ClientId = ulong.Parse(Configuration["Client"]),
                 Token = botCfg.Token,
                 DefaultResponseType = DSharpPlus.SlashCommands.Enums.InteractionResponseType.ACKWithSource
             }, c);

@@ -1,17 +1,41 @@
 ﻿@page "/dash/mod"
 @inject NavigationManager _nav
 @inject LoginService _login
-@inject IRefreshRequestService _refresh;
+@inject IRefreshRequestService _refresh
+@inject CloudNineDatabaseModel _database
 
 @if (_login.LoggedIn)
 {
     if (_login.ActiveGuild is not null)
     {
+        if (!_login.IsModerator)
+        {
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="/dash">Dashboard</a></li>
             <li class="breadcrumb-item"><a href="/dash/menu?guild=@_login.ActiveGuild.Id">@_login.ActiveGuild.Name</a></li>
             <li class="breadcrumb-item">Moderation</li>
         </ol>
+        @* Data Tables *@
+        <div id="table">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th scope="col">User ID</th>
+                        <th scope="col">Details</th>
+                        <th scope="col">@*This is for expansion buttons*@</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+                </tbody>
+            </table>
+        </div>
+        @* Pagenation *@
+        }
+        else
+        {
+            <UnathorizedUser />
+        }
     }
     else
     {
@@ -25,6 +49,18 @@ else
 
 @code
 {
+    protected const int BatchSize = 10;
+    protected ModCore? Mod { get; private set; }
+
+    protected int CurrentBatch { get; private set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+
+        Mod = await _database.FindAsync<ModCore>(_login.ActiveGuild?.Id);
+    }
+
     protected override void OnInitialized()
     {
         _refresh.RefreshRequested += RefreshMe;
