@@ -50,10 +50,6 @@ jobs:
           username: ${{ secrets.RELEASE_USER }}
           passphrase: ${{ secrets.RELEASE_PASSPHRASE }}
           privateKey: ${{ secrets.RELEASE_PRIVATE_KEY }}
-
-  Publish:
-    runs-on: ubuntu-latest
-    steps:
       - name: Build Web Docker Image
         uses: garygrossgarten/github-action-ssh@release
         with:
