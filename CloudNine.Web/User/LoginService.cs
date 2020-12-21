@@ -239,10 +239,7 @@ namespace CloudNine.Web.User
                             {
                                 var botGuild = await _manager.Rest.GetGuildAsync(g.Id);
                                 if (botGuild is not null)
-                                {
-                                    if (botGuild is not null)
-                                        finalSet.Add(botGuild);
-                                }
+                                    finalSet.Add(botGuild);
                             }
                             catch (UnauthorizedException)
                             {
@@ -374,16 +371,24 @@ namespace CloudNine.Web.User
 
         private byte GetPermBytes()
         {
-            if (ActiveMember?.Roles is not null)
+            try
             {
-                Permissions perms = 0x0;
-                foreach (var role in ActiveMember.Roles)
-                    perms |= role.Permissions;
+                if (ActiveMember?.Roles is not null)
+                {
+                    Permissions perms = 0x0;
+                    foreach (var role in ActiveMember.Roles)
+                        perms |= role.Permissions;
 
-                return (byte)perms;
+                    return (byte)perms;
+                }
+
+                return 0x0;
             }
-
-            return 0x0;
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get user perms");
+                return 0x0;
+            }
         }
 
         public void SetPermString()
