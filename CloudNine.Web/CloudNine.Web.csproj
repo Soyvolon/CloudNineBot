@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="NuGet.config" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="DSharpPlus" Version="4.0.0-nightly-00769" />
     <PackageReference Include="DSharpPlus.CommandsNext" Version="4.0.0-nightly-00769" />
     <PackageReference Include="DSharpPlus.Rest" Version="4.0.0-nightly-00769" />
@@ -21,7 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CloudNine.Core\CloudNine.Core.csproj" />
   </ItemGroup>
-
+  
   <ItemGroup>
     <Folder Include="wwwroot\js\bootstrap\" />
   </ItemGroup>

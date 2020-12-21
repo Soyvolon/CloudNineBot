@@ -8,6 +8,7 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:5.0-buster-slim AS build
 WORKDIR /src
 COPY ["CloudNine.Web/CloudNine.Web.csproj", "CloudNine.Web/"]
+COPY ["**NuGet.config", "CloudNine.Web/"]
 RUN dotnet restore "CloudNine.Web/CloudNine.Web.csproj" --configfile "**NuGet.config"
 COPY . .
 WORKDIR "/src/CloudNine.Web"
