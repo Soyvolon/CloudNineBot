@@ -18,15 +18,15 @@ namespace CloudNine.Web.User
         private ConcurrentDictionary<string, string> ActiveLogins { get; init; }
         private ConcurrentDictionary<string, string> CodeTokens { get; init; }
         public ConcurrentDictionary<string, string> WaitingForVerification { get; init; }
-        public DiscordRestClient Rest { get; init; }
+        public DiscordShardedClient Client { get; init; }
 
-        public LoginManager(DiscordRestClient rest, string clientSecret)
+        public LoginManager(DiscordShardedClient client, string clientSecret)
         {
             ActiveLogins = new();
             CodeTokens = new();
             Expirations = new();
             WaitingForVerification = new();
-            this.Rest = rest;
+            this.Client = client;
             ClientSecret = clientSecret;
         }
 
@@ -115,18 +115,18 @@ namespace CloudNine.Web.User
             Timeout.InfiniteTimeSpan);
         }
 
-        //public bool GetGuildFromId(ulong id, out DiscordGuild? guild)
-        //{
-        //    foreach (var shard in Rest.ShardClients)
-        //    {
-        //        if (shard.Value.Guilds.TryGetValue(id, out guild))
-        //        {
-        //            return true;
-        //        }
-        //    }
+        public bool GetGuildFromId(ulong id, out DiscordGuild? guild)
+        {
+            foreach (var shard in Client.ShardClients)
+            {
+                if (shard.Value.Guilds.TryGetValue(id, out guild))
+                {
+                    return true;
+                }
+            }
 
-        //    guild = null;
-        //    return false;
-        //}
+            guild = null;
+            return false;
+        }
     }
 }
