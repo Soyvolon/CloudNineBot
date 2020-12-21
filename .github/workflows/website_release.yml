@@ -44,7 +44,7 @@ jobs:
       - name: Copy NuGet.config
         uses: garygrossgarten/github-action-scp@release
         with:
-          local: NuGet.config
+          local: /*.config
           remote: ${{ secrets.WEB_CORE_RELEASE_DEST }}
           host: ${{ secrets.RELEASE_HOST }}
           username: ${{ secrets.RELEASE_USER }}
