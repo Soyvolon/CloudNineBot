@@ -9,56 +9,8 @@ on:
   workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
-jobs:
-  # This workflow contains a single job called "build"
-#   PublishDiscord:
-#     # The type of runner that the job will run on
-#     runs-on: ubuntu-latest
-
-#     # Steps represent a sequence of tasks that will be executed as part of the job
-#     steps:
-#       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-#       - uses: actions/checkout@v2
-
-#       # Runs a single command using the runners shell
-#       - name: Setup .NET Core
-#         uses: actions/setup-dotnet@v1
-#         with:
-#           dotnet-version: 5.0.100 
-#       - name: Install Dependencies
-#         run: dotnet restore
-#       - name: Build
-#         run: dotnet build CloudNine/CloudNine.csproj --configuration Release --no-restore --output artifact/build/CloudNine
-#       - name: Copy Discord Dockerfile to Artifact
-#         run: cp **Dockerfile artifact/
-#       - name: Stop Current Release
-#         uses: garygrossgarten/github-action-ssh@release
-#         continue-on-error: true
-#         with:
-#           command: ${{ secrets.DOCKER_STOP_CMD }}
-#           host: ${{ secrets.RELEASE_HOST }}
-#           username: ${{ secrets.RELEASE_USER }}
-#           passphrase: ${{ secrets.RELEASE_PASSPHRASE }}
-#           privateKey: ${{ secrets.RELEASE_PRIVATE_KEY }}
-#       - name: Copy Files over SSH
-#         uses: garygrossgarten/github-action-scp@release
-#         with:
-#           local: artifact/
-#           remote: ${{ secrets.RELEASE_DEST }}
-#           host: ${{ secrets.RELEASE_HOST }}
-#           username: ${{ secrets.RELEASE_USER }}
-#           passphrase: ${{ secrets.RELEASE_PASSPHRASE }}
-#           privateKey: ${{ secrets.RELEASE_PRIVATE_KEY }}
-#       - name: Start New Release
-#         uses: garygrossgarten/github-action-ssh@release
-#         with:
-#           command: ${{ secrets.DOCKER_START_CMD }}
-#           host: ${{ secrets.RELEASE_HOST }}
-#           username: ${{ secrets.RELEASE_USER }}
-#           passphrase: ${{ secrets.RELEASE_PASSPHRASE }}
-#           privateKey: ${{ secrets.RELEASE_PRIVATE_KEY }}
-          
-  PublishWeb:
+jobs:         
+  Uplaod:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -89,6 +41,19 @@ jobs:
           username: ${{ secrets.RELEASE_USER }}
           passphrase: ${{ secrets.RELEASE_PASSPHRASE }}
           privateKey: ${{ secrets.RELEASE_PRIVATE_KEY }}
+      - name: Copy NuGet.config
+        uses: garygrossgarten/github-action-scp@release
+        with:
+          local: NuGet.config
+          remote: ${{ secrets.WEB_CORE_RELEASE_DEST }}
+          host: ${{ secrets.RELEASE_HOST }}
+          username: ${{ secrets.RELEASE_USER }}
+          passphrase: ${{ secrets.RELEASE_PASSPHRASE }}
+          privateKey: ${{ secrets.RELEASE_PRIVATE_KEY }}
+
+  Publish:
+    runs-on: ubuntu-latest
+    steps:
       - name: Build Web Docker Image
         uses: garygrossgarten/github-action-ssh@release
         with:
