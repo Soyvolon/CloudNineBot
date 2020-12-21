@@ -44,13 +44,12 @@ jobs:
       - name: Copy NuGet.config
         uses: garygrossgarten/github-action-scp@release
         with:
-          local: /
+          local: /NuGet.config
           remote: ${{ secrets.WEB_CORE_RELEASE_DEST }}
           host: ${{ secrets.RELEASE_HOST }}
           username: ${{ secrets.RELEASE_USER }}
           passphrase: ${{ secrets.RELEASE_PASSPHRASE }}
           privateKey: ${{ secrets.RELEASE_PRIVATE_KEY }}
-          recursive: false
       - name: Build Web Docker Image
         uses: garygrossgarten/github-action-ssh@release
         with:
