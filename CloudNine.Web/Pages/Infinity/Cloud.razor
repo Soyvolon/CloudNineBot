@@ -1,0 +1,24 @@
+﻿@page "/infinity/cloud"
+
+@inject LoginService _login
+@inject NavigationManager _nav;
+
+@if (_login.IsInfinity)
+{
+    <InfinityProfile Name="Cloud" ProfileImageUri="/img/profiles/cloud.png">
+        <div class="alert alert-success">
+            <strong>Cloudie!</strong> Thanks for being the amazing writer that drew all of these wonderful people together! I'm very glad to
+            have read your fanfics and join this Discord, so thank you for being the wonderful person that made it happen!
+        </div>
+    </InfinityProfile>
+}
+else
+{
+    _nav.NavigateTo("/infinity");
+}
+
+<h3>Cloud</h3>
+
+@code {
+
+}

@@ -1,0 +1,22 @@
+﻿@page "/infinity/generalwombat"
+
+@inject LoginService _login
+@inject NavigationManager _nav;
+
+@if (_login.IsInfinity)
+{
+    <InfinityProfile Name="General Wombat" ProfileImageUri="/img/profiles/genwombat.png">
+        <div class="alert alert-success">
+            <strong>Gen!</strong> It's been a great year and I am very happy to be one of your wombats! Even if we haven't talked too much,
+            I very much enjoyed the conversations I have had with you! Have a great rest of the year and more!
+        </div>
+    </InfinityProfile>
+}
+else
+{
+    _nav.NavigateTo("/infinity");
+}
+
+@code {
+
+}

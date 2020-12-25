@@ -20,7 +20,9 @@ namespace CloudNine.Web.User
         public ConcurrentDictionary<string, string> WaitingForVerification { get; init; }
         public DiscordShardedClient Client { get; init; }
 
-        public LoginManager(DiscordShardedClient client, string clientSecret)
+        public HashSet<ulong> InfinityIds { get; init; }
+
+        public LoginManager(DiscordShardedClient client, string clientSecret, HashSet<ulong> infinityIds)
         {
             ActiveLogins = new();
             CodeTokens = new();
@@ -28,6 +30,7 @@ namespace CloudNine.Web.User
             WaitingForVerification = new();
             this.Client = client;
             ClientSecret = clientSecret;
+            InfinityIds = infinityIds;
         }
 
         public Task<bool> AttemptRelogAsync(string state, out DiscordRestClient? userClient)

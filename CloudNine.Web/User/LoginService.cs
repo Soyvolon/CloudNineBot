@@ -44,6 +44,14 @@ namespace CloudNine.Web.User
         public string PermString { get; private set; }
         public bool ActiveOwner { get; private set; }
         public bool IsModerator { get; private set; }
+        public bool IsInfinity
+        {
+            get
+            {
+                return _manager.InfinityIds.Contains(ActiveUser?.Id ?? 0);
+            }
+        }
+
 
         public DiscordMember? ActiveMember { get; private set; }
 

@@ -8,19 +8,6 @@
 
 @using System.Text.RegularExpressions
 
-<head>
-    <style>
-        .sidebar {
-            margin: 0;
-            padding: 0;
-            width: 200px;
-            background-color: #f1f1f1;
-            position: fixed;
-            height: 100%;
-            overflow: auto;
-        }
-    </style>
-</head>
 @if (connected)
 {
     <div class="page">
@@ -111,6 +98,14 @@
                         @Body
                     </div>
                 </div>
+                @if(_login.LoggedIn)
+                {
+                    <div class="floater">
+                        <a href="/infinity">
+                            <img class="micro" src="/img/infinity_ball.png" />
+                        </a>
+                    </div>
+                }
             </div>
         </div>
     </div>

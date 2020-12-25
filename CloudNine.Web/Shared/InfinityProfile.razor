@@ -1,0 +1,27 @@
+﻿<div class="d-flex flex-lg-row flex-md-row">
+    <div class="w-25 m-1">
+        <div class="card mb-3">
+            <h2 class="card-header">@Name</h2>
+            <img class="d-block user-select-none" src="@ProfileImageUri" />
+        </div>
+    </div>
+    <div class="w-75 m-1">
+        @ChildContent
+    </div>
+</div>
+<div class="flex-row">
+    TODO: something fancy here, like a list of achomplishments in universe or something.
+</div>
+<a href="/infinity" class="btn btn-block btn-primary">
+    Infinity Home
+</a>
+
+@code {
+    [Parameter]
+    public string Name { get; set; }
+    [Parameter]
+    public string ProfileImageUri { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+}

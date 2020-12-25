@@ -1,0 +1,22 @@
+﻿@page "/infinity/punitive"
+
+@inject LoginService _login
+@inject NavigationManager _nav;
+
+@if (_login.IsInfinity)
+{
+    <InfinityProfile Name="Punitive" ProfileImageUri="/img/profiles/punitive.png">
+        <div class="alert alert-success">
+            <strong>Devine!</strong> Thank you for making many a puzzle for me to puzzle over during my time on Cloud 9.75!
+            Besides looking forward to the next puzzle, I have to say your puns never cease to be divine! Have a wonderful rest of the year!
+        </div>
+    </InfinityProfile>
+}
+else
+{
+    _nav.NavigateTo("/infinity");
+}
+
+@code {
+
+}

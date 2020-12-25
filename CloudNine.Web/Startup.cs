@@ -26,6 +26,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using DSharpPlus.SlashCommands;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc;
+using CloudNine.Core.Configuration;
 
 namespace CloudNine.Web
 {
@@ -34,6 +35,7 @@ namespace CloudNine.Web
         public DiscordShardedClient Client { get; private set; }
         public static DiscordSlashClient SlashClient { get; private set; }
         public static string PublicKey { get; private set; }
+        public static InfinityConfiguration InfinityConfig { get; private set; }
 
         public Startup(IConfiguration configuration)
         {
@@ -47,8 +49,15 @@ namespace CloudNine.Web
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            using (FileStream fs = new FileStream(Path.Join("Config", "infinity_config.json"), FileMode.Open))
+            {
+                using StreamReader sr = new(fs);
+                var ison = sr.ReadToEnd();
+                InfinityConfig = JsonConvert.DeserializeObject<InfinityConfiguration>(ison);
+            }
+
             string json = "";
-            using (FileStream fs = new FileStream("Config/bot_config.json", FileMode.Open))
+            using (FileStream fs = new FileStream(Path.Join("Config", "bot_config.json"), FileMode.Open))
             {
                 using StreamReader sr = new StreamReader(fs);
                 json = sr.ReadToEnd();
@@ -61,7 +70,7 @@ namespace CloudNine.Web
             Client.StartAsync().GetAwaiter().GetResult();
 
             services.AddScoped<LoginService>()
-                .AddSingleton(x => new LoginManager(Client, botCfg.Secret))
+                .AddSingleton(x => new LoginManager(Client, botCfg.Secret, InfinityConfig.AuthorizedUsers.ToHashSet()))
                 .AddLogging(o => o.AddConsole())
                 .AddDbContext<CloudNineDatabaseModel>(ServiceLifetime.Transient, ServiceLifetime.Scoped)
                 .AddHttpContextAccessor()

@@ -1,0 +1,23 @@
+﻿@page "/infinity/meow"
+
+@inject LoginService _login
+@inject NavigationManager _nav;
+
+@if (_login.IsInfinity)
+{
+    <InfinityProfile Name="Meow" ProfileImageUri="/img/profiles/meow.png">
+        <div class="alert alert-success">
+            <strong>Meow!</strong> I'm glad I've had the opportounity to get to know you better while teaching you C#, and
+            I hope your year has been as enjoyable as mine (even during this pandemic). Even outside of C#, its always great to chat
+            with you. Have a great rest of the year!
+        </div>
+    </InfinityProfile>
+}
+else
+{
+    _nav.NavigateTo("/infinity");
+}
+
+@code {
+
+}

@@ -1,0 +1,11 @@
+﻿.mapwrapper {
+    position: relative;
+    width: 100%;
+    justify-self: center;
+}
+
+#infmap {
+    width: 100%;
+    height: 100%;
+}
+

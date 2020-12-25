@@ -1,0 +1,22 @@
+﻿@page "/infinity/pigeon"
+
+@inject LoginService _login
+@inject NavigationManager _nav;
+
+@if (_login.IsInfinity)
+{
+    <InfinityProfile Name="Pigeon" ProfileImageUri="/img/profiles/pigeon.png">
+        <div class="alert alert-success">
+            <strong>Pige!</strong> Your art is <strong>amazing!</strong> Just had to get that out of the way. Thanks for being such
+            a good storyteller (the rambling is quite adorable, i'll be honest)! I hope the rest of your year is amazing!
+        </div>
+    </InfinityProfile>
+}
+else
+{
+    _nav.NavigateTo("/infinity");
+}
+
+@code {
+
+}

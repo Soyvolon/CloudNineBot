@@ -1,0 +1,22 @@
+﻿@page "/infinity/thethunder"
+
+@inject LoginService _login
+@inject NavigationManager _nav;
+
+@if (_login.IsInfinity)
+{
+    <InfinityProfile Name="The Thunder" ProfileImageUri="/img/profiles/thunder.png">
+        <div class="alert alert-success">
+            <strong>Harmony!</strong> I know we have not interacted much, but thank you for being the reason this Discord server was created!
+            Have a great rest of the year and beyond!
+        </div>
+    </InfinityProfile>
+}
+else
+{
+    _nav.NavigateTo("/infinity");
+}
+
+@code {
+
+}

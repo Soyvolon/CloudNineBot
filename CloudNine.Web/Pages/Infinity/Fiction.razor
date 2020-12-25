@@ -1,0 +1,22 @@
+﻿@page "/infinity/fiction"
+
+@inject LoginService _login
+@inject NavigationManager _nav;
+
+@if (_login.IsInfinity)
+{
+    <InfinityProfile Name="Fiction" ProfileImageUri="/img/profiles/fiction.png">
+        <div class="alert alert-success">
+            <strong>Fic-chaN!</strong> I always love playing games with you (even if we still need to finish Divinity). Thanks for making
+            the year intereseting with a mix of stories to read and being a partner to co-op many adventures with!
+        </div>
+    </InfinityProfile>
+}
+else
+{
+    _nav.NavigateTo("/infinity");
+}
+
+@code {
+
+}

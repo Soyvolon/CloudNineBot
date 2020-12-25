@@ -1,0 +1,22 @@
+﻿@page "/infinity/ayuchi"
+
+@inject LoginService _login
+@inject NavigationManager _nav;
+
+@if (_login.IsInfinity)
+{
+    <InfinityProfile Name="AyuChi" ProfileImageUri="/img/profiles/ayuchi.png">
+        <div class="alert alert-success">
+            <strong>Ayu!</strong> Thanks for being an amazing person. I'm very glad to have met you this year and I hope the rest of your
+            year is even better than however good your year was up until now! Keep being the great person you are!
+        </div>
+    </InfinityProfile>
+}
+else
+{
+    _nav.NavigateTo("/infinity");
+}
+
+@code {
+
+}

@@ -1,0 +1,23 @@
+﻿@page "/infinity/101"
+
+@inject LoginService _login
+@inject NavigationManager _nav;
+
+@if (_login.IsInfinity)
+{
+    <InfinityProfile Name="101" ProfileImageUri="/img/profiles/five.png">
+        <div class="alert alert-success">
+            <strong>101!</strong> Chaos is always welcome when you are around (and sometimes when you are not)! Thanks for being a lot of fun
+            to play Minecraft with, watch movies or shows with, and a great member of the peanut gallery during my presentations! Have a wonderful
+            rest of the year!
+        </div>
+    </InfinityProfile>
+}
+else
+{
+    _nav.NavigateTo("/infinity");
+}
+
+@code {
+
+}
