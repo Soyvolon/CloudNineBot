@@ -52,6 +52,7 @@ namespace CloudNine.Discord.Commands.Quotes
             {
                 var quoteId = cfg.Keys.Random();
                 await SendQuoteByIdAsync(ctx, cfg, quoteId);
+                _database.Update(cfg);
             }
             else if (args[0].ToLower() == "help")
             { // Display command help information.
@@ -85,10 +86,12 @@ namespace CloudNine.Discord.Commands.Quotes
                 else if (int.TryParse(args[1], out int id))
                 {
                     await SendQuoteByIdAsync(ctx, cfg, id);
+                    _database.Update(cfg);
                 }
                 else if (cfg.HiddenQuotes.ContainsKey(args[1]))
                 {
                     await SendHiddenQuoteById(ctx, cfg, args[1]);
+                    _database.Update(cfg);
                 }
                 else
                 {
@@ -98,15 +101,19 @@ namespace CloudNine.Discord.Commands.Quotes
             else if (int.TryParse(args[0], out int id))
             {
                 await SendQuoteByIdAsync(ctx, cfg, id);
+                _database.Update(cfg);
             }
             else if (cfg.HiddenQuotes.ContainsKey(args[0]))
             {
                 await SendHiddenQuoteById(ctx, cfg, args[0]);
+                _database.Update(cfg);
             }
             else
             {
                 await ctx.RespondAsync("No quote found!");
             }
+
+            await _database.SaveChangesAsync();
         }
 
         private async Task SendHiddenQuoteById(CommandContext ctx, DiscordGuildConfiguration cfg, string quoteId)
@@ -118,8 +125,7 @@ namespace CloudNine.Discord.Commands.Quotes
                     await ctx.Message.DeleteAsync();
                 }
                 catch (NotFoundException) { }
-
-                var embed = quote.BuildQuote();
+                var embed = quote.UseQuote();
 
                 await ctx.RespondAsync(embed: embed);
             }
@@ -133,7 +139,7 @@ namespace CloudNine.Discord.Commands.Quotes
         {
             if (cfg.Quotes.TryGetValue(quoteId, out var quote))
             {
-                var embed = quote.BuildQuote();
+                var embed = quote.UseQuote();
 
                 await ctx.RespondAsync(embed: embed);
             }

@@ -15,6 +15,7 @@ namespace CloudNine.Core.Quotes
         public int Id { get; set; }
         public string? CustomId { get; set; }
         public string? Attachment { get; set; }
+        public int Uses { get; set; }
 
         [JsonIgnore]
         public DiscordColor? Color
@@ -37,6 +38,13 @@ namespace CloudNine.Core.Quotes
 
         public int? ColorValue { get; set; }
 
+        public DiscordEmbedBuilder UseQuote()
+        {
+            Uses++;
+
+            return BuildQuote();
+        }
+
         public DiscordEmbedBuilder BuildQuote()
         {
             var embed = new DiscordEmbedBuilder()
@@ -44,7 +52,7 @@ namespace CloudNine.Core.Quotes
                     .WithTitle($"Quote {(Id >= 0 ? Id : "")} - {Author}")
                     .WithDescription(Content)
                     .WithImageUrl(Attachment ?? "")
-                    .WithFooter($"Saved by: {SavedBy}")
+                    .WithFooter($"Saved by: {SavedBy} | Uses: {Uses}")
                     .WithTimestamp(SavedAt ?? DateTime.UtcNow);
 
             return embed;

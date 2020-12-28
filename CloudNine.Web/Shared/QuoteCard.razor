@@ -17,6 +17,8 @@
         @if (Q.SavedAt is not null)
         {
             <div class="card-footer">
+                Uses: @Q.Uses
+                <br />
                 @Q.SavedAt.Value.ToString("g")
             </div>
         }
