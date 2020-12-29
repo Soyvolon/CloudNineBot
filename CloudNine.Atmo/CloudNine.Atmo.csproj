@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Entities\Hostile\" />
+    <Folder Include="Entities\AI\" />
+    <Folder Include="Entities\NPC\" />
+    <Folder Include="Entities\Passive\" />
+    <Folder Include="Economy\" />
+    <Folder Include="Items\" />
+  </ItemGroup>
+
+</Project>
