@@ -33,7 +33,7 @@ namespace CloudNine.Web.Commands
                 var quoteId = config.Keys.Random();
                 if(config.Quotes.TryGetValue(quoteId, out var quote))
                 {
-                    var embed = quote.BuildQuote();
+                    var embed = quote.UseQuote();
 
                     await ctx.ReplyAsync(new InteractionResponseBuilder()
                         .WithType(DSharpPlus.SlashCommands.Enums.InteractionResponseType.ChannelMessage)
