@@ -35,6 +35,9 @@ namespace CloudNine.Web.Commands
                 {
                     var embed = quote.UseQuote();
 
+                    db.Update(config);
+                    await db.SaveChangesAsync();
+
                     await ctx.ReplyAsync(new InteractionResponseBuilder()
                         .WithType(DSharpPlus.SlashCommands.Enums.InteractionResponseType.ChannelMessage)
                         .WithData(new InteractionApplicationCommandCallbackDataBuilder()
