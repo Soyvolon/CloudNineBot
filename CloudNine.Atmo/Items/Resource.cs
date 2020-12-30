@@ -1,4 +1,6 @@
 ﻿using CloudNine.Atmo.Items.Utility;
+using CloudNine.Atmo.Loaders;
+
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -6,7 +8,7 @@ using System.Text;
 
 namespace CloudNine.Atmo.Items
 {
-    public class Resource : ItemBase
+    public class Resource : ItemBase, ILoadable<Resource>
     {
         /// <summary>
         /// Types of Resources
@@ -39,11 +41,11 @@ namespace CloudNine.Atmo.Items
         /// </summary>
         /// <param name="item">Base Item form DB</param>
         /// <returns>True</returns>
-        protected bool AssignDefaultVars(Resource item)
+        public bool LoadDefaultVars(Resource item)
         {
             Value = item.Value;
 
-            return base.AssignDefaultVars(item);
+            return base.LoadDefaultVars(item);
         }
     }
 }

@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Text;
 using CloudNine.Atmo.Items.Modifiers;
 using CloudNine.Atmo.Items.Utility;
+using CloudNine.Atmo.Loaders;
+
 using Newtonsoft.Json;
 
 namespace CloudNine.Atmo.Items
 {
-    public class Armor : ItemBase
+    public class Armor : ItemBase, ILoadable<Armor>
     {
         public enum ArmorType
         {
@@ -54,14 +56,14 @@ namespace CloudNine.Atmo.Items
         /// </summary>
         /// <param name="item">Base Item form DB</param>
         /// <returns>True</returns>
-        internal bool AssignDefaultVars(Armor item)
+        public bool LoadDefaultVars(Armor item)
         {
             Type = item.Type;
             BaseArmor = item.BaseArmor;
             Durability = item.Durability;
             ArmorModifiers = item.ArmorModifiers;
 
-            return base.AssignDefaultVars(item);
+            return base.LoadDefaultVars(item);
         }
     }
 }

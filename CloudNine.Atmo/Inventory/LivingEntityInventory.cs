@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using CloudNine.Atmo.Economy;
 using CloudNine.Atmo.Items;
+using CloudNine.Atmo.Items.Modifiers;
 
 using Newtonsoft.Json;
 
@@ -53,6 +54,7 @@ namespace CloudNine.Atmo.Inventory
             Bank = new();
         }
 
+        #region Equipment Manegment Methods
         public bool EquipItem(ItemBase item, out ItemBase? replacedItem, [Range(-1,1)] int slot = -1)
         {
             if(Items.Contains(item))
@@ -366,5 +368,91 @@ namespace CloudNine.Atmo.Inventory
             replacedItem = null;
             return false;
         }
+
+        #endregion
+
+        #region Statistical Calculation Methods
+        internal int GetTotalBaseArmorValue()
+        {
+            int armor = 0;
+
+            armor += HeadArmor?.BaseArmor ?? 0;
+            armor += ChestArmor?.BaseArmor ?? 0;
+            armor += GloveArmor?.BaseArmor ?? 0;
+            armor += LegArmor?.BaseArmor ?? 0;
+            armor += FeetArmor?.BaseArmor ?? 0;
+
+            return armor;
+        }
+
+        internal Dictionary<DamageModifiers, int> GetBaseArmorModifierse()
+        {
+            Dictionary<DamageModifiers, int> mods = HeadArmor?.ArmorModifiers ?? new();
+
+            if (ChestArmor is not null)
+                AddToModifiers(ChestArmor, ref mods);
+            if (GloveArmor is not null)
+                AddToModifiers(GloveArmor, ref mods);
+            if (LegArmor is not null)
+                AddToModifiers(LegArmor, ref mods);
+            if (FeetArmor is not null)
+                AddToModifiers(FeetArmor, ref mods);
+
+            return mods;
+        }
+
+        private static void AddToModifiers(Armor armor, ref Dictionary<DamageModifiers, int> mods)
+        {
+            foreach(var mod in armor.ArmorModifiers)
+            {
+                if (mods.ContainsKey(mod.Key))
+                    mods[mod.Key] += mod.Value;
+                else mods[mod.Key] = mod.Value;
+            }
+        }
+
+        internal Dictionary<DamageModifiers, int> GetBaseAttackModifiers()
+        {
+            Dictionary<DamageModifiers, int> mods = LeftHand?.WeaponDamageModifers ?? new();
+
+            if (RightHand is not null)
+            {
+                foreach (var mod in RightHand.WeaponDamageModifers)
+                {
+                    if (mods.ContainsKey(mod.Key))
+                        mods[mod.Key] += mod.Value;
+                    else mods[mod.Key] = mod.Value;
+                }
+            }
+
+            return mods;
+        }
+
+        internal Dictionary<PlayerModifiers, int> GetBasePlayerModifiers()
+        {
+            Dictionary<PlayerModifiers, int> mods = LeftEaring?.Modifiers ?? new();
+
+            if (RightEaring is not null)
+                AddToModifiers(RightEaring, ref mods);
+            if (Necklace is not null)
+                AddToModifiers(Necklace, ref mods);
+            if (LeftRing is not null)
+                AddToModifiers(LeftRing, ref mods);
+            if (RightRing is not null)
+                AddToModifiers(RightRing, ref mods);
+
+            return mods;
+        }
+
+        private static void AddToModifiers(Accessory accessory, ref Dictionary<PlayerModifiers, int> mods)
+        {
+            foreach (var mod in accessory.Modifiers)
+            {
+                if (mods.ContainsKey(mod.Key))
+                    mods[mod.Key] += mod.Value;
+                else mods[mod.Key] = mod.Value;
+            }
+        }
+        #endregion
     }
 }

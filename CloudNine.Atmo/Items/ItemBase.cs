@@ -5,10 +5,11 @@ using Newtonsoft.Json;
 using System.Data.SqlClient;
 using CloudNine.Atmo.Items.Utility;
 using CloudNine.Atmo.Items.Modifiers;
+using CloudNine.Atmo.Loaders;
 
 namespace CloudNine.Atmo.Items
 {
-    public abstract class ItemBase
+    public abstract class ItemBase : ILoadable<ItemBase>
     {
         /// <summary>
         /// Item id, used to idetify items that already have preset values
@@ -45,22 +46,6 @@ namespace CloudNine.Atmo.Items
         public ItemBase(ItemType type, string itemId, string name, Rarity rarity) : this(type, itemId, name)
         {
             ItemRarity = rarity;
-        }
-
-        /// <summary>
-        /// Method used to assign all default variables from a base item to the new item
-        /// </summary>
-        /// <param name="item">Base Item form DB</param>
-        /// <returns>True</returns>
-        internal virtual bool AssignDefaultVars(ItemBase item)
-        {
-            Name = item.Name;
-            ItemId = item.ItemId;
-            ItemRarity = item.ItemRarity;
-            BaseType = item.BaseType;
-
-            // Always returns true unless someting fails
-            return true;
         }
 
         /// <summary>
@@ -134,6 +119,17 @@ namespace CloudNine.Atmo.Items
             }
 
             return "";
+        }
+
+        public bool LoadDefaultVars(ItemBase item)
+        {
+            Name = item.Name;
+            ItemId = item.ItemId;
+            ItemRarity = item.ItemRarity;
+            BaseType = item.BaseType;
+
+            // Always returns true unless someting fails
+            return true;
         }
     }
 }

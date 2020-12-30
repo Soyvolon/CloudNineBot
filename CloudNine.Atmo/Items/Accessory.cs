@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Text;
 using CloudNine.Atmo.Items.Modifiers;
 using CloudNine.Atmo.Items.Utility;
+using CloudNine.Atmo.Loaders;
+
 using Newtonsoft.Json;
 
 namespace CloudNine.Atmo.Items
 {
-    public class Accessory : ItemBase
+    public class Accessory : ItemBase, ILoadable<Accessory>
     {
         public enum AccessoryType
         {
@@ -45,12 +47,12 @@ namespace CloudNine.Atmo.Items
         /// </summary>
         /// <param name="item">Base Item form DB</param>
         /// <returns>True</returns>
-        internal bool AssignDefaultVars(Accessory item)
+        public bool LoadDefaultVars(Accessory item)
         {
             Modifiers = item.Modifiers;
             Type = item.Type;
 
-            return base.AssignDefaultVars(item);
+            return base.LoadDefaultVars(item);
         }
     }
 }

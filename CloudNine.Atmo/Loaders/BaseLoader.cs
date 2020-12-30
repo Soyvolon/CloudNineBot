@@ -16,5 +16,11 @@ namespace CloudNine.Atmo.Loaders
             if (!Directory.Exists(BasePath))
                 Directory.CreateDirectory(BasePath);
         }
+
+        internal class DuplicateItemIdException : Exception
+        {
+            public DuplicateItemIdException() : base() { }
+            public DuplicateItemIdException(string? message) : base(message) { }
+        }
     }
 }

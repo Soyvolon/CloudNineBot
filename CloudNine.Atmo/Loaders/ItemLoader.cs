@@ -84,15 +84,9 @@ namespace CloudNine.Atmo.Loaders
                 }
                 else
                 {
-                    Logger.LogWarning("Item data had an invalid type.");
+                    Logger.LogWarning($"Failed to properly parse a JSON file: {file}");
                 }
             }
-        }
-
-        internal class DuplicateItemIdException : Exception
-        {
-            public DuplicateItemIdException() : base() { }
-            public DuplicateItemIdException(string? message) : base(message) { }
         }
 
         /// <summary>
@@ -102,7 +96,7 @@ namespace CloudNine.Atmo.Loaders
         /// <param name="itemId">ID of the item to retrive.</param>
         /// <param name="item">The item retrived.</param>
         /// <returns>If the item was retrived.</returns>
-        public bool GetItem<T>(string itemId, out T? item) where T : ItemBase, new()
+        public bool GetItem<T>(string itemId, out T? item) where T : ItemBase, ILoadable<T>, new()
         {
             if(Items.TryGetValue(itemId, out var baseItem))
             {
@@ -111,13 +105,51 @@ namespace CloudNine.Atmo.Loaders
                 if(baseI is not null)
                 {
                     item = new();
-                    item.AssignDefaultVars(baseI);
+                    item.LoadDefaultVars(baseI);
                     return true;
                 }
             }
 
             item = default;
             return false;
+        }
+
+        public bool RegisterOrUpdateItem(ItemBase item)
+        {
+            try
+            {
+                var json = JsonConvert.SerializeObject(item, Formatting.Indented);
+
+                File.WriteAllText(Path.Join(ItemPath, $"{item.ItemId}.json"), json);
+                
+                Items[item.ItemId] = item;
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to save item");
+                return false;
+            }
+        }
+
+        public async Task<bool> RegisterOrUpdateItemAsync(ItemBase item)
+        {
+            try
+            {
+                var json = JsonConvert.SerializeObject(item, Formatting.Indented);
+
+                await File.WriteAllTextAsync(Path.Join(ItemPath, $"{item.ItemId}.json"), json);
+
+                Items[item.ItemId] = item;
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to save item");
+                return false;
+            }
         }
     }
 }

@@ -5,10 +5,11 @@ using System.Data.SqlClient;
 using System.Text;
 using CloudNine.Atmo.Items.Modifiers;
 using CloudNine.Atmo.Items.Utility;
+using CloudNine.Atmo.Loaders;
 
 namespace CloudNine.Atmo.Items
 {
-    public class Weapon : ItemBase
+    public class Weapon : ItemBase, ILoadable<Weapon>
     {
         /// <summary>
         /// How many uses the item has
@@ -57,13 +58,13 @@ namespace CloudNine.Atmo.Items
         /// </summary>
         /// <param name="item">Base Item form DB</param>
         /// <returns>True</returns>
-        protected bool AssignDefaultVars(Weapon item)
+        public bool LoadDefaultVars(Weapon item)
         {
             Durability = item.Durability;
             BaseDamage = item.BaseDamage;
             WeaponDamageModifers = item.WeaponDamageModifers;
 
-            return base.AssignDefaultVars(item);
+            return base.LoadDefaultVars(item);
         }
     }
 }

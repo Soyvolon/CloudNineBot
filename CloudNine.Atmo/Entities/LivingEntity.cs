@@ -7,13 +7,16 @@ using System.Threading.Tasks;
 
 using CloudNine.Atmo.Inventory;
 using CloudNine.Atmo.Items.Modifiers;
+using CloudNine.Atmo.Loaders;
 
 using Newtonsoft.Json;
 
 namespace CloudNine.Atmo.Entities
 {
-    public class LivingEntity
+    public class LivingEntity : ILoadable<LivingEntity>
     {
+        [JsonProperty("internal_id")]
+        internal string InternalId { get; set; }
         [JsonProperty("name")]
         public string Name { get; internal set; }
 
@@ -24,7 +27,7 @@ namespace CloudNine.Atmo.Entities
         public int BaseHealth { get; internal set; }
         [JsonIgnore]
         [NotMapped]
-        public int MaxHealth { get; private set; }
+        public int CalculatedHealth { get; private set; }
         [JsonProperty("current_hp")]
         public int CurrentHealth { get; private set; }
 
@@ -32,7 +35,7 @@ namespace CloudNine.Atmo.Entities
         public int BaseMagic { get; internal set; }
         [JsonIgnore]
         [NotMapped]
-        public int MaxMagic { get; private set; }
+        public int CalculatedMagic { get; private set; }
         [JsonProperty("current_magic")]
         public int CurrentMagic { get; private set; }
 
@@ -40,23 +43,27 @@ namespace CloudNine.Atmo.Entities
         public int BaseSpeed { get; internal set; }
         [JsonIgnore]
         [NotMapped]
-        public int MaxSpeed { get; private set; }
+        public int CalculatedSpeed { get; private set; }
         [JsonProperty("current_speed")]
         public int CurrentSpeed { get; private set; }
+
+        [JsonIgnore]
+        [NotMapped]
+        public Dictionary<PlayerModifiers, int> PlayerModifiers { get; private set; }
 
         [JsonIgnore]
         [NotMapped]
         public int Armor { get; private set; }
         [JsonIgnore]
         [NotMapped]
-        public Dictionary<DamageModifiers, int> ArmorModifiers { get; init; }
+        public Dictionary<DamageModifiers, int> ArmorModifiers { get; private set; }
 
         [JsonIgnore]
         [NotMapped]
-        public int AttackPower { get; private set; }
+        public int AttackPower { get; internal set; }
         [JsonIgnore]
         [NotMapped]
-        public Dictionary<DamageModifiers, int> AttackModifiers { get; init; }
+        public Dictionary<DamageModifiers, int> AttackModifiers { get; private set; }
 
         [JsonProperty("level")]
         public int Level { get; private set; }
@@ -73,6 +80,9 @@ namespace CloudNine.Atmo.Entities
         [NotMapped]
         public OnDeath OnFaint { get; set; }
 
+        [JsonProperty("entity_type")]
+        public EntityType Type { get; internal set; }
+
         public LivingEntity() : this("") { }
 
         public LivingEntity(string name)
@@ -87,6 +97,48 @@ namespace CloudNine.Atmo.Entities
 
             AttackModifiers = new();
             ArmorModifiers = new();
+            PlayerModifiers = new();
+        }
+
+        public bool LoadDefaultVars(LivingEntity item)
+        {
+            InternalId = item.InternalId;
+            Name = item.Name;
+
+            BaseHealth = item.BaseHealth;
+            BaseMagic = item.BaseMagic;
+            BaseSpeed = item.BaseSpeed;
+
+            Level = item.Level;
+            Fainted = item.Fainted;
+            Type = item.Type;
+
+            RecalculateEntitiyStatistics();
+            ResetCurrentEntitiyStatistics();
+
+            return true;
+        }
+
+        /// <summary>
+        /// Used to recalculate the Armor, Max HP, Max Magic, Max Speed, and Attack Power from equiped items.
+        /// </summary>
+        internal void RecalculateEntitiyStatistics()
+        {
+            Armor = Inventory.GetTotalBaseArmorValue();
+
+
+        }
+
+        /// <summary>
+        /// Used to reset the Current HP, Current Magic, Current Speed, and no hit modifiers to their base values.
+        /// </summary>
+        internal void ResetCurrentEntitiyStatistics()
+        {
+            noMissModifier = 0.0f;
+
+            CurrentHealth = CalculatedHealth;
+            CurrentSpeed = CalculatedSpeed;
+            CurrentMagic = CalculatedMagic;
         }
     }
 }

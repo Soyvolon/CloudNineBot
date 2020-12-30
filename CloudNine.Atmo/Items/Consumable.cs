@@ -4,11 +4,13 @@ using System.Linq;
 using System.Text;
 using CloudNine.Atmo.Items.Modifiers;
 using CloudNine.Atmo.Items.Utility;
+using CloudNine.Atmo.Loaders;
+
 using Newtonsoft.Json;
 
 namespace CloudNine.Atmo.Items
 {
-    public class Consumable : ItemBase
+    public class Consumable : ItemBase, ILoadable<Consumable>
     {
         [JsonProperty("consumeable_modifiers")]
         public Dictionary<ConsumableModifiers, int> Modifiers { get; private set; }
@@ -36,18 +38,6 @@ namespace CloudNine.Atmo.Items
             }
         }
 
-        /// <summary>
-        /// Method used to assign all default variables from a base item to the new item
-        /// </summary>
-        /// <param name="item">Base Item form DB</param>
-        /// <returns>True</returns>
-        protected bool AssignDefaultVars(Consumable item)
-        {
-            Modifiers = item.Modifiers;
-
-            return base.AssignDefaultVars(item);
-        }
-
         public string GetInfoString()
         {
             string output = "";
@@ -64,6 +54,13 @@ namespace CloudNine.Atmo.Items
             }
 
             return output;
+        }
+
+        public bool LoadDefaultVars(Consumable item)
+        {
+            Modifiers = item.Modifiers;
+
+            return base.LoadDefaultVars(item);
         }
     }
 }
