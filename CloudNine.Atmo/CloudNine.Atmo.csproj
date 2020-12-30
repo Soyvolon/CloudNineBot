@@ -2,9 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="DSharpPlus" Version="4.0.0-nightly-00771" />
+    <PackageReference Include="DSharpPlus.CommandsNext" Version="4.0.0-nightly-00771" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 
@@ -13,8 +16,6 @@
     <Folder Include="Entities\AI\" />
     <Folder Include="Entities\NPC\" />
     <Folder Include="Entities\Passive\" />
-    <Folder Include="Economy\" />
-    <Folder Include="Items\" />
   </ItemGroup>
 
 </Project>

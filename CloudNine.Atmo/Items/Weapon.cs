@@ -13,14 +13,17 @@ namespace CloudNine.Atmo.Items
         /// <summary>
         /// How many uses the item has
         /// </summary>
+        [JsonProperty("durability")]
         public int Durability { get; set; }
         /// <summary>
         /// Damage that the item does as a minimum
         /// </summary>
+        [JsonProperty("base_damage")]
         public int BaseDamage { get; set; }
         /// <summary>
         /// Holds values for any damage modifiers the weapon has.
         /// </summary>
+        [JsonProperty("weapon_modifiers")]
         public Dictionary<DamageModifiers, int> WeaponDamageModifers { get; set; }
 
         public Weapon(long id) : base(id)
@@ -35,7 +38,7 @@ namespace CloudNine.Atmo.Items
 
         public Weapon(string name, long id, Rarity rarity) : base(id, name, rarity) { }
 
-        [JsonConstructor]
+        
         public Weapon(long itemId, string name, int durability, int baseDamage, Dictionary<DamageModifiers, int> weaponDamageModifers, Rarity rarity) : base(itemId, name, rarity)
         {
             Durability = durability;

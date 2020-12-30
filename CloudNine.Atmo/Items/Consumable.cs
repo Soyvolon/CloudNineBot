@@ -10,6 +10,7 @@ namespace CloudNine.Atmo.Items
 {
     public class Consumable : ItemBase
     {
+        [JsonProperty("consumeable_modifiers")]
         public Dictionary<ConsumableModifiers, int> Modifiers { get; private set; }
         public Consumable(long id) : base(id)
         {
@@ -23,7 +24,7 @@ namespace CloudNine.Atmo.Items
 
         public Consumable(string name, long id, Rarity rarity) : base(id, name, rarity) { }
 
-        [JsonConstructor]
+        
         public Consumable(long itemId, string name, Dictionary<ConsumableModifiers, int> modifiers, Rarity rarity) : base(itemId, name, rarity)
         {
             Modifiers = modifiers;

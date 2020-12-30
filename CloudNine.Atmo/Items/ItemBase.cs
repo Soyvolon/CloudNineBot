@@ -13,14 +13,17 @@ namespace CloudNine.Atmo.Items
         /// <summary>
         /// Item id, used to idetify items that already have preset values
         /// </summary>
+        [JsonProperty("item_id")]
         public long ItemId { get; private set; }
         /// <summary>
         /// Name of the item, free to be able to change.
         /// </summary>
+        [JsonProperty("name")]
         public string Name { get; private set; }
         /// <summary>
         /// The rarity of the item
         /// </summary>
+        [JsonProperty("item_rarity")]
         public Rarity ItemRarity { get; set; }
 
         /// <summary>
@@ -37,7 +40,6 @@ namespace CloudNine.Atmo.Items
             Name = name;
         }
 
-        [JsonConstructor]
         public ItemBase(long itemId, string name, Rarity rarity) : this(itemId)
         {
             Name = name;

@@ -20,6 +20,7 @@ namespace CloudNine.Atmo.Items
         /// <summary>
         /// Value of the resource before supply and demand
         /// </summary>
+        [JsonProperty("value")]
         public int Value { get; set; }
         public Resource(long id) : base(id)
         {
@@ -30,7 +31,6 @@ namespace CloudNine.Atmo.Items
 
         public Resource(string name, long id, Rarity rarity) : base(id, name, rarity) { }
 
-        [JsonConstructor]
         public Resource(long itemId, string name, Rarity rarity) : base(itemId, name, rarity) { }
 
 

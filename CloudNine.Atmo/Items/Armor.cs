@@ -13,13 +13,18 @@ namespace CloudNine.Atmo.Items
         {
             Head,
             Chest,
+            Glove,
             Leg,
             Feet
         }
-        public ArmorType Type { get; set; }
-        public int BaseArmor { get; set; }
-        public int Durability { get; set; }
-        public Dictionary<DamageModifiers, int> ArmorModifiers { get; set; }
+        [JsonProperty("armor_type")]
+        public ArmorType Type { get; internal set; }
+        [JsonProperty("base_armor")]
+        public int BaseArmor { get; internal set; }
+        [JsonProperty("durability")]
+        public int Durability { get; internal set; }
+        [JsonProperty("armor_modifiers")]
+        public Dictionary<DamageModifiers, int> ArmorModifiers { get; internal set; }
         public Armor(int id) : base(id)
         {
             ArmorModifiers = new Dictionary<DamageModifiers, int>();
@@ -33,7 +38,6 @@ namespace CloudNine.Atmo.Items
 
         public Armor(string name, long id, Rarity rarity) : base(id, name, rarity) { }
 
-        [JsonConstructor]
         public Armor(long ItemId, string Name, ArmorType Type, int BaseArmor, int Durability, Dictionary<DamageModifiers, int> ArmorModifiers, Rarity rarity) : base(ItemId, Name, rarity)
         {
             this.Type = Type;
