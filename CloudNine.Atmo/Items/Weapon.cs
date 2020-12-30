@@ -26,20 +26,22 @@ namespace CloudNine.Atmo.Items
         [JsonProperty("weapon_modifiers")]
         public Dictionary<DamageModifiers, int> WeaponDamageModifers { get; set; }
 
-        public Weapon(long id) : base(id)
+        public Weapon() : base() { }
+
+        public Weapon(ItemType type, string id, string name = "") : base(type, id, name)
         {
             WeaponDamageModifers = new Dictionary<DamageModifiers, int>();
         }
 
-        public Weapon(string name) : base(name)
+        public Weapon(ItemType type, string name, string id, Rarity rarity) 
+            : base(type, id, name, rarity) 
         {
-            WeaponDamageModifers = new Dictionary<DamageModifiers, int>();
+            WeaponDamageModifers = new();
         }
-
-        public Weapon(string name, long id, Rarity rarity) : base(id, name, rarity) { }
 
         
-        public Weapon(long itemId, string name, int durability, int baseDamage, Dictionary<DamageModifiers, int> weaponDamageModifers, Rarity rarity) : base(itemId, name, rarity)
+        public Weapon(ItemType type, string itemId, string name, int durability, int baseDamage, Dictionary<DamageModifiers, int> weaponDamageModifers, Rarity rarity) 
+            : base(type, itemId, name, rarity)
         {
             Durability = durability;
             BaseDamage = baseDamage;

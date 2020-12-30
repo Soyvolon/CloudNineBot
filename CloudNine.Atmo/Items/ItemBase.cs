@@ -14,54 +14,37 @@ namespace CloudNine.Atmo.Items
         /// Item id, used to idetify items that already have preset values
         /// </summary>
         [JsonProperty("item_id")]
-        public long ItemId { get; private set; }
+        public string ItemId { get; internal set; }
         /// <summary>
         /// Name of the item, free to be able to change.
         /// </summary>
         [JsonProperty("name")]
-        public string Name { get; private set; }
+        public string Name { get; internal set; }
         /// <summary>
         /// The rarity of the item
         /// </summary>
         [JsonProperty("item_rarity")]
-        public Rarity ItemRarity { get; set; }
+        public Rarity ItemRarity { get; internal set; }
+
+        [JsonProperty("item_type")]
+        public ItemType BaseType { get; internal set; }
+
+        public ItemBase() { }
 
         /// <summary>
         /// Create a new instance of an Item
         /// </summary>
         /// <param name="id">Item ID of the new item</param>
-        public ItemBase(long id)
+        public ItemBase(ItemType type, string id, string name = "")
         {
+            BaseType = type;
             ItemId = id;
-        }
-
-        public ItemBase(string name)
-        {
             Name = name;
         }
 
-        public ItemBase(long itemId, string name, Rarity rarity) : this(itemId)
+        public ItemBase(ItemType type, string itemId, string name, Rarity rarity) : this(type, itemId, name)
         {
-            Name = name;
             ItemRarity = rarity;
-        }
-
-        /// <summary>
-        /// Set the name of the Item
-        /// </summary>
-        /// <param name="name">New Name</param>
-        public void SetItemName(string name)
-        {
-            Name = name;
-        }
-
-        /// <summary>
-        /// Converts the Item into a JSON string for in storage
-        /// </summary>
-        /// <returns>Serialized Object of this object</returns>
-        public string GetJsonString()
-        {
-            return JsonConvert.SerializeObject(this);
         }
 
         /// <summary>
@@ -69,17 +52,15 @@ namespace CloudNine.Atmo.Items
         /// </summary>
         /// <param name="item">Base Item form DB</param>
         /// <returns>True</returns>
-        protected bool AssignDefaultVars(ItemBase item)
+        internal virtual bool AssignDefaultVars(ItemBase item)
         {
             Name = item.Name;
+            ItemId = item.ItemId;
+            ItemRarity = item.ItemRarity;
+            BaseType = item.BaseType;
 
             // Always returns true unless someting fails
             return true;
-        }
-
-        public void SetItemId(long v)
-        {
-            ItemId = v;
         }
 
         /// <summary>

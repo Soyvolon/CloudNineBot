@@ -12,20 +12,22 @@ namespace CloudNine.Atmo.Items
     {
         [JsonProperty("consumeable_modifiers")]
         public Dictionary<ConsumableModifiers, int> Modifiers { get; private set; }
-        public Consumable(long id) : base(id)
+
+        public Consumable() : base() { }
+        
+        public Consumable(ItemType type, string id, string name = "") : base(type, id, name)
         {
             Modifiers = new Dictionary<ConsumableModifiers, int>();
         }
 
-        public Consumable(string name) : base(name)
+        public Consumable(ItemType type, string name, string id, Rarity rarity) : base(type, id, name, rarity) 
         {
-            Modifiers = new Dictionary<ConsumableModifiers, int>();
+            Modifiers = new();
         }
-
-        public Consumable(string name, long id, Rarity rarity) : base(id, name, rarity) { }
 
         
-        public Consumable(long itemId, string name, Dictionary<ConsumableModifiers, int> modifiers, Rarity rarity) : base(itemId, name, rarity)
+        public Consumable(ItemType type, string itemId, string name, Dictionary<ConsumableModifiers, int> modifiers, Rarity rarity) 
+            : base(type, itemId, name, rarity)
         {
             Modifiers = modifiers;
             if (this.Modifiers == null)

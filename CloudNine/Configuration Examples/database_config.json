@@ -1,3 +1,4 @@
 {
-  "data_source": "Data Source=Database/test.db"
+  "data_source": "Data Source=Database/test.db",
+  "atmo_data_source": "Data Source=Database/atmo_test.db"
 }

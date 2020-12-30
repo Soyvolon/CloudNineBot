@@ -22,16 +22,16 @@ namespace CloudNine.Atmo.Items
         /// </summary>
         [JsonProperty("value")]
         public int Value { get; set; }
-        public Resource(long id) : base(id)
+
+        public Resource() : base() { }
+
+        public Resource(ItemType type, string id, string name = "") : base(type, id, name)
         {
 
         }
 
-        public Resource(string name) : base(name) { }
-
-        public Resource(string name, long id, Rarity rarity) : base(id, name, rarity) { }
-
-        public Resource(long itemId, string name, Rarity rarity) : base(itemId, name, rarity) { }
+        public Resource(ItemType type, string itemId, string name, Rarity rarity) 
+            : base(type, itemId, name, rarity) { }
 
 
         /// <summary>

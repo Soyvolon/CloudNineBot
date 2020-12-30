@@ -25,20 +25,19 @@ namespace CloudNine.Atmo.Items
         public int Durability { get; internal set; }
         [JsonProperty("armor_modifiers")]
         public Dictionary<DamageModifiers, int> ArmorModifiers { get; internal set; }
-        public Armor(int id) : base(id)
+
+        public Armor() : base() { }
+
+        public Armor(ItemType type, string id, string name = "") : base(type, id, name)
         {
             ArmorModifiers = new Dictionary<DamageModifiers, int>();
 
         }
 
-        public Armor(string name) : base(name)
-        {
-            ArmorModifiers = new Dictionary<DamageModifiers, int>();
-        }
+        public Armor(ItemType type, string name, string id, Rarity rarity) : base(type, id, name, rarity) { }
 
-        public Armor(string name, long id, Rarity rarity) : base(id, name, rarity) { }
-
-        public Armor(long ItemId, string Name, ArmorType Type, int BaseArmor, int Durability, Dictionary<DamageModifiers, int> ArmorModifiers, Rarity rarity) : base(ItemId, Name, rarity)
+        public Armor(ItemType type, string ItemId, string Name, ArmorType Type, int BaseArmor, int Durability, Dictionary<DamageModifiers, int> ArmorModifiers, Rarity rarity) 
+            : base(type, ItemId, Name, rarity)
         {
             this.Type = Type;
             this.BaseArmor = BaseArmor;
@@ -55,7 +54,7 @@ namespace CloudNine.Atmo.Items
         /// </summary>
         /// <param name="item">Base Item form DB</param>
         /// <returns>True</returns>
-        protected bool AssignDefaultVars(Armor item)
+        internal bool AssignDefaultVars(Armor item)
         {
             Type = item.Type;
             BaseArmor = item.BaseArmor;

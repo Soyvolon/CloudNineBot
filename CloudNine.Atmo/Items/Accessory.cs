@@ -21,23 +21,20 @@ namespace CloudNine.Atmo.Items
         [JsonProperty("accessory_type")]
         public AccessoryType Type { get; internal set; }
 
-        public Accessory(long id) : base(id)
+        public Accessory() : base() { }
+
+        public Accessory(ItemType type, string id, string name = "") : base(type, id, name)
         {
             Modifiers = new();
         }
 
-        public Accessory(string name) : base(name)
+        public Accessory(ItemType type, string id, string name, Rarity raity) : base(type, id, name, raity)
         {
             Modifiers = new();
         }
 
-        public Accessory(long id, string name, Rarity raity) : base(id, name, raity)
-        {
-            Modifiers = new();
-        }
-
-        public Accessory(long ItemId, string Name, AccessoryType Type, Dictionary<PlayerModifiers, int> Modifiers, Rarity Rarity)
-            : base(ItemId, Name, Rarity)
+        public Accessory(ItemType type, string ItemId, string Name, AccessoryType Type, Dictionary<PlayerModifiers, int> Modifiers, Rarity Rarity)
+            : base(type, ItemId, Name, Rarity)
         {
             this.Modifiers = Modifiers;
             this.Type = Type;
@@ -48,9 +45,10 @@ namespace CloudNine.Atmo.Items
         /// </summary>
         /// <param name="item">Base Item form DB</param>
         /// <returns>True</returns>
-        protected bool AssignDefaultVars(Accessory item)
+        internal bool AssignDefaultVars(Accessory item)
         {
             Modifiers = item.Modifiers;
+            Type = item.Type;
 
             return base.AssignDefaultVars(item);
         }

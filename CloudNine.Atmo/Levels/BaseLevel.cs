@@ -11,9 +11,9 @@ using DSharpPlus.EventArgs;
 
 namespace CloudNine.Atmo.Levels
 {
-    public abstract class Level : StateMachine
+    public abstract class BaseLevel : StateMachine
     {
-        public Level(CommandContext ctx, int MaxUsers) : base(ctx)
+        public BaseLevel(CommandContext ctx, int MaxUsers) : base(ctx)
         {
             CreatedBy = ctx.Member.Id;
             ActiveUsers = new();
@@ -21,6 +21,6 @@ namespace CloudNine.Atmo.Levels
 
         public int MaxPlayers { get; internal set; }
         public ulong CreatedBy { get; internal set; }
-        public List<ulong> ActiveUsers { get; internal set; }
+        public HashSet<ulong> ActiveUsers { get; internal set; }
     }
 }
