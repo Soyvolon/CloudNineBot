@@ -8,8 +8,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CloudNine.Core.Migrations
 {
     [DbContext(typeof(CloudNineDatabaseModel))]
-    [Migration("20201231160203_FavoriteQuotesMigration")]
-    partial class FavoriteQuotesMigration
+    [Migration("20201231185514_ModNoticesFavQuotes")]
+    partial class ModNoticesFavQuotes
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -52,6 +52,10 @@ namespace CloudNine.Core.Migrations
                     b.Property<ulong>("GuildId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("ModlogNotices")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("WarnSet")
                         .IsRequired()

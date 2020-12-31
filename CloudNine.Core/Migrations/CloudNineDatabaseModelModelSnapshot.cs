@@ -51,6 +51,10 @@ namespace CloudNine.Core.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("ModlogNotices")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("WarnSet")
                         .IsRequired()
                         .HasColumnType("TEXT");

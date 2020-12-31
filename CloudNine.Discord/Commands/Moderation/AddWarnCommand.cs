@@ -93,6 +93,14 @@ namespace CloudNine.Discord.Commands.Moderation
                     }
 
                     await RespondWarn($"Successfuly logged warning for user {toWarn.Mention} as `{warn.Key}`. {(notify ? "The user has been notified." : "")}");
+
+                    if(mod.Warns.TryGetValue(toWarn.Id, out var warnings))
+                    {
+                        if(mod.ModlogNotices.TryGetValue(warnings.Count, out var notice))
+                        {
+                            await DisplayWarnNotice(ctx, notice, toWarn);
+                        }
+                    }
                 }
                 else
                 {
@@ -124,6 +132,15 @@ namespace CloudNine.Discord.Commands.Moderation
             {
                 await RespondError("Failed to get a user to warn. Make sure the user is on the server and the ID is correct, or use a mention.");
             }
+        }
+
+        public static async Task DisplayWarnNotice(CommandContext ctx, string notice, DiscordMember memberFor)
+        {
+            var embed = ModBase()
+                .WithTitle($"Modlog Notice for {memberFor.Username}#{memberFor.Discriminator} ({memberFor.DisplayName})")
+                .WithDescription(notice);
+
+            await ctx.RespondAsync(content: ctx.Member.Mention, embed: embed);
         }
 
         [Command("warn")]

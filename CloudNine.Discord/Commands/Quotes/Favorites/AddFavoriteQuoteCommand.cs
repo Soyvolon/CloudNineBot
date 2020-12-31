@@ -7,6 +7,7 @@ using CloudNine.Core.Database;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -56,7 +57,11 @@ namespace CloudNine.Discord.Commands.Quotes.Favorites
                     database.Update(config);
                     await database.SaveChangesAsync();
 
-                    await Respond($"Favorited quote {quoteId}!");
+                    var embed = new DiscordEmbedBuilder();
+                    embed.WithColor(Color_Cloud)
+                        .WithDescription($"Favorited quote {quoteId}!");
+
+                    await ctx.RespondAsync(embed: embed);
                 }
                 else
                 {

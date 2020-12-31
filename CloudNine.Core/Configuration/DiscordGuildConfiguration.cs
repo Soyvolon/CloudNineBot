@@ -44,6 +44,7 @@ namespace CloudNine.Core.Configuration
             BirthdayConfiguration = new BirthdayServerConfiguration();
             Quotes = new ConcurrentDictionary<int, Quote>();
             HiddenQuotes = new ConcurrentDictionary<string, Quote>();
+            FavoriteQuotes = new();
         }
 
         public Task<bool> AddQuote(Quote quote)

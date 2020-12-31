@@ -31,6 +31,8 @@ namespace CloudNine.Core.Moderation
 
         public HashSet<Warn> WarnSet { get; set; }
 
+        public ConcurrentDictionary<int, string> ModlogNotices { get; set; }
+
         [NotMapped]
         public HashSet<string> Keys
         {
@@ -53,6 +55,7 @@ namespace CloudNine.Core.Moderation
             GuildId = guildId;
             WarnSet = warnSet;
             _rand = new Random();
+            ModlogNotices = new();
         }
 
         public bool AddWarn(ulong userid, string message, ulong savedby, out Warn w)
