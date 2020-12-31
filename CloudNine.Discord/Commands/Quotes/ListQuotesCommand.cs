@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 
@@ -9,6 +10,7 @@ using CloudNine.Core.Quotes;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -44,12 +46,22 @@ namespace CloudNine.Discord.Commands.Quotes
                 await _database.SaveChangesAsync();
             }
 
-            string data = "";
             var embedBase = new DiscordEmbedBuilder()
                 .WithColor(Color_Cloud)
                 .WithTitle($"Quotes saved on {ctx.Guild.Name}");
 
             var quoteList = cfg.Quotes.Values.ToImmutableSortedSet(new QuoteComparer());
+
+            var interact = ctx.Client.GetInteractivity();
+
+            var pages = GetQuotePages(quoteList, interact, embedBase);
+
+            _ = Task.Run(async () => await interact.SendPaginatedMessageAsync(ctx.Channel, ctx.Member, pages));
+        }
+
+        public static IEnumerable<Page>? GetQuotePages(IEnumerable<Quote> quoteList, InteractivityExtension interact, DiscordEmbedBuilder embedBase)
+        {
+            string data = "";
 
             foreach (var quote in quoteList)
             {
@@ -57,11 +69,9 @@ namespace CloudNine.Discord.Commands.Quotes
                 data += $"`{quote.Id}`. {content} by `{quote.Author}`\n";
             }
 
-            var interact = ctx.Client.GetInteractivity();
-
             var pages = interact.GeneratePagesInEmbed(data, DSharpPlus.Interactivity.Enums.SplitType.Line, embedBase);
 
-            interact.SendPaginatedMessageAsync(ctx.Channel, ctx.Member, pages);
+            return pages;
         }
     }
 }

@@ -58,6 +58,12 @@ namespace CloudNine.Core.Database
                 .HasConversion(
                     v => JsonConvert.SerializeObject(v),
                     v => JsonConvert.DeserializeObject<HashSet<Warn>>(v) ?? new());
+
+            modelBuilder.Entity<DiscordGuildConfiguration>()
+                .Property(b => b.FavoriteQuotes)
+                .HasConversion(
+                    v => JsonConvert.SerializeObject(v),
+                    v => JsonConvert.DeserializeObject<ConcurrentDictionary<ulong, SortedSet<int>>>(v) ?? new());
         }
     }
 }

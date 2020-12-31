@@ -36,6 +36,9 @@ namespace CloudNine.Discord.Commands.Quotes.Management
 
             if (cfg.TryRemoveQuote(quoteId, out var quote))
             {
+                foreach(var user in cfg.FavoriteQuotes)
+                    user.Value.Remove(quoteId); // remove this from the favorites list.
+
                 _database.Update(cfg);
                 await _database.SaveChangesAsync();
 

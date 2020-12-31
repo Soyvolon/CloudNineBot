@@ -19,6 +19,7 @@ namespace CloudNine.Core.Configuration
         public BirthdayServerConfiguration BirthdayConfiguration { get; set; }
         public ConcurrentDictionary<int, Quote> Quotes { get; set; }
         public ConcurrentDictionary<string, Quote> HiddenQuotes { get; set; }
+        public ConcurrentDictionary<ulong, SortedSet<int>> FavoriteQuotes { get; set; }
 
         [NotMapped]
         private HashSet<int>? _keys;
