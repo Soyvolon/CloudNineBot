@@ -28,7 +28,7 @@ namespace CloudNine.Discord.Commands.Quotes.Favorites
 
         [Command("favoritequotes")]
         [Description("Lists the favorite quotes of a member.")]
-        [Aliases("favoriteq", "qfavs")]
+        [Aliases("favoriteq", "qfavs", "favouritequotes")]
         public async Task ListFavoriteQuotesCommandAsync(CommandContext ctx,
             [Description("Member to list favorite quotes for. Defaults to yourself.")]
             DiscordMember? member = null)

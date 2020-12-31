@@ -24,7 +24,7 @@ namespace CloudNine.Discord.Commands.Quotes.Favorites
 
         [Command("favoritequote")]
         [Description("Add a quote to your favorite quotes for this server!")]
-        [Aliases("favquote", "favq")]
+        [Aliases("favquote", "favq", "favouritequote")]
         public async Task AddFavoriteQuoteCommandAsync(CommandContext ctx, 
             [Description("ID of the quote to favorite")]
             int quoteId)

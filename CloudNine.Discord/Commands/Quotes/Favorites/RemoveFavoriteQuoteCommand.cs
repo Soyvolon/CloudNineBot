@@ -25,7 +25,7 @@ namespace CloudNine.Discord.Commands.Quotes.Favorites
 
         [Command("unfavoritequote")]
         [Description("Removes a quote from your favorite quotes for this server.")]
-        [Aliases("unfavquote", "ufavq")]
+        [Aliases("unfavquote", "ufavq", "unfavouritequote")]
         public async Task RemoveFavoriteQuoteCommandAsync(CommandContext ctx,
             [Description("ID of the quote to remove from your favoites")]
             int quoteId)
