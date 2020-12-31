@@ -120,7 +120,7 @@ namespace CloudNine.Core.Moderation
                 }
                 else
                 {
-                    _warns[w.UserId] = new SortedDictionary<DateTime, Warn>() { { w.CreatedOn, w } };
+                    _warns[w.UserId] = new SortedDictionary<DateTime, Warn>(new CustomDateTimeComparer()) { { w.CreatedOn, w } };
                 }
             }
 
