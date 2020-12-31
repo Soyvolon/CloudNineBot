@@ -21,7 +21,7 @@ namespace CloudNine.Discord.Commands.Moderation
             this._services = services;
         }
 
-        [Command("rmeovemodlognotice")]
+        [Command("removemodlognotice")]
         [Description("Removes a modlog notice.")]
         [Aliases("rmmodnotice", "rmmn", "removemodnotice")]
         [RequireUserPermissions(Permissions.ManageMessages)]
