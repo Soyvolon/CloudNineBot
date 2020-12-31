@@ -48,6 +48,14 @@ namespace CloudNine.Discord.Commands.Quotes.Favorites
                 return;
             }
 
+            if(mem.Id == ctx.Client.CurrentApplication.Id)
+            {
+                var list = new ListQuotesCommand(_services);
+                await list.BeforeExecutionAsync(ctx);
+                await list.ListQuotesCommandAsync(ctx);
+                return;
+            }
+
             if(cfg.FavoriteQuotes.TryGetValue(mem.Id, out var favorites))
             {
                 List<Quote> quotes = new();
