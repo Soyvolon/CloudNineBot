@@ -23,6 +23,7 @@ namespace CloudNine.Discord.Commands.Admin
     {
         [Command("eval")]
         [Description("Evaluate C# code blocks.")]
+        [RequireOwner]
         public async Task EvalCommandAsync(CommandContext ctx, [RemainingText] string code)
         {
             var rawCode = code;
