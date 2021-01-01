@@ -21,6 +21,39 @@ namespace CloudNine.Discord.Commands.Admin
 {
     public class EvalCommand : CommandModule
     {
+        [Command("evalraw")]
+        [Description("Evaluate a larger set of code. Requires a method with `public static async Task Eval(CommandContext ctx) { }` to execute the code.")]
+        [RequireOwner]
+        public async Task EvalRawCommandAsync(CommandContext ctx, [RemainingText] string code)
+        {
+            var rawCode = code;
+            if (rawCode.StartsWith("```"))
+            {
+                rawCode = rawCode.Remove(0, rawCode.IndexOf('\n'));
+                rawCode = rawCode.Remove(rawCode.LastIndexOf('\n'));
+            }
+
+            var finalCode = @$"
+using DSharpPlus;
+using DSharpPlus.Entities;
+using DSharpPlus.Interactivity;
+using DSharpPlus.CommandsNext;
+
+using System;
+using System.Linq;
+using System.IO;
+using System.Reflection;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+public static class __evalcompile__
+{{
+    {rawCode}
+}}";
+
+            await Execute(ctx, finalCode);
+        }
+
         [Command("eval")]
         [Description("Evaluate C# code blocks.")]
         [RequireOwner]
@@ -32,8 +65,6 @@ namespace CloudNine.Discord.Commands.Admin
                 rawCode = rawCode.Remove(0, rawCode.IndexOf('\n'));
                 rawCode = rawCode.Remove(rawCode.LastIndexOf('\n'));
             }
-
-            //var provider = CodeDomProvider.CreateProvider("csharp", new Dictionary<string, string>() { { "CopilerVersion", "v5.0" } });
 
             var finalCode = @$"
 using DSharpPlus;
@@ -55,6 +86,11 @@ public static class __evalcompile__
         {rawCode}
     }}
 }}";
+            await Execute(ctx, finalCode);
+        }
+
+        private async Task Execute(CommandContext ctx, string finalCode)
+        {
             var tree = SyntaxFactory.ParseSyntaxTree(finalCode);
             var systemReference = MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location);
             var references = new MetadataReference[]
@@ -80,7 +116,7 @@ public static class __evalcompile__
 
             using var ms = new MemoryStream();
             var compilationResult = compliation.Emit(ms);
-            if(compilationResult.Success)
+            if (compilationResult.Success)
             {
                 ms.Seek(0, SeekOrigin.Begin);
                 using var loadContext = new EvalAssemblyLoadContext();
