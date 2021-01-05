@@ -1,10 +1,13 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 using CloudNine.Config.Bot;
 using CloudNine.Core.Database;
+using CloudNine.Core.Http;
+using CloudNine.Core.Multisearch;
 using CloudNine.Discord;
 using CloudNine.Discord.Services;
 
@@ -39,7 +42,9 @@ namespace CloudNine
 
             services.AddLogging(o => o.SetMinimumLevel(MinimumLogLevel))
                 .AddDbContext<CloudNineDatabaseModel>(ServiceLifetime.Transient, ServiceLifetime.Scoped)
-                .AddSingleton<QuoteService>();
+                .AddSingleton<QuoteService>()
+                .AddSingleton<HttpClient>()
+                .AddSingleton<BrowserClient>();
 
             await using var serviceProvider = services.BuildServiceProvider();
 

@@ -6,6 +6,8 @@ using System.IO;
 using CloudNine.Core.Birthdays;
 using CloudNine.Core.Configuration;
 using CloudNine.Core.Moderation;
+using CloudNine.Core.Multisearch;
+using CloudNine.Core.Multisearch.Configuration;
 using CloudNine.Core.Quotes;
 
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +20,7 @@ namespace CloudNine.Core.Database
     {
         public DbSet<DiscordGuildConfiguration> ServerConfigurations { get; set; }
         public DbSet<ModCore> Moderation { get; set; }
+        public DbSet<MultisearchUser> MultisearchUsers { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -59,6 +62,8 @@ namespace CloudNine.Core.Database
                     v => JsonConvert.SerializeObject(v),
                     v => JsonConvert.DeserializeObject<ConcurrentDictionary<ulong, SortedSet<int>>>(v) ?? new());
 
+
+
             modelBuilder.Entity<ModCore>()
                 .Property(b => b.WarnSet)
                 .HasConversion(
@@ -70,6 +75,26 @@ namespace CloudNine.Core.Database
                 .HasConversion(
                     v => JsonConvert.SerializeObject(v),
                     v => JsonConvert.DeserializeObject<ConcurrentDictionary<int, string>>(v) ?? new());
+
+
+
+            modelBuilder.Entity<MultisearchUser>()
+                .Property(b => b.Cache)
+                .HasConversion(
+                    v => JsonConvert.SerializeObject(v),
+                    v => JsonConvert.DeserializeObject<List<FanFic>>(v) ?? new());
+
+            modelBuilder.Entity<MultisearchUser>()
+                .Property(b => b.History)
+                .HasConversion(
+                    v => JsonConvert.SerializeObject(v),
+                    v => JsonConvert.DeserializeObject<List<Tuple<string, string>>>(v) ?? new());
+
+            modelBuilder.Entity<MultisearchUser>()
+                .Property(b => b.Options)
+                .HasConversion(
+                    v => JsonConvert.SerializeObject(v),
+                    v => JsonConvert.DeserializeObject<MultisearchConfigurationOptions>(v) ?? new());
         }
     }
 }

@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Threading.Tasks;
 
 using CloudNine.Core.Birthdays;
+using CloudNine.Core.Multisearch;
 using CloudNine.Core.Quotes;
 
 namespace CloudNine.Core.Configuration
