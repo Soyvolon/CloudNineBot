@@ -41,7 +41,11 @@ namespace CloudNine.Core.Http
             await new BrowserFetcher().DownloadAsync(BrowserFetcher.DefaultRevision);
             _browser = await Puppeteer.LaunchAsync(new LaunchOptions
             {
+#if DEBUG
+                Headless = false
+#else
                 Headless = true
+#endif
             });
         }
     }

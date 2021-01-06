@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using CloudNine.Core.Multisearch.Configuration;
+
 using HtmlAgilityPack;
 
 namespace CloudNine.Core.Multisearch.Requests
@@ -236,7 +238,7 @@ namespace CloudNine.Core.Multisearch.Requests
         /// Breaks apart the result of the serach and reurns a list of FanFic that were found in the result
         /// </summary>
         /// <returns></returns>
-        public override List<FanFic> DecodeHTML()
+        public override List<FanFic> DecodeHTML(SearchOptions searchOptions)
         {
             var nodes = Result.DocumentNode.SelectNodes("//li[contains(@class, 'work')]");
 
@@ -248,7 +250,11 @@ namespace CloudNine.Core.Multisearch.Requests
                 { // TODO: Determine error problems when reading information
                     try
                     {
-                        FanFic fic = new FanFic();
+                        FanFic fic = new FanFic()
+                        { 
+                            Site = Multiserach.SiteFrom.ArchiveOfOurOwn
+                        };
+
                         // Gather story information
                         var header_nodes = node.SelectNodes(".//h4[contains(@class, 'heading')]//a");
                         fic.Title = new Tuple<string, string>(header_nodes[0].InnerText, link_base + header_nodes[0].Attributes["href"].Value);
@@ -265,6 +271,28 @@ namespace CloudNine.Core.Multisearch.Requests
                         }
                         catch { /* non-essential */ }
 
+                        try
+                        {
+                            var required_tags = node.SelectSingleNode(".//ul[contains(@class, 'required-tags')]");
+                            var raiting = required_tags.SelectSingleNode(".//li//span[contains(@class, 'rating')]");
+                            fic.IsExplicit = raiting.HasClass("rating-explicit");
+                            if (fic.IsExplicit && !searchOptions.AllowExplicit)
+                                continue; // we dont want this fic, it is explicit and we have that diabled.
+
+                            fic.Rating = raiting?.InnerText ?? "";
+
+                            var complete = required_tags.SelectSingleNode(".//li//span[contains(@class, 'iswip')]//span[contains(@class, 'text')]");
+                            if (complete is not null)
+                                fic.Completed = complete.InnerText == "Complete Work";
+                            else
+                                fic.Completed = false;
+
+                            var warnings = required_tags.SelectSingleNode(".//li//span[contains(@class, 'warnings')]");
+                            fic.SensitiveContentWarning = !(warnings.HasClass("warning-no") 
+                                || (warnings.HasClass("warning-choosenotto") && !searchOptions.TreatWarningsNotUsedAsWarnings));
+                        }
+                        catch { /* non-essential */ }
+
                         try // non-essential
                         {
                             // Get tag information
@@ -272,7 +300,12 @@ namespace CloudNine.Core.Multisearch.Requests
                             foreach (var tag_node in tag_nodes)
                             {
                                 var tag = tag_node.SelectSingleNode(".//a");
-                                fic.AddTag(new Tuple<string, string>(tag.InnerText, link_base + tag.Attributes["href"].Value));
+                                if (tag_node.HasClass("characters"))
+                                    fic.AddCharacterTag(new(tag.InnerText, link_base + tag.Attributes["href"].Value));
+                                else if (tag_node.HasClass("relationships"))
+                                    fic.AddRelationshipTag(new(tag.InnerText, link_base + tag.Attributes["href"].Value));
+                                else
+                                    fic.AddTag(new Tuple<string, string>(tag.InnerText, link_base + tag.Attributes["href"].Value));
                             }
                         }
                         catch { /* non-essential */ }
@@ -289,6 +322,13 @@ namespace CloudNine.Core.Multisearch.Requests
                         {
                             var fic_likes = node.SelectSingleNode(".//dd[contains(@class, 'kudos')]");
                             fic.Likes = Convert.ToInt64(fic_likes.InnerText);
+                        }
+                        catch { /* non-essential */ }
+
+                        try
+                        {
+                            var fic_hits = node.SelectSingleNode(".//dd[contains(@class, 'hits')]");
+                            fic.Views = Convert.ToInt64(fic_hits.InnerText);
                         }
                         catch { /* non-essential */ }
 

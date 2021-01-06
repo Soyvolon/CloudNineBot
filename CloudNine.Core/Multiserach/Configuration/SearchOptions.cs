@@ -12,5 +12,9 @@ namespace CloudNine.Core.Multisearch.Configuration
     {
         [JsonProperty("items_per_page")]
         public int ItemsPerPage { get; set; } = 20;
+        [JsonProperty("allow_explicit")]
+        public bool AllowExplicit { get; set; } = false;
+        [JsonProperty("treat_warnings_not_used_as_warnings")]
+        public bool TreatWarningsNotUsedAsWarnings { get; set; } = false;
     }
 }

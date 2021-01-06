@@ -8,7 +8,8 @@ namespace CloudNine.Core.Multiserach
 {
     public enum SiteFrom
     {
-        ArchiveOfOurOwn = 0,
+        None = 0,
+        ArchiveOfOurOwn,
         FanfictionDotNet,
         Wattpad
     }

@@ -12,6 +12,7 @@ namespace CloudNine.Discord.Commands
     {
         public static readonly DiscordColor Color_Cloud = new DiscordColor(0x3498db);
         public static readonly DiscordColor Color_Warn = new DiscordColor(0xe07c10);
+        public static readonly DiscordColor Color_Search = DiscordColor.Aquamarine;
 
         private CommandContext ctx;
 

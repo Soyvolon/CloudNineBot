@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
+using CloudNine.Core.Multisearch.Configuration;
+
 using HtmlAgilityPack;
 
 namespace CloudNine.Core.Multisearch.Requests
@@ -52,7 +55,7 @@ namespace CloudNine.Core.Multisearch.Requests
             return null;
         }
 
-        public virtual List<FanFic> DecodeHTML()
+        public virtual List<FanFic> DecodeHTML(SearchOptions searchOptions)
         {
             return null;
         }

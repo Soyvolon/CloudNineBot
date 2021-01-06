@@ -3,14 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using CloudNine.Core.Multisearch.Configuration;
+
 namespace CloudNine.Core.Multisearch.Requests
 {
     public class FanfictionRequest : RequestBase
     {
-        private readonly string link_base = "http://fanfiction.net";
+        private readonly string link_base = "https://fanfiction.net";
 
         //TODO: Expand search results to include more information than just a basic search and page number
-        private readonly string request_body = "http://www.fanfiction.net/search/?ready=1";
+        private readonly string request_body = "https://www.fanfiction.net/search/?ready=1";
         private readonly string type_body = "&type=";
         private readonly string keywords_body = "&keywords=";
 
@@ -30,7 +32,7 @@ namespace CloudNine.Core.Multisearch.Requests
             return request_body + keywords_body + Query + type_body + Type;
         }
 
-        public override List<FanFic> DecodeHTML()
+        public override List<FanFic> DecodeHTML(SearchOptions searchOptions)
         {
             List<FanFic> fics = new List<FanFic>();
 
@@ -40,7 +42,11 @@ namespace CloudNine.Core.Multisearch.Requests
             {
                 foreach (var node in nodes)
                 {
-                    FanFic fic = new FanFic();
+                    FanFic fic = new FanFic()
+                    {
+                        Site = Multiserach.SiteFrom.FanfictionDotNet,
+                        SensitiveContentWarning = searchOptions.TreatWarningsNotUsedAsWarnings // ff.net has no warnings sections.
+                    };
 
                     try
                     {

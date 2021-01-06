@@ -9,9 +9,11 @@ using CloudNine.Core.Database;
 using CloudNine.Core.Http;
 using CloudNine.Core.Multisearch;
 using CloudNine.Core.Multisearch.Builders;
+using CloudNine.Core.Multisearch.Configuration;
 
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -41,19 +43,49 @@ namespace CloudNine.Discord.Commands.Multiserach
                 await db.SaveChangesAsync();
             }
 
-            var search = new SearchBuilder();
-            search.SetBasic(args[0]);
+            var startEmbed = new DiscordEmbedBuilder();
+            startEmbed.WithDescription("Starting Search...")
+                .WithColor(Color_Search);
 
-            var res = await searchUser.NewSearch(_services.GetRequiredService<BrowserClient>(), search.Build());
-            for (int i = 0; i < 10; i++)
+            await ctx.RespondAsync(embed: startEmbed);
+
+            var search = ParseSearchArguments(out var help, out var options, args);
+
+            if(help || search is null)
             {
-                var embeds = res[i].GetDiscordEmbeds(new());
-
-                foreach (var e in embeds)
-                    await ctx.RespondAsync(embed: e);
-
-                await Task.Delay(TimeSpan.FromSeconds(0.5));
+                await DisplayHelp(ctx);
+                return;
             }
+
+            var fanfics = await searchUser.NewSearch(_services.GetRequiredService<BrowserClient>(), search.Build(), options);
+
+
+        }
+
+        private async Task DisplayHelp(CommandContext ctx)
+        {
+
+        }
+
+        private static SearchBuilder? ParseSearchArguments(out bool displayHelp, out SearchOptions? options, params string[] args)
+        {
+            var builder = new SearchBuilder();
+            options = null; // this will be created later, if a config option is needed.
+            displayHelp = false;
+
+            foreach(var a in args)
+            {
+                switch(a.Trim().ToLower())
+                {
+                    case "--help":
+                    case "-h":
+                        // Display the help information
+                        displayHelp = true;
+                        return null;
+                }
+            }
+
+            return builder;
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using HtmlAgilityPack;
+﻿using CloudNine.Core.Multisearch.Configuration;
+
+using HtmlAgilityPack;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,7 +40,7 @@ namespace CloudNine.Core.Multisearch.Requests
             return request_base + Query + CompileTagString();
         }
 
-        public override List<FanFic> DecodeHTML()
+        public override List<FanFic> DecodeHTML(SearchOptions searchOptions)
         {
             var nodes = Result.DocumentNode.SelectNodes("//div[contains(@class, 'results-story-item')]");
 
@@ -50,7 +52,10 @@ namespace CloudNine.Core.Multisearch.Requests
                 { // TODO: Determine error problems when reading information
                     try
                     {
-                        FanFic fic = new FanFic();
+                        FanFic fic = new FanFic()
+                        {
+                            Site = Multiserach.SiteFrom.Wattpad
+                        };
 
                         // Gather basic story info
                         var title_node = node.SelectSingleNode(".//h5[contains(@class, 'story-title-heading')]");

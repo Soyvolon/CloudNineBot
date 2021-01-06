@@ -26,6 +26,8 @@ namespace CloudNine.Core.Multisearch
         private ConcurrentDictionary<int, List<FanFic>> _fanFics { get; set; }
         private readonly BrowserClient _client;
 
+        private readonly SearchOptions _searchOptions;
+
         public bool TryGetResults(int page, out List<FanFic>? fics)
         {
             if(_fanFics.TryGetValue(page, out fics))
@@ -44,15 +46,14 @@ namespace CloudNine.Core.Multisearch
             => TryGetResults(WebsitePageNumber, out fics);
         
 
-        public SearchManager(BrowserClient client, SearchOptions? options = null)
+        public SearchManager(BrowserClient client, SearchOptions options)
         {
-            if (options is null)
-                options = new();
-
             _fanFics = new();
             WebsitePageNumber = 1; // start on first page
             ItemsPerPage = options.ItemsPerPage;
 
+
+            _searchOptions = options;
             _client = client;
         }
 
@@ -89,17 +90,17 @@ namespace CloudNine.Core.Multisearch
                     if (!_fanFics.ContainsKey(WebsitePageNumber))
                         _ = _fanFics.TryAdd(WebsitePageNumber, new List<FanFic>());
 
-                    _fanFics[WebsitePageNumber].AddRange(request.DecodeHTML());
+                    _fanFics[WebsitePageNumber].AddRange(request.DecodeHTML(_searchOptions));
                 }
             }
         }
 
         private async Task<string> GetHtml(string url)
         {
-            var page = await _client.Browser.NewPageAsync();
+            await using var page = await _client.Browser.NewPageAsync();
             await page.GoToAsync(url);
             var html = await page.GetContentAsync();
-
+            
             return html;
         }
     }
