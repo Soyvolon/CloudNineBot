@@ -86,14 +86,18 @@ namespace CloudNine.Discord.Commands.Birthday
 
             try
             {
-                await dm.SendFileAsync(fs, $"Birthdays for {ctx.Guild.Name}").ConfigureAwait(false);
+                await dm.SendMessageAsync(new DiscordMessageBuilder()
+                    .WithFile(fs)
+                    .WithContent($"Birthdays for {ctx.Guild.Name}"));
             }
             catch (UnauthorizedException)
             {
                 await fs.DisposeAsync().ConfigureAwait(false);
                 fs = new FileStream(path, FileMode.Open);
 
-                await ctx.Channel.SendFileAsync(fs, "Sending the file here beacuse we can't DM it to you!").ConfigureAwait(false);
+                await ctx.Channel.SendMessageAsync(new DiscordMessageBuilder()
+                    .WithFile(fs)
+                    .WithContent("Sending the file here because we can't DM it to you!"));
 
                 await fs.DisposeAsync().ConfigureAwait(false);
 

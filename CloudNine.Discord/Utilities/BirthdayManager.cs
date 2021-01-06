@@ -249,7 +249,7 @@ namespace CloudNine.Discord.Utilities
 
             if (DiscordBot.IsDebug)
             { // Use this to get around the channel update rate limits.
-                await DiscordBot.Bot.Rest.CreateMessageAsync(755610860680118283, channelTopic, false, null, null).ConfigureAwait(false);
+                await DiscordBot.Bot.Rest.CreateMessageAsync(755610860680118283, channelTopic).ConfigureAwait(false);
             }
             else
             {

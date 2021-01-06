@@ -64,7 +64,20 @@ namespace CloudNine.Discord.Commands.Multiserach
 
         private async Task DisplayHelp(CommandContext ctx)
         {
+            var helpEmbed = new DiscordEmbedBuilder();
+            helpEmbed.WithTitle("Fanfic Multisearch Help")
+                .WithDescription("The Multiserach module is a set of commands that allow users to " +
+                "use a single serach to search multiple Fanfiction websites.\n\n" +
+                "**Sites Supported:**\n" +
+                "Archive Of Our Own\n" +
+                "Fanfiction.net\n" +
+                "Wattpad")
+                .AddField("Search Fields`", "These attributes can be used multiple times to " +
+                "set the parameters of your serach")
+                .AddField("Search Options", "These options override your default options for your account and chnage " +
+                $"how the serach will be executed. If you want to change your default options, see `{ctx.Prefix}search options --help`");
 
+            await ctx.RespondAsync(embed: helpEmbed);
         }
 
         private static SearchBuilder? ParseSearchArguments(out bool displayHelp, out SearchOptions? options, params string[] args)
