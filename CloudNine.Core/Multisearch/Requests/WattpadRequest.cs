@@ -54,7 +54,7 @@ namespace CloudNine.Core.Multisearch.Requests
                     {
                         FanFic fic = new FanFic()
                         {
-                            Site = Multiserach.SiteFrom.Wattpad
+                            Site = Multisearch.SiteFrom.Wattpad
                         };
 
                         // Gather basic story info

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -14,12 +15,13 @@ using CloudNine.Core.Multisearch.Requests;
 
 using PuppeteerSharp;
 
+using RandomUserAgent;
+
 namespace CloudNine.Core.Multisearch
 {
     public class SearchManager
     {
         public ulong User { get; set; }
-        public int ItemsPerPage { get; set; }
         public int WebsitePageNumber { get; set; }
         public Search? ActiveSearch { get; private set; }
 
@@ -28,7 +30,7 @@ namespace CloudNine.Core.Multisearch
 
         private readonly SearchOptions _searchOptions;
 
-        public bool TryGetResults(int page, out List<FanFic>? fics)
+        public bool TryGetResults(int page, [NotNullWhen(true)] out List<FanFic>? fics)
         {
             if(_fanFics.TryGetValue(page, out fics))
             {
@@ -42,16 +44,30 @@ namespace CloudNine.Core.Multisearch
             return false;
         }
 
-        public bool TryGetCurrentPageResults(out List<FanFic>? fics)
+        public bool TryGetCurrentPageResults([NotNullWhen(true)] out List<FanFic>? fics)
             => TryGetResults(WebsitePageNumber, out fics);
         
+        public bool TryGetAllResults([NotNullWhen(true)] out List<FanFic>? allFics)
+        {
+            allFics = new();
+            for(int i = 1; i <= WebsitePageNumber; i++)
+            {
+                if (TryGetResults(i, out var fics))
+                    allFics.AddRange(fics);
+                else
+                {
+                    allFics = null;
+                    return false;
+                }
+            }
+
+            return true;
+        }
 
         public SearchManager(BrowserClient client, SearchOptions options)
         {
             _fanFics = new();
             WebsitePageNumber = 1; // start on first page
-            ItemsPerPage = options.ItemsPerPage;
-
 
             _searchOptions = options;
             _client = client;
@@ -98,9 +114,11 @@ namespace CloudNine.Core.Multisearch
         private async Task<string> GetHtml(string url)
         {
             await using var page = await _client.Browser.NewPageAsync();
+            await page.SetJavaScriptEnabledAsync(true);
+            await page.SetUserAgentAsync(RandomUa.RandomUserAgent);
             await page.GoToAsync(url);
             var html = await page.GetContentAsync();
-            
+
             return html;
         }
     }

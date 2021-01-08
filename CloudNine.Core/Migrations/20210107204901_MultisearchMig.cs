@@ -2,10 +2,17 @@
 
 namespace CloudNine.Core.Migrations
 {
-    public partial class MultisearchMigration : Migration
+    public partial class MultisearchMig : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AddColumn<string>(
+                name: "MultisearchConfiguration",
+                table: "ServerConfigurations",
+                type: "TEXT",
+                nullable: false,
+                defaultValue: "");
+
             migrationBuilder.CreateTable(
                 name: "MultisearchUsers",
                 columns: table => new
@@ -26,6 +33,10 @@ namespace CloudNine.Core.Migrations
         {
             migrationBuilder.DropTable(
                 name: "MultisearchUsers");
+
+            migrationBuilder.DropColumn(
+                name: "MultisearchConfiguration",
+                table: "ServerConfigurations");
         }
     }
 }

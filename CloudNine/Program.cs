@@ -8,7 +8,9 @@ using CloudNine.Config.Bot;
 using CloudNine.Core.Database;
 using CloudNine.Core.Http;
 using CloudNine.Core.Multisearch;
+using CloudNine.Core.Multisearch.Searching;
 using CloudNine.Discord;
+using CloudNine.Discord.Interactions;
 using CloudNine.Discord.Services;
 
 using Microsoft.EntityFrameworkCore;
@@ -44,7 +46,9 @@ namespace CloudNine
                 .AddDbContext<CloudNineDatabaseModel>(ServiceLifetime.Transient, ServiceLifetime.Scoped)
                 .AddSingleton<QuoteService>()
                 .AddSingleton<HttpClient>()
-                .AddSingleton<BrowserClient>();
+                .AddSingleton<BrowserClient>()
+                .AddTransient<SearchPraseService>()
+                .AddSingleton<MultisearchInteractivityService>();
 
             await using var serviceProvider = services.BuildServiceProvider();
 

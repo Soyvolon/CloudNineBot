@@ -44,7 +44,7 @@ namespace CloudNine.Core.Multisearch.Requests
                 {
                     FanFic fic = new FanFic()
                     {
-                        Site = Multiserach.SiteFrom.FanfictionDotNet,
+                        Site = Multisearch.SiteFrom.FanfictionDotNet,
                         SensitiveContentWarning = searchOptions.TreatWarningsNotUsedAsWarnings // ff.net has no warnings sections.
                     };
 

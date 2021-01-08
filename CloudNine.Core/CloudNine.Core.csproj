@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
@@ -25,6 +25,8 @@
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="PuppeteerSharp" Version="2.0.4" />
+    <PackageReference Include="RandomUserAgent" Version="1.1.2" />
+    <PackageReference Include="Soyvolon.Utiltiies" Version="1.0.2" />
   </ItemGroup>
 
 </Project>

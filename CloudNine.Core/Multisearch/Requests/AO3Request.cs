@@ -252,7 +252,7 @@ namespace CloudNine.Core.Multisearch.Requests
                     {
                         FanFic fic = new FanFic()
                         { 
-                            Site = Multiserach.SiteFrom.ArchiveOfOurOwn
+                            Site = Multisearch.SiteFrom.ArchiveOfOurOwn
                         };
 
                         // Gather story information

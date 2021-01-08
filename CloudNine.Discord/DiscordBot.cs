@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 
 using CloudNine.Config.Bot;
+using CloudNine.Discord.Interactions;
 using CloudNine.Discord.Services;
 using CloudNine.Discord.Utilities;
 
@@ -40,7 +41,7 @@ namespace CloudNine.Discord
             }
         }
 
-        public const string VERSION = "1.3.2";
+        public const string VERSION = "1.4.0";
         private bool disposedValue;
 
         public static DiscordBot Bot { get; private set; }
@@ -126,6 +127,12 @@ namespace CloudNine.Discord
 
             Client.Ready += Client_Ready;
             Client.MessageCreated += commandHander.MessageRecievedAsync;
+
+            var iservice = services.GetRequiredService<MultisearchInteractivityService>();
+
+            Client.MessageReactionAdded += iservice.Client_MessageReactionAdded;
+            Client.MessageReactionRemoved += iservice.Client_MessageReactionRemoved;
+            Client.MessageReactionsCleared += iservice.Client_MessageReactionsCleared;
 
             var relay = services.GetRequiredService<QuoteService>();
             Client.MessageCreated += relay.MessageRecievedAsync;

@@ -33,6 +33,10 @@ namespace CloudNine.Core.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("MultisearchConfiguration")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Prefix")
                         .HasColumnType("TEXT");
 

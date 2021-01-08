@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CloudNine.Core.Multiserach
+namespace CloudNine.Core.Multisearch
 {
     public enum SiteFrom
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using CloudNine.Core.Multisearch.Configuration;
-using CloudNine.Core.Multiserach;
+using CloudNine.Core.Multisearch;
 
 using DSharpPlus.Entities;
 
@@ -87,8 +87,9 @@ namespace CloudNine.Core.Multisearch
                 CharacterTagLimit = Math.Min(guildOptions.CharacterTagLimit, userOptions.CharacterTagLimit),
                 DefaultSearchOptions = new()
                 {
-                    ItemsPerPage = Math.Min(guildOptions.DefaultSearchOptions.ItemsPerPage, userOptions.DefaultSearchOptions.ItemsPerPage),
-                    AllowExplicit = guildOptions.DefaultSearchOptions.AllowExplicit && userOptions.DefaultSearchOptions.AllowExplicit
+                    AllowExplicit = guildOptions.DefaultSearchOptions.AllowExplicit && userOptions.DefaultSearchOptions.AllowExplicit,
+                    TreatWarningsNotUsedAsWarnings = guildOptions.DefaultSearchOptions.TreatWarningsNotUsedAsWarnings || userOptions.DefaultSearchOptions.TreatWarningsNotUsedAsWarnings,
+                    SearchConfiguration = userOptions.DefaultSearchOptions.SearchConfiguration // guilds dont get to set this one.
                 },
                 HideSensitiveContentDescriptions = guildOptions.HideSensitiveContentDescriptions || userOptions.HideSensitiveContentDescriptions,
                 OverflowDescription = guildOptions.OverflowDescription || userOptions.OverflowDescription,

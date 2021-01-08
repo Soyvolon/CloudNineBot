@@ -42,9 +42,9 @@ namespace CloudNine.Core.Http
             _browser = await Puppeteer.LaunchAsync(new LaunchOptions
             {
 #if DEBUG
-                Headless = false
+                Headless = true,
 #else
-                Headless = true
+                Headless = true,
 #endif
             });
         }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using CloudNine.Core.Birthdays;
 using CloudNine.Core.Multisearch;
+using CloudNine.Core.Multisearch.Configuration;
 using CloudNine.Core.Quotes;
 
 namespace CloudNine.Core.Configuration
@@ -21,6 +22,7 @@ namespace CloudNine.Core.Configuration
         public ConcurrentDictionary<int, Quote> Quotes { get; set; }
         public ConcurrentDictionary<string, Quote> HiddenQuotes { get; set; }
         public ConcurrentDictionary<ulong, SortedSet<int>> FavoriteQuotes { get; set; }
+        public MultisearchConfigurationOptions MultisearchConfiguration { get; set; }
 
         [NotMapped]
         private HashSet<int>? _keys;
@@ -46,6 +48,7 @@ namespace CloudNine.Core.Configuration
             Quotes = new ConcurrentDictionary<int, Quote>();
             HiddenQuotes = new ConcurrentDictionary<string, Quote>();
             FavoriteQuotes = new();
+            MultisearchConfiguration = new();
         }
 
         public Task<bool> AddQuote(Quote quote)

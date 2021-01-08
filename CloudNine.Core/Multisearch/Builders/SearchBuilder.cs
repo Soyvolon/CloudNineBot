@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using CloudNine.Core.Multisearch.Configuration;
+
 namespace CloudNine.Core.Multisearch.Builders
 {
     public class SearchBuilder
@@ -25,11 +27,7 @@ namespace CloudNine.Core.Multisearch.Builders
         public Tuple<DateTime, DateTime>? UpdateBefore { get; set; }
         public Tuple<DateTime, DateTime>? PublishBefore { get; set; }
 
-        public SearchDirection? Direction { get; set; }
-        public SearchBy? SearchFicsBy { get; set; }
-        public Raiting? FicRaiting { get; set; }
-        public FicStatus? Status { get; set; }
-        public CrossoverStatus? Crossover { get; set; }
+        public SearchConfiguration SearchConfiguration { get; set; }
 
         public SearchBuilder()
         {
@@ -57,6 +55,15 @@ namespace CloudNine.Core.Multisearch.Builders
             return this;
         }
 
+        public SearchBuilder WithAuthors(IList<string> authors)
+        {
+            if (this.Authors is null)
+                this.Authors = new();
+
+            this.Authors.AddRange(authors);
+            return this;
+        }
+
         public SearchBuilder WithCharacter(string character)
         {
             if (this.Characters is null)
@@ -66,12 +73,30 @@ namespace CloudNine.Core.Multisearch.Builders
             return this;
         }
 
-        public SearchBuilder WithRelationships(string relationship)
+        public SearchBuilder WithCharacters(IList<string> characters)
+        {
+            if (this.Characters is null)
+                this.Characters = new();
+
+            this.Characters.AddRange(characters);
+            return this;
+        }
+
+        public SearchBuilder WithRelationship(string relationship)
         {
             if (this.Relationships is null)
                 this.Relationships = new();
 
             this.Relationships.Add(relationship);
+            return this;
+        }
+
+        public SearchBuilder WithRelationships(IList<string> relationships)
+        {
+            if (this.Relationships is null)
+                this.Relationships = new();
+
+            this.Relationships.AddRange(relationships);
             return this;
         }
 
@@ -84,12 +109,30 @@ namespace CloudNine.Core.Multisearch.Builders
             return this;
         }
 
+        public SearchBuilder WithFandoms(IList<string> fandoms)
+        {
+            if (this.Fandoms is null)
+                this.Fandoms = new();
+
+            this.Fandoms.AddRange(fandoms);
+            return this;
+        }
+
         public SearchBuilder WithOtherTag(string otherTag)
         {
             if (this.OtherTags is null)
                 this.OtherTags = new();
 
             this.OtherTags.Add(otherTag);
+            return this;
+        }
+
+        public SearchBuilder WithOtherTags(IList<string> otherTags)
+        {
+            if (this.OtherTags is null)
+                this.OtherTags = new();
+
+            this.OtherTags.AddRange(otherTags);
             return this;
         }
 
@@ -137,31 +180,37 @@ namespace CloudNine.Core.Multisearch.Builders
 
         public SearchBuilder SetDirection(SearchDirection direction)
         {
-            this.Direction = direction;
+            this.SearchConfiguration.Direction = direction;
             return this;
         }
 
         public SearchBuilder SetSearchBy(SearchBy searchBy)
         {
-            this.SearchFicsBy = searchBy;
+            this.SearchConfiguration.SearchFicsBy = searchBy;
             return this;
         }
 
         public SearchBuilder SetRating(Raiting raiting)
         {
-            this.FicRaiting = raiting;
+            this.SearchConfiguration.FicRaiting = raiting;
             return this;
         }
 
         public SearchBuilder SetFicStatus(FicStatus status)
         {
-            this.Status = status;
+            this.SearchConfiguration.Status = status;
             return this;
         }
 
         public SearchBuilder SetCrossoverStatus(CrossoverStatus crossoverStatus)
         {
-            this.Crossover = crossoverStatus;
+            this.SearchConfiguration.Crossover = crossoverStatus;
+            return this;
+        }
+
+        public SearchBuilder SetSearchConfiguration(SearchConfiguration searchConfiguration)
+        {
+            this.SearchConfiguration = searchConfiguration;
             return this;
         }
 
@@ -182,11 +231,11 @@ namespace CloudNine.Core.Multisearch.Builders
                 WordCount = this.WordCount,
                 UpdateBefore = this.UpdateBefore,
                 PublishBefore = this.PublishBefore,
-                Direction = this.Direction,
-                SearchFicsBy = this.SearchFicsBy,
-                FicRaiting = this.FicRaiting,
-                Status = this.Status,
-                Crossover = this.Crossover
+                Direction = this.SearchConfiguration.Direction,
+                SearchFicsBy = this.SearchConfiguration.SearchFicsBy,
+                FicRaiting = this.SearchConfiguration.FicRaiting,
+                Status = this.SearchConfiguration.Status,
+                Crossover = this.SearchConfiguration.Crossover
             };
 
             return serach;
