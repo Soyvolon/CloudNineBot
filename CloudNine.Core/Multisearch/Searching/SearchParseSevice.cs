@@ -12,12 +12,12 @@ using Soyvolon.Utilities.Converters.Strings;
 
 namespace CloudNine.Core.Multisearch.Searching
 {
-    public class SearchPraseService
+    public class SearchParseSevice
     {
         private SearchBuilder Builder { get; set; }
         private SearchOptions Options { get; set; }
 
-        public SearchPraseService()
+        public SearchParseSevice()
         {
             Builder = new();
             Options = new();
@@ -286,7 +286,7 @@ namespace CloudNine.Core.Multisearch.Searching
             return null;
         }
 
-        private static SearchParseResult? EnumArgument<T>(string arg, out T? value) where T : Enum
+        public static SearchParseResult? EnumArgument<T>(string arg, out T? value) where T : Enum
         {
             var type = typeof(T);
             if (int.TryParse(arg, out var num))
@@ -328,7 +328,7 @@ namespace CloudNine.Core.Multisearch.Searching
             return ParseError($"Failed to convert {arg} to a {type.Name} value.");
         }
 
-        private static SearchParseResult? BooleanArgument(string arg, out bool res)
+        public static SearchParseResult? BooleanArgument(string arg, out bool res)
         {
             if(bool.TryParse(arg, out res))
             {
@@ -340,7 +340,7 @@ namespace CloudNine.Core.Multisearch.Searching
             }
         }
 
-        private static SearchParseResult? IntegerArgument(string arg, out int res)
+        public static SearchParseResult? IntegerArgument(string arg, out int res)
         {
             if(int.TryParse(arg, out res))
             {

@@ -11,10 +11,10 @@ namespace CloudNine.Core.Multisearch.Searching
 {
     public class SearchParseResult
     {
-        public bool DisplayHelp { get; internal set; }
-        public bool Errored { get; internal set; }
-        public SearchOptions? SearchOptions { get; internal set; }
-        public string? ErrorMessage { get; internal set; }
-        public SearchBuilder? SearchBuilder { get; internal set; }
+        public bool DisplayHelp { get; set; }
+        public bool Errored { get; set; }
+        public SearchOptions? SearchOptions { get; set; }
+        public string? ErrorMessage { get; set; }
+        public SearchBuilder? SearchBuilder { get; set; }
     }
 }

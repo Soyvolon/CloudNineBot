@@ -15,4 +15,19 @@ namespace CloudNine.Core.Multisearch
         PublishedDate,
         Comments
     }
+
+    public static class SearchByUtils
+    {
+        public static string GetString(this SearchBy? dir)
+            => dir switch
+            {
+                SearchBy.BestMatch => "Best Match",
+                SearchBy.Likes => "Likes",
+                SearchBy.Views => "Views",
+                SearchBy.UpdatedDate => "Updated Date",
+                SearchBy.PublishedDate => "Published Date",
+                SearchBy.Comments => "Comments",
+                _ => "Not Specified"
+            };
+    }
 }

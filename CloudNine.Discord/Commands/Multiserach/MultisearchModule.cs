@@ -8,9 +8,11 @@ using CloudNine.Core.Configuration;
 using CloudNine.Core.Database;
 using CloudNine.Core.Http;
 using CloudNine.Core.Multisearch;
+using CloudNine.Core.Multisearch.Configuration;
 using CloudNine.Core.Multisearch.Searching;
 using CloudNine.Discord.Interactions;
 
+using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
@@ -20,12 +22,406 @@ using Microsoft.Extensions.DependencyInjection;
 namespace CloudNine.Discord.Commands.Multiserach
 {
     [Group("search")]
+    [Description("Commands for the Fanfiction Multisearch module.")]
     public class MultisearchModule : CommandModule
     {
         protected readonly IServiceProvider _services;
         public MultisearchModule(IServiceProvider services)
         {
             this._services = services;
+        }
+
+        [Group("config")]
+        [Description("Commands for configuring how Cloud Bot searches and parses the search information.")]
+        public class MultisearchSettings : CommandModule
+        {
+            protected readonly string[] NotAllowedInGuild = new string[] { "direction", "searchby", "raiting", "complete", "crossover" };
+            protected readonly string[] AvalibleOptions = new string[] { "overflow", "hidesensitive", "taglimit", "ctaglimit", "rtaglimit",
+                "explicit", "warnonnowarn", "direction", "searchby", "raiting", "complete", "crossover" };
+            protected readonly IServiceProvider _services;
+            public MultisearchSettings(IServiceProvider services)
+            {
+                this._services = services;
+            }
+
+            [GroupCommand]
+            [Description("Shows help for configuration options.")]
+            public async Task SearchConfigHelp(CommandContext ctx)
+            {
+                var builder = new DiscordEmbedBuilder();
+                builder.WithTitle("Multisearch Config Help")
+                    .AddField("Avalible Options",
+                    string.Join(", ", AvalibleOptions))
+                    .AddField("Basic Value Types",
+                    "**True/False** options take boolean values. Either True, False, 1, or 0 must be entered.\n\n" +
+                    "**Numerical** options take a number. This must be an interger value. Anything 0 or below will be uased as no limit.")
+                    .AddField("Special Value Types",
+                    "`direction` requires one of the following (or the number): ```ascending (1), descending (0).```\n" +
+                    "`searchby` requires one of the following (or the number): ```bestmatch (0), likes (1), views (2), updateddate (3)" +
+                    $" publisheddate (4), or comments (5).```\n" +
+                    "`raiting` requires one of the following (or the number): ```any (0), general (1), teen (2), mature (3)," +
+                $" explicit (4), notexplicit (5).```\n" +
+                    "`complete` requires one of the following (or the number): ```any (0), inprogress (1), complete (2).```\n" +
+                    "`crossover` requires one of the following (or the number): ```any (0), nocrossover (1), crossover (2).```")
+                    .AddField("Want to view the current Configs?",
+                    $"`{ctx.Prefix}search config user` to view your personal config.\n" +
+                    $"`{ctx.Prefix}search config guild` to view this servers config.")
+                    .WithColor(Color_Search);
+
+                await ctx.RespondAsync(builder);
+            }
+
+            [Command("user")]
+            [Aliases("member")]
+            [Description("Set or view personal settings.")]
+            public async Task UserConfigCommandAsync(CommandContext ctx,
+                [Description("Setting to change. Leave blank to view current settings.")]
+                string? setting = null,
+                
+                [Description("Value to change it to. Leave blank to set it back to the defualt.")]
+                string? value = null)
+            {
+                if(setting is null)
+                {
+                    await DisplayUserSettings(ctx);
+                }
+                else
+                {
+                    await UpdateOption(ctx, setting, value, false);
+                }
+            }
+
+            private async Task DisplayUserSettings(CommandContext ctx)
+            {
+                var db = _services.GetRequiredService<CloudNineDatabaseModel>();
+                var user = await db.FindAsync<MultisearchUser>(ctx.Member.Id);
+
+                var settings = user.Options;
+
+                var builder = GetSharedEmbed(settings);
+                builder.AddField("Search Configuration",
+                    $"Search Direction (`direction`): **{settings.DefaultSearchOptions?.SearchConfiguration?.Direction.GetString() ?? "Not Specified"}**\n\n" +
+                    $"Search By (`searchby`): **{settings.DefaultSearchOptions?.SearchConfiguration?.SearchFicsBy.GetString() ?? "Not Specified"}**\n\n" +
+                    $"Raiting (`raiting`): **{settings.DefaultSearchOptions?.SearchConfiguration?.FicRaiting.GetString() ?? "Not Specified"}**\n\n" +
+                    $"Completion Status (`complete`): **{settings.DefaultSearchOptions?.SearchConfiguration?.Status.GetString() ?? "Not Specified"}**\n\n" +
+                    $"Crossover Status (`crossover`): **{settings.DefaultSearchOptions?.SearchConfiguration?.Crossover.GetString() ?? "Not Specified"}**")
+                    .WithTitle("User Configuration")
+                    .WithAuthor(ctx.Member.DisplayName, ctx.Member.AvatarUrl, ctx.Member.AvatarUrl)
+                    .WithColor(Color_Search)
+                    .WithDescription("Global settings for you. These will be overwritten by a guild setting if it is lower. For example," +
+                    " if you allow explicit content, but the guild does not, then no explicit content will be show.\n\n" +
+                    "**Values in the parenthesises `( )` are the config option name. Use this name when setting a config value.**");
+
+                await ctx.RespondAsync(builder);
+            }
+
+            [Command("guild")]
+            [Aliases("server")]
+            [Description("Set or view server settings.")]
+            public async Task GuildConfigCommandAsync(CommandContext ctx,
+                [Description("Setting to change. Leave blank to view current settings.")]
+                string? setting = null,
+
+                [Description("Value to change it to. Leave blank to set it back to the defualt.")]
+                string? value = null)
+            {
+                if(setting is null)
+                {
+                    await DisplayGuildSettings(ctx);
+                }
+                else
+                {
+                    if(!ctx.Member.Guild.Permissions?.HasPermission(Permissions.ManageMessages) ?? false)
+                    {
+                        await RespondError("You do not have permissions to modify the servers configuration!");
+                        return;
+                    }
+
+                    if(value is not null && NotAllowedInGuild.Contains(value))
+                    {
+                        await RespondError($"The {value} option is for user configurations only.");
+                    }
+                    else
+                    {
+                        await UpdateOption(ctx, setting, value, true);
+                    }
+                }
+            }
+
+            private async Task DisplayGuildSettings(CommandContext ctx)
+            {
+                var db = _services.GetRequiredService<CloudNineDatabaseModel>();
+                var guild = await db.FindAsync<DiscordGuildConfiguration>(ctx.Guild.Id);
+
+                var builder = GetSharedEmbed(guild.MultisearchConfiguration);
+                builder.WithTitle($"Server Configuration")
+                    .WithAuthor(ctx.Guild.Name, ctx.Guild.IconUrl, ctx.Guild.IconUrl)
+                    .WithColor(Color_Search)
+                    .WithDescription("Configuration options for this server. Options set here will override user options if they are \"lower\"." +
+                    " For example, if a user has explicit content enabled, but the server has it disabled, no explicit content will be displayed.\n\n" +
+                    "**Values in the parenthesises `( )` are the config option name. Use this name when setting a config value.**");
+
+                await ctx.RespondAsync(builder);
+            }
+
+            private DiscordEmbedBuilder GetSharedEmbed(MultisearchConfigurationOptions options)
+            {
+                var builder = new DiscordEmbedBuilder();
+                builder.AddField("Configuration Options",
+                    $"Overflow Description (`overflow`): **{options.OverflowDescription}**\n\n" +
+                    $"Hide Sensitive Content Descriptions (`hidesensitive`): **{options.HideSensitiveContentDescriptions}**\n\n" +
+                    $"Other Tag Limit (`taglimit`): **{options.TagLimit}**\n\n" +
+                    $"Character Tag Limit (`ctaglimit`): **{options.CharacterTagLimit}**\n\n" +
+                    $"Relationship Tag Limit (`rtaglimit`): **{options.RelationshipTagLimit}**\n\n")
+                    .AddField("Search Options",
+                    $"Allow Explicit (`explicit`): **{options.DefaultSearchOptions.AllowExplicit}**\n\n" +
+                    $"Treat Warnings Not Used as Warnings (`warnonnowarn`): **{options.DefaultSearchOptions.TreatWarningsNotUsedAsWarnings}**\n\n");
+
+                return builder;
+            }
+
+            private async Task UpdateOption(CommandContext ctx, string option, string? value = null, bool guild = false)
+            {
+                var defaults = new MultisearchConfigurationOptions();
+
+                var db = _services.GetRequiredService<CloudNineDatabaseModel>();
+                DiscordGuildConfiguration? gcfg = null;
+                MultisearchUser? user = null;
+                MultisearchConfigurationOptions options;
+                if(guild)
+                {
+                    gcfg = await db.FindAsync<DiscordGuildConfiguration>(ctx.Guild.Id);
+                    options = gcfg.MultisearchConfiguration;
+                }
+                else
+                {
+                    user = await db.FindAsync<MultisearchUser>(ctx.Member.Id);
+                    options = user.Options;
+                }
+
+                string outVal = "";
+                SearchParseResult? error = null;
+                switch(option.ToLower())
+                {
+                    case "overflow":
+                        if(value is null)
+                        {
+                            options.OverflowDescription = defaults.OverflowDescription;
+                        }
+                        else
+                        {
+                            if((error = SearchParseSevice.BooleanArgument(value, out var res)) is null)
+                            {
+                                options.OverflowDescription = res;
+                            }
+                        }
+
+                        outVal = options.OverflowDescription.ToString();
+                        break;
+                    case "hidesensitive":
+                        if (value is null)
+                        {
+                            options.HideSensitiveContentDescriptions = defaults.HideSensitiveContentDescriptions;
+                        }
+                        else
+                        {
+                            if ((error = SearchParseSevice.BooleanArgument(value, out var res)) is null)
+                            {
+                                options.HideSensitiveContentDescriptions = res;
+                            }
+                        }
+
+                        outVal = options.HideSensitiveContentDescriptions.ToString();
+                        break;
+                    case "taglimit":
+                        if (value is null)
+                        {
+                            options.TagLimit = defaults.TagLimit;
+                        }
+                        else
+                        {
+                            if ((error = SearchParseSevice.IntegerArgument(value, out var res)) is null)
+                            {
+                                options.TagLimit = res;
+                            }
+                        }
+
+                        outVal = options.TagLimit.ToString();
+                        break;
+                    case "ctaglimit":
+                        if (value is null)
+                        {
+                            options.CharacterTagLimit = defaults.CharacterTagLimit;
+                        }
+                        else
+                        {
+                            if ((error = SearchParseSevice.IntegerArgument(value, out var res)) is null)
+                            {
+                                options.CharacterTagLimit = res;
+                            }
+                        }
+
+                        outVal = options.CharacterTagLimit.ToString();
+                        break;
+                    case "rtaglimit":
+                        if (value is null)
+                        {
+                            options.RelationshipTagLimit = defaults.RelationshipTagLimit;
+                        }
+                        else
+                        {
+                            if ((error = SearchParseSevice.IntegerArgument(value, out var res)) is null)
+                            {
+                                options.RelationshipTagLimit = res;
+                            }
+                        }
+
+                        outVal = options.RelationshipTagLimit.ToString();
+                        break;
+                    case "explicit":
+                        if (value is null)
+                        {
+                            options.DefaultSearchOptions.AllowExplicit = defaults.DefaultSearchOptions.AllowExplicit;
+                        }
+                        else
+                        {
+                            if ((error = SearchParseSevice.BooleanArgument(value, out var res)) is null)
+                            {
+                                options.DefaultSearchOptions.AllowExplicit = res;
+                            }
+                        }
+
+                        outVal = options.DefaultSearchOptions.AllowExplicit.ToString();
+                        break;
+                    case "warnonnowarn":
+                        if (value is null)
+                        {
+                            options.DefaultSearchOptions.TreatWarningsNotUsedAsWarnings = defaults.DefaultSearchOptions.TreatWarningsNotUsedAsWarnings;
+                        }
+                        else
+                        {
+                            if ((error = SearchParseSevice.BooleanArgument(value, out var res)) is null)
+                            {
+                                options.DefaultSearchOptions.TreatWarningsNotUsedAsWarnings = res;
+                            }
+                        }
+
+                        outVal = options.DefaultSearchOptions.TreatWarningsNotUsedAsWarnings.ToString();
+                        break;
+                    case "direction":
+                        if (value is null)
+                        {
+                            options.DefaultSearchOptions.SearchConfiguration.Direction = defaults.DefaultSearchOptions.SearchConfiguration.Direction;
+                        }
+                        else
+                        {
+                            if ((error = SearchParseSevice.EnumArgument<SearchDirection>(value, out var res)) is null)
+                            {
+                                options.DefaultSearchOptions.SearchConfiguration.Direction = res;
+                            }
+                        }
+
+                        outVal = options.DefaultSearchOptions.SearchConfiguration.Direction.GetString();
+                        break;
+                    case "searchby":
+                        if (value is null)
+                        {
+                            options.DefaultSearchOptions.SearchConfiguration.SearchFicsBy = defaults.DefaultSearchOptions.SearchConfiguration.SearchFicsBy;
+                        }
+                        else
+                        {
+                            if ((error = SearchParseSevice.EnumArgument<SearchBy>(value, out var res)) is null)
+                            {
+                                options.DefaultSearchOptions.SearchConfiguration.SearchFicsBy = res;
+                            }
+                        }
+
+                        outVal = options.DefaultSearchOptions.SearchConfiguration.SearchFicsBy.GetString();
+                        break;
+                    case "raiting":
+                        if (value is null)
+                        {
+                            options.DefaultSearchOptions.SearchConfiguration.FicRaiting = defaults.DefaultSearchOptions.SearchConfiguration.FicRaiting;
+                        }
+                        else
+                        {
+                            if ((error = SearchParseSevice.EnumArgument<Raiting>(value, out var res)) is null)
+                            {
+                                options.DefaultSearchOptions.SearchConfiguration.FicRaiting = res;
+                            }
+                        }
+
+                        outVal = options.DefaultSearchOptions.SearchConfiguration.FicRaiting.GetString();
+                        break;
+                    case "complete":
+                        if (value is null)
+                        {
+                            options.DefaultSearchOptions.SearchConfiguration.Status = defaults.DefaultSearchOptions.SearchConfiguration.Status;
+                        }
+                        else
+                        {
+                            if ((error = SearchParseSevice.EnumArgument<FicStatus>(value, out var res)) is null)
+                            {
+                                options.DefaultSearchOptions.SearchConfiguration.Status = res;
+                            }
+                        }
+
+                        outVal = options.DefaultSearchOptions.SearchConfiguration.Status.GetString();
+                        break;
+                    case "crossover":
+                        if (value is null)
+                        {
+                            options.DefaultSearchOptions.SearchConfiguration.Crossover = defaults.DefaultSearchOptions.SearchConfiguration.Crossover;
+                        }
+                        else
+                        {
+                            if ((error = SearchParseSevice.EnumArgument<CrossoverStatus>(value, out var res)) is null)
+                            {
+                                options.DefaultSearchOptions.SearchConfiguration.Crossover = res;
+                            }
+                        }
+
+                        outVal = options.DefaultSearchOptions.SearchConfiguration.Crossover.GetString();
+                        break;
+                    default:
+                        error = new SearchParseResult
+                        {
+                            Errored = true,
+                            ErrorMessage = "Failed to match provided option with a valid config option."
+                        };
+                        break;
+                }
+
+                if (error is null)
+                {
+                    if (gcfg is not null)
+                        db.Update(gcfg);
+                    if (user is not null)
+                        db.Update(user);
+                    await db.SaveChangesAsync();
+                    await SendUpdateMessage(ctx, option, outVal, value is null, guild);
+                }
+                else
+                {
+                    await RespondError(error.ErrorMessage ?? "An unkown error occoured.");
+                }
+            }
+
+            private async Task SendUpdateMessage(CommandContext ctx, string option, string value, bool isDefault, bool guild)
+            {
+                var builder = new DiscordEmbedBuilder().WithColor(Color_Search);
+                string guildString = guild ? "the server config" : "your user config";
+                if(isDefault)
+                {
+                    builder.WithDescription($"Set {option} to the default value of {value} for {guildString}.");
+                }
+                else
+                {
+                    builder.WithDescription($"Updated {option} to {value} for {guildString}");
+                }
+
+                await ctx.RespondAsync(builder);
+            }
         }
 
         [Command("display")]
@@ -91,6 +487,11 @@ namespace CloudNine.Discord.Commands.Multiserach
                             await RespondError("Fanfiction failed to be displayed.");
                         else
                         {
+                            _ = user.AddToCahce(fics[result]);
+
+                            db.Update(user);
+                            await db.SaveChangesAsync();
+
                             foreach (var e in embeds)
                                 await ctx.RespondAsync(e);
                         }
@@ -125,7 +526,7 @@ namespace CloudNine.Discord.Commands.Multiserach
                 await db.SaveChangesAsync();
             }
 
-            var search = _services.GetRequiredService<SearchPraseService>();
+            var search = _services.GetRequiredService<SearchParseSevice>();
 
             if (searchUser.Options.DefaultSearchOptions.SearchConfiguration is not null)
                 search.RegisterDefaults(searchUser.Options.DefaultSearchOptions.SearchConfiguration);
@@ -247,7 +648,7 @@ namespace CloudNine.Discord.Commands.Multiserach
                 .AddField("`-D | --direction <search direction>`", "```http\n" +
                 $"Usage         :: -D ascending\n" +
                 $"Usage         :: --direction 0\n" +
-                $"Search Dir    :: The order wich to order web results. Either Ascending (1) or Descending (0)." +
+                $"Search Dir    :: The order wich to order web results. Either ascending (1) or descending (0)." +
                 "\n```")
                 .AddField("`-s | --searchby <search by>`", "```http\n" +
                 $"Usage         :: -s bestmatch\n" +
@@ -287,7 +688,29 @@ namespace CloudNine.Discord.Commands.Multiserach
                 "\n```")
             #endregion
             #region Special Types
-                .AddField("SPECIAL TYPES",
+                .AddSpecialTypes();
+            #endregion
+
+            await ctx.RespondAsync(embed: helpOne);
+            await ctx.RespondAsync(embed: helpTwo);
+        }
+
+        
+
+        private async Task DisplayResults(CommandContext ctx)
+        {
+            var cnext = ctx.Client.GetCommandsNext();
+            var cmd = cnext.FindCommand("search display", out var args);
+            var fake = cnext.CreateContext(ctx.Message, ctx.Prefix, cmd, args);
+            await cnext.ExecuteCommandAsync(fake);
+        }
+    }
+
+    public static class DiscordEmbedBuilderExtensions
+    {
+        public static DiscordEmbedBuilder AddSpecialTypes(this DiscordEmbedBuilder builder)
+        {
+            builder.AddField("SPECIAL TYPES",
                     "These types are different than the normal options and have a lot of customization in their usage.")
                 .AddField("Dual Integers",
                     "This is a pair of integers. A 0 in either slot means no value, not a value of 0. It works as a `min-max` value," +
@@ -317,18 +740,8 @@ namespace CloudNine.Discord.Commands.Multiserach
                     ">5 years  :: The value of 5 is in days times 365 (years).\n" +
                     ">5        :: The value of 5 is in days." +
                     "\n```");
-            #endregion
 
-            await ctx.RespondAsync(embed: helpOne);
-            await ctx.RespondAsync(embed: helpTwo);
-        }
-
-        private async Task DisplayResults(CommandContext ctx)
-        {
-            var cnext = ctx.Client.GetCommandsNext();
-            var cmd = cnext.FindCommand("search display", out var args);
-            var fake = cnext.CreateContext(ctx.Message, ctx.Prefix, cmd, args);
-            await cnext.ExecuteCommandAsync(fake);
+            return builder;
         }
     }
 }

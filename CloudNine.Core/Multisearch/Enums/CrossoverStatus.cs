@@ -12,4 +12,16 @@ namespace CloudNine.Core.Multisearch
         NoCrossover,
         Crossover
     }
+
+    public static class CrossoverStatusUtils
+    {
+        public static string GetString(this CrossoverStatus? dir)
+            => dir switch
+            {
+                CrossoverStatus.Any => "Any",
+                CrossoverStatus.NoCrossover => "No Crossovers",
+                CrossoverStatus.Crossover => "Crossovers Only",
+                _ => "Not Specified"
+            };
+    }
 }

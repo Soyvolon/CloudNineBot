@@ -15,6 +15,6 @@ namespace CloudNine.Core.Multisearch.Configuration
         [JsonProperty("treat_warnings_not_used_as_warnings")]
         public bool TreatWarningsNotUsedAsWarnings { get; set; } = false;
         [JsonProperty("search_configuration")]
-        public SearchConfiguration? SearchConfiguration { get; set; } = new();
+        public SearchConfiguration SearchConfiguration { get; set; } = new();
     }
 }

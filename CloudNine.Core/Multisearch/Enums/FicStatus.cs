@@ -12,4 +12,16 @@ namespace CloudNine.Core.Multisearch
         InProgress,
         Complete
     }
+
+    public static class FicStatusUtils
+    {
+        public static string GetString(this FicStatus? dir)
+            => dir switch
+            {
+                FicStatus.Any => "Any",
+                FicStatus.InProgress => "In Progress Only",
+                FicStatus.Complete => "Complete Only",
+                _ => "Not Specified"
+            };
+    }
 }

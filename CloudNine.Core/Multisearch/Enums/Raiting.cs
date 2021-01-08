@@ -16,4 +16,19 @@ namespace CloudNine.Core.Multisearch
         Explicit,
         NotExplicit
     }
+
+    public static class RaitingUtils
+    {
+        public static string GetString(this Raiting? dir)
+            => dir switch
+            {
+                Raiting.Any => "Any",
+                Raiting.General => "General",
+                Raiting.Teen => "Teen",
+                Raiting.Mature => "Mature",
+                Raiting.Explicit => "Explicit",
+                Raiting.NotExplicit => "Not Explicit",
+                _ => "Not Specified"
+            };
+    }
 }

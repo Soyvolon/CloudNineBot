@@ -11,4 +11,15 @@ namespace CloudNine.Core.Multisearch
         Descending = 0,
         Ascending
     }
+
+    public static class SearchDirectionUtils
+    {
+        public static string GetString(this SearchDirection? dir)
+            => dir switch
+            {
+                SearchDirection.Ascending => "Ascending",
+                SearchDirection.Descending => "Descending",
+                _ => "Not Specified"
+            };
+    }
 }

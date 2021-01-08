@@ -47,7 +47,7 @@ namespace CloudNine
                 .AddSingleton<QuoteService>()
                 .AddSingleton<HttpClient>()
                 .AddSingleton<BrowserClient>()
-                .AddTransient<SearchPraseService>()
+                .AddTransient<SearchParseSevice>()
                 .AddSingleton<MultisearchInteractivityService>();
 
             await using var serviceProvider = services.BuildServiceProvider();
