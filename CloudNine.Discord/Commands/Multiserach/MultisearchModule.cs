@@ -163,8 +163,13 @@ namespace CloudNine.Discord.Commands.Multiserach
 
         private async Task DisplayHelp(CommandContext ctx)
         {
-            var helpEmbed = new DiscordEmbedBuilder();
-            helpEmbed.WithTitle("Fanfic Multisearch Help")
+            var helpBase = new DiscordEmbedBuilder();
+            helpBase.WithColor(Color_Search)
+                .WithFooter("Cloud Nine Bot - Fanfiction Multiserach")
+                .WithTitle("Fanfic Multisearch Help");
+
+            var helpOne = new DiscordEmbedBuilder(helpBase);
+            helpOne
                 .WithDescription("The Multiserach module is a set of commands that allow users to " +
                 "use a single serach to search multiple Fanfiction websites.\n\n" +
                 "**Sites Supported:**\n" +
@@ -176,72 +181,146 @@ namespace CloudNine.Discord.Commands.Multiserach
                 .AddField("Search Fields", "These attributes can be used multiple times to " +
                 "set the parameters of your serach. Some of these options can also be set as defaults, see `{ctx.Prefix}search options --help` " +
                 "for more information.")
-                .AddField("`--title | -t", "```http\n" +
-                "" +
+                .AddField("`-t | --title <title>`", "```http\n" +
+                $"Usage         :: -t \"Fanfic Title\"\n" +
+                $"Usage         :: --title \"Fanfic Title\"\n" +
+                $"Title         :: Search by a title. Use quotes \" around multi word titles." +
                 "\n```")
-                .AddField("`--title | -t", "```http\n" +
-                "" +
+                .AddField("`-a | --author <authors>`", "```http\n" +
+                $"Usage         :: -a \"Author Search\"\n" +
+                $"Usage         :: --author \"Author One,Author Two\"\n" +
+                $"Author        :: A list of authors, separated by commas. Use quotes \" around searches with spaces in them. Can be used more than once." +
                 "\n```")
-                .AddField("`--title | -t", "```http\n" +
-                "" +
+                .AddField("`-c | --character <characters>`", "```http\n" +
+                $"Usage         :: -c \"Character Name\"\n" +
+                $"Usage         :: --character \"Character One,Character Two\"\n" +
+                $"Characters    :: A list of characters, separated by commas. Use quotes \" around searches with spaces in them. Can be used more than once" +
                 "\n```")
-                .AddField("`--title | -t", "```http\n" +
-                "" +
+                .AddField("`-r | --relationship <relationships>`", "```http\n" +
+                $"Usage         :: -r \"Character One & Character Two\"\n" +
+                $"Usage         :: --relationship \"Character One/Character Two\"\n" +
+                $"Relationships :: A list of relationships, separated by commas. Use quotes \" around searches with spaces in them. Can be used more than once." +
                 "\n```")
-                .AddField("`--title | -t", "```http\n" +
-                "" +
+                .AddField("`-f | --fandom <fandoms>`", "```http\n" +
+                $"Usage         :: -f \"Fandom Name\"\n" +
+                $"Usage         :: --fandom \"Fandom One,Fandom Two\"\n" +
+                $"Fandoms       :: A list of fandoms, separated by commas. Use quotes \" around searches with spaces in them. Can be used more than once." +
                 "\n```")
-                .AddField("`--title | -t", "```http\n" +
-                "" +
+                .AddField("`-o | --other <tags>`", "```http\n" +
+                $"Usage         :: -o \"Other Tag\"\n" +
+                $"Usage         :: --other \"Tag 1,Tag 2\"\n" +
+                $"Tags          :: A list of other tags, separated by commas. Use quotes \" around searches with spaces in them. Can be used more than once." +
                 "\n```")
-                .AddField("`--title | -t", "```http\n" +
-                "" +
+                .AddField("`-l | --likes <dual integers>`", "```http\n" +
+                $"Usage         :: -l 1000-10000\n" +
+                $"Usage         :: --likes 1000-0\n" +
+                $"Dual Integers :: A pair of integers. See the SPECIAL TYPES section for more information." +
                 "\n```")
-                .AddField("`--title | -t", "```http\n" +
-                "" +
+                .AddField("`-v | --views <dual integers>`", "```http\n" +
+                $"Usage         :: -v 1000-10000\n" +
+                $"Usage         :: --views 1000-0\n" +
+                $"Dual Integers :: A pair of integers. See the SPECIAL TYPES section for more information." +
                 "\n```")
-                .AddField("`--title | -t", "```http\n" +
-                "" +
+                .AddField("`-C | --comments <dual integers>`", "```http\n" +
+                $"Usage         :: -C 1000-10000\n" +
+                $"Usage         :: --comments 1000-0\n" +
+                $"Dual Integers :: A pair of integers. See the SPECIAL TYPES section for more information." +
+                "\n```");
+
+            var helpTwo = new DiscordEmbedBuilder(helpBase);
+            helpTwo
+                .AddField("`-w | --words <dual integers>`", "```http\n" +
+                $"Usage         :: -w 1000-10000\n" +
+                $"Usage         :: --words 1000-0\n" +
+                $"Dual Integers :: A pair of integers. See the SPECIAL TYPES section for more information." +
                 "\n```")
-                .AddField("`--title | -t", "```http\n" +
-                "" +
+                .AddField("`-u | --updated <dual times>`", "```http\n" +
+                $"Usage         :: -u \">1 month\"\n" +
+                $"Usage         :: --updated \"20-50 days\"\n" +
+                $"Dual Times    :: A pair of times, followed by a unit. See the SPECIAL TYPES section for more information." +
                 "\n```")
-                .AddField("`--title | -t", "```http\n" +
-                "" +
+                .AddField("`-p | --published <dual times>`", "```http\n" +
+                $"Usage         :: -p \">1 month\"\n" +
+                $"Usage         :: --published \"20-50 days\"\n" +
+                $"Dual Times    :: A pair of times, followed by a unit. See the SPECIAL TYPES section for more information." +
                 "\n```")
-                .AddField("`--title | -t", "```http\n" +
-                "" +
+                .AddField("`-D | --direction <search direction>`", "```http\n" +
+                $"Usage         :: -D ascending\n" +
+                $"Usage         :: --direction 0\n" +
+                $"Search Dir    :: The order wich to order web results. Either Ascending (1) or Descending (0)." +
                 "\n```")
-                .AddField("`--title | -t", "```http\n" +
-                "" +
+                .AddField("`-s | --searchby <search by>`", "```http\n" +
+                $"Usage         :: -s bestmatch\n" +
+                $"Usage         :: --searchby 1\n" +
+                $"Search By     :: How organize the web results. Must be one of the following: bestmatch (0), likes (1), views (2), updateddate (3)" +
+                $" publisheddate (4), or comments (5)." +
                 "\n```")
-                .AddField("`--title | -t", "```http\n" +
-                "" +
+                .AddField("`-R | --raiting <raiting>`", "```http\n" +
+                $"Usage         :: -R any\n" +
+                $"Usage         :: --raiting 5\n" +
+                $"Raiting       :: Filter web results by a raiting. Must be one of the following: any (0), general (1), teen (2), mature (3)," +
+                $" explicit (4), notexplicit (5)." +
                 "\n```")
-                .AddField("`--title | -t", "```http\n" +
-                "" +
+                .AddField("`-S | --status <status>`", "```http\n" +
+                $"Usage         :: -S any\n" +
+                $"Usage         :: --status 2\n" +
+                $"Status        :: Filter web results by the fic status. Must be one of the following: any (0), inprogress (1), complete (2)." +
                 "\n```")
-                .AddField("`--title | -t", "```http\n" +
-                "" +
-                "\n```")
-                .AddField("`--title | -t", "```http\n" +
-                "" +
+                .AddField("`-x | --crossover <crossover>`", "```http\n" +
+                $"Usage         :: -x any\n" +
+                $"Usage         :: --crossover 1\n" +
+                $"Status        :: Filter web results by if the fic is a crossover. Must be one of the following: any (0), nocrossover (1), crossover (2)." +
                 "\n```")
             #endregion
             #region Search Options
                 .AddField("Search Options", "These options override your default options for your account and chnage " +
                 $"how the serach will be executed. If you want to change your default options, see `{ctx.Prefix}search options --help`")
-                .AddField("`--title | -t", "```http\n" +
-                "" +
+                .AddField("`-e | --explicit <true/false>`", "```http\n" +
+                $"Usage         :: -e true\n" +
+                $"Usage         :: --explicit false\n" +
+                $"True/False    :: A boolean value: ture (1) or false (0)" +
                 "\n```")
-                .AddField("`--title | -t", "```http\n" +
-                "" +
+                .AddField("`-W | --warnsingsnotusedaswarnings <true/false>`", "```http\n" +
+                $"Usage         :: -W true\n" +
+                $"Usage         :: --warnsingsnotusedaswarnings <false>\n" +
+                $"True/False    :: A boolean value: ture (1) or false (0)" +
                 "\n```")
             #endregion
-                .WithColor(Color_Search)
-                .WithFooter("Cloud Nine Bot - Fanfiction Multiserach");
+            #region Special Types
+                .AddField("SPECIAL TYPES",
+                    "These types are different than the normal options and have a lot of customization in their usage.")
+                .AddField("Dual Integers",
+                    "This is a pair of integers. A 0 in either slot means no value, not a value of 0. It works as a `min-max` value," +
+                    " where a non used value has no effect.\n" +
+                    "Examples (for word count):" +
+                    "```http\n" +
+                    "100-200   :: 100 to 200 words only.\n" +
+                    "1000-0    :: Less than or equal to 1000 words only.\n" +
+                    "0-1000    :: Greater than or eqaul to 1000 words only." +
+                    "\n```")
+                .AddField("Dual Times",
+                    "This is a pair of times or a less then/greater than a time value. A 0 means no value, not a value of 0. It works as a `min-max` value," +
+                    " where a non used value has no effect.\n" +
+                    "Examples (for publish date):" +
+                    "```http\n" +
+                    ">5 days   :: Updated more than 5 days ago.\n" +
+                    "0-5 days  :: Updated more than 5 days ago.\n" +
+                    "<5 days   :: Updated less than 5 days ago.\n" +
+                    "5-0 days  :: Updated less than 5 days ago.\n" +
+                    "1-5 days  :: Updated between 1 and 5 days ago." +
+                    "\n```\n" +
+                    "Furthermore, you can sepcify the amount of weight the numbers have:" +
+                    "```http\n" +
+                    ">5 days   :: The value 5 is in days.\n" +
+                    ">5 weeks  :: The value of 5 is in days times 7 (weeks).\n" +
+                    ">5 months :: The value of 5 is in days times 30 (months).\n" +
+                    ">5 years  :: The value of 5 is in days times 365 (years).\n" +
+                    ">5        :: The value of 5 is in days." +
+                    "\n```");
+            #endregion
 
-            await ctx.RespondAsync(embed: helpEmbed);
+            await ctx.RespondAsync(embed: helpOne);
+            await ctx.RespondAsync(embed: helpTwo);
         }
 
         private async Task DisplayResults(CommandContext ctx)
