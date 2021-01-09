@@ -11,6 +11,7 @@ namespace CloudNine.Discord.Commands.Birthday
     {
         [Command("role")]
         [RequireGuild]
+        [Hidden]
         [Description("Sets the role to be given to a user whos birthday is today.")]
         [RequireUserPermissions(Permissions.ManageGuild)]
         public async Task SetBirthdayRoleAsync(CommandContext ctx, DiscordRole role)
