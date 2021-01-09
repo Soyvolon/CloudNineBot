@@ -16,7 +16,7 @@ namespace CloudNine.Discord.Commands.Birthday
         public async Task SetBirthdayChannelAsync(CommandContext ctx, DiscordChannel channel)
         {
             DiscordBot.Bot.Birthdays.UpdateBirthdayChannel(ctx.Guild.Id, channel);
-            await ctx.RespondAsync($"Set the birthday channel to {channel.Mention}. Unless otherwise set, the deafult lockout time is 30 days.").ConfigureAwait(false);
+            await ctx.RespondAsync($"Set the birthday channel to {channel.Mention}.").ConfigureAwait(false);
         }
     }
 }

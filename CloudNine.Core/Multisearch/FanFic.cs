@@ -232,7 +232,7 @@ namespace CloudNine.Core.Multisearch
 
                     for (int i = 0; i < tags.Count || i < limit; i++)
                     {
-                        tList.Add(tags[i].Item1);
+                        tList.Add($"[{tags[i].Item1.Replace("&amp;", "&")}]({tags[i].Item2})");
                     }
 
                     data = string.Join(", ", tList);
@@ -244,7 +244,7 @@ namespace CloudNine.Core.Multisearch
                 var tList = new List<string>();
 
                 foreach (var t in tags)
-                    tList.Add(t.Item1);
+                    tList.Add($"[{t.Item1.Replace("&amp;", "&")}]({t.Item2})");
 
                 data = string.Join(", ", tList);
             }
