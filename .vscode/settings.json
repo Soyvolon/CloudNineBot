@@ -3,11 +3,18 @@
         "Multisearch",
         "addquote",
         "bdaychannel",
+        "charlist",
         "coverpage",
+        "deletequote",
         "docsify",
         "fanfic",
         "fanfics",
+        "favoritequote",
+        "hidequote",
+        "listhiddenquotes",
+        "listquotes",
         "quoterelay",
-        "themeable"
+        "themeable",
+        "unfavoritequote"
     ]
 }

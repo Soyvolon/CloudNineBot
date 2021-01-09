@@ -11,7 +11,7 @@ Once Cloud Nine Bot is added, its time to get your server setup to use all the c
 # Server Setup
 > Everything in this section is optional, but enrich your experience! Pick and chose how you want to use Cloud Nine Bot!
 
-!> Commands listed here have no prefix in front of them. In order to run a command, make sure to place a prefix before the command name! This is true everywhere on the docs.
+!> Commands listed here have no prefix in front of them. In order to run a command, make sure to place a prefix before the command name! This is true everywhere on the docs.  The default prefix is `!`
 
 ## Setting a custom prefix
 > Change how you interact with Cloud Nine Bot!
