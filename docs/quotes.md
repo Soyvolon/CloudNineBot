@@ -4,6 +4,10 @@ The quote module is a fun tool to save and display iconic moments from your serv
 
 !> The following list of commands have no prefix listed. Make sure to place your servers prefix before them in order to use a command! The default prefix is `!`
 
+# Information
+
+The intent behind this module is to save and store moments for your server that you can later look back to! No special setup is required, this module works right out of the box.
+
 # Commands
 ## Add Quote
 **Adds a new quote.**
