@@ -23,35 +23,14 @@ namespace CloudNine.Core.Multisearch
         [NotMapped]
         public SearchManager? Manager { get; set; } 
 
-        public List<FanFic> Cache { get; set; }
-        public List<Tuple<string, string>> History { get; set; }
+        public MultisearchCache Cache { get; set; }
+        
         public MultisearchConfigurationOptions Options { get; set; }
 
         public MultisearchUser()
         {
-            Cache = new();
-            History = new();
             Options = new();
-        }
-
-        /// <summary>
-        /// Adds a fanfic to the user Cache.
-        /// </summary>
-        /// <param name="fic">Fanfic to add</param>
-        /// <returns>Fanfic that was removed from the end of the cache.</returns>
-        public FanFic? AddToCahce(FanFic fic)
-        {
-            Cache.Insert(0, fic);
-            if(Cache.Count > 10)
-            {
-                var outFic = Cache[10];
-                Cache.RemoveAt(10);
-                // Save the title and link to the fic in the history.
-                History.Add(new(outFic.Title.Item1, outFic.Title.Item2));
-                return outFic;
-            }
-
-            return null;
+            Cache = new();
         }
 
         public async Task<List<FanFic>?> NewSearch(BrowserClient client, Search search, SearchOptions? options = null)

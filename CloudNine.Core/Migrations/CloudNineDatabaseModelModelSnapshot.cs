@@ -33,6 +33,10 @@ namespace CloudNine.Core.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("MultisearchCache")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("MultisearchConfiguration")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -75,10 +79,6 @@ namespace CloudNine.Core.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Cache")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("History")
                         .IsRequired()
                         .HasColumnType("TEXT");
 

@@ -8,8 +8,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CloudNine.Core.Migrations
 {
     [DbContext(typeof(CloudNineDatabaseModel))]
-    [Migration("20210107204901_MultisearchMig")]
-    partial class MultisearchMig
+    [Migration("20210110184919_MSMig")]
+    partial class MSMig
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -32,6 +32,10 @@ namespace CloudNine.Core.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("HiddenQuotes")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MultisearchCache")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -77,10 +81,6 @@ namespace CloudNine.Core.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Cache")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("History")
                         .IsRequired()
                         .HasColumnType("TEXT");
 

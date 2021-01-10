@@ -68,6 +68,12 @@ namespace CloudNine.Core.Database
                     v => JsonConvert.SerializeObject(v),
                     v => JsonConvert.DeserializeObject<MultisearchConfigurationOptions>(v) ?? new());
 
+            modelBuilder.Entity<DiscordGuildConfiguration>()
+               .Property(b => b.MultisearchCache)
+               .HasConversion(
+                   v => JsonConvert.SerializeObject(v),
+                   v => JsonConvert.DeserializeObject<MultisearchCache>(v) ?? new());
+
 
 
             modelBuilder.Entity<ModCore>()
@@ -88,13 +94,7 @@ namespace CloudNine.Core.Database
                 .Property(b => b.Cache)
                 .HasConversion(
                     v => JsonConvert.SerializeObject(v),
-                    v => JsonConvert.DeserializeObject<List<FanFic>>(v) ?? new());
-
-            modelBuilder.Entity<MultisearchUser>()
-                .Property(b => b.History)
-                .HasConversion(
-                    v => JsonConvert.SerializeObject(v),
-                    v => JsonConvert.DeserializeObject<List<Tuple<string, string>>>(v) ?? new());
+                    v => JsonConvert.DeserializeObject<MultisearchCache>(v) ?? new());
 
             modelBuilder.Entity<MultisearchUser>()
                 .Property(b => b.Options)

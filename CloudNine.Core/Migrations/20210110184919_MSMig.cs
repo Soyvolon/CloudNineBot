@@ -2,10 +2,17 @@
 
 namespace CloudNine.Core.Migrations
 {
-    public partial class MultisearchMig : Migration
+    public partial class MSMig : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AddColumn<string>(
+                name: "MultisearchCache",
+                table: "ServerConfigurations",
+                type: "TEXT",
+                nullable: false,
+                defaultValue: "");
+
             migrationBuilder.AddColumn<string>(
                 name: "MultisearchConfiguration",
                 table: "ServerConfigurations",
@@ -20,7 +27,6 @@ namespace CloudNine.Core.Migrations
                     Id = table.Column<ulong>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     Cache = table.Column<string>(type: "TEXT", nullable: false),
-                    History = table.Column<string>(type: "TEXT", nullable: false),
                     Options = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
@@ -33,6 +39,10 @@ namespace CloudNine.Core.Migrations
         {
             migrationBuilder.DropTable(
                 name: "MultisearchUsers");
+
+            migrationBuilder.DropColumn(
+                name: "MultisearchCache",
+                table: "ServerConfigurations");
 
             migrationBuilder.DropColumn(
                 name: "MultisearchConfiguration",

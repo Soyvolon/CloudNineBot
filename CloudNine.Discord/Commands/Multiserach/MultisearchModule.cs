@@ -37,7 +37,7 @@ namespace CloudNine.Discord.Commands.Multiserach
         {
             protected readonly string[] NotAllowedInGuild = new string[] { "direction", "searchby", "raiting", "complete", "crossover" };
             protected readonly string[] AvalibleOptions = new string[] { "overflow", "hidesensitive", "taglimit", "ctaglimit", "rtaglimit",
-                "explicit", "warnonnowarn", "direction", "searchby", "raiting", "complete", "crossover" };
+                "cache", "link", "explicit", "warnonnowarn", "direction", "searchby", "raiting", "complete", "crossover" };
             protected readonly IServiceProvider _services;
             public MultisearchSettings(IServiceProvider services)
             {
@@ -51,7 +51,7 @@ namespace CloudNine.Discord.Commands.Multiserach
                 var builder = new DiscordEmbedBuilder();
                 builder.WithTitle("Multisearch Config Help")
                     .AddField("Avalible Options",
-                    string.Join(", ", AvalibleOptions))
+                    $"`{string.Join("`, `", AvalibleOptions)}`")
                     .AddField("Basic Value Types",
                     "**True/False** options take boolean values. Either True, False, 1, or 0 must be entered.\n\n" +
                     "**Numerical** options take a number. This must be an interger value. Anything 0 or below will be uased as no limit.")
@@ -95,6 +95,17 @@ namespace CloudNine.Discord.Commands.Multiserach
             {
                 var db = _services.GetRequiredService<CloudNineDatabaseModel>();
                 var user = await db.FindAsync<MultisearchUser>(ctx.Member.Id);
+
+                if (user is null)
+                {
+                    user = new()
+                    {
+                        Id = ctx.Member.Id
+                    };
+
+                    await db.AddAsync(user);
+                    await db.SaveChangesAsync();
+                }
 
                 var settings = user.Options;
 
@@ -153,6 +164,17 @@ namespace CloudNine.Discord.Commands.Multiserach
                 var db = _services.GetRequiredService<CloudNineDatabaseModel>();
                 var guild = await db.FindAsync<DiscordGuildConfiguration>(ctx.Guild.Id);
 
+                if (guild is null)
+                {
+                    guild = new()
+                    {
+                        Id = ctx.Member.Id
+                    };
+
+                    await db.AddAsync(guild);
+                    await db.SaveChangesAsync();
+                }
+
                 var builder = GetSharedEmbed(guild.MultisearchConfiguration);
                 builder.WithTitle($"Server Configuration")
                     .WithAuthor(ctx.Guild.Name, ctx.Guild.IconUrl, ctx.Guild.IconUrl)
@@ -172,7 +194,9 @@ namespace CloudNine.Discord.Commands.Multiserach
                     $"Hide Sensitive Content Descriptions (`hidesensitive`): **{options.HideSensitiveContentDescriptions}**\n\n" +
                     $"Other Tag Limit (`taglimit`): **{options.TagLimit}**\n\n" +
                     $"Character Tag Limit (`ctaglimit`): **{options.CharacterTagLimit}**\n\n" +
-                    $"Relationship Tag Limit (`rtaglimit`): **{options.RelationshipTagLimit}**\n\n")
+                    $"Relationship Tag Limit (`rtaglimit`): **{options.RelationshipTagLimit}**\n\n" +
+                    $"Cache Fanfics (`cache`): **{options.CacheFanfics}**\n\n" +
+                    $"Display Fanfic Link Data (`link`): **{options.DisplayLinkData}**")
                     .AddField("Search Options",
                     $"Allow Explicit (`explicit`): **{options.DefaultSearchOptions.AllowExplicit}**\n\n" +
                     $"Treat Warnings Not Used as Warnings (`warnonnowarn`): **{options.DefaultSearchOptions.TreatWarningsNotUsedAsWarnings}**\n\n");
@@ -191,11 +215,35 @@ namespace CloudNine.Discord.Commands.Multiserach
                 if(guild)
                 {
                     gcfg = await db.FindAsync<DiscordGuildConfiguration>(ctx.Guild.Id);
+
+                    if (gcfg is null)
+                    {
+                        gcfg = new()
+                        {
+                            Id = ctx.Guild.Id
+                        };
+
+                        await db.AddAsync(gcfg);
+                        await db.SaveChangesAsync();
+                    }
+
                     options = gcfg.MultisearchConfiguration;
                 }
                 else
                 {
                     user = await db.FindAsync<MultisearchUser>(ctx.Member.Id);
+
+                    if (user is null)
+                    {
+                        user = new()
+                        {
+                            Id = ctx.Member.Id
+                        };
+
+                        await db.AddAsync(user);
+                        await db.SaveChangesAsync();
+                    }
+
                     options = user.Options;
                 }
 
@@ -383,6 +431,36 @@ namespace CloudNine.Discord.Commands.Multiserach
 
                         outVal = options.DefaultSearchOptions.SearchConfiguration.Crossover.GetString();
                         break;
+                    case "cache":
+                        if (value is null)
+                        {
+                            options.CacheFanfics = defaults.CacheFanfics;
+                        }
+                        else
+                        {
+                            if ((error = SearchParseSevice.BooleanArgument(value, out var res)) is null)
+                            {
+                                options.CacheFanfics = res;
+                            }
+                        }
+
+                        outVal = options.CacheFanfics.ToString();
+                        break;
+                    case "link":
+                        if (value is null)
+                        {
+                            options.DisplayLinkData = defaults.DisplayLinkData;
+                        }
+                        else
+                        {
+                            if ((error = SearchParseSevice.BooleanArgument(value, out var res)) is null)
+                            {
+                                options.DisplayLinkData = res;
+                            }
+                        }
+
+                        outVal = options.DisplayLinkData.ToString();
+                        break;
                     default:
                         error = new SearchParseResult
                         {
@@ -444,7 +522,7 @@ namespace CloudNine.Discord.Commands.Multiserach
             [Description("Result to display details for.")]
             int result)
         {
-            result = result - 1;
+            result -= 1;
             var interact = _services.GetRequiredService<MultisearchInteractivityService>();
 
             if(interact.ActiveSearches.TryGetValue(ctx.Member.Id, out var manager))
@@ -487,10 +565,13 @@ namespace CloudNine.Discord.Commands.Multiserach
                             await RespondError("Fanfiction failed to be displayed.");
                         else
                         {
-                            _ = user.AddToCahce(fics[result]);
+                            if (user.Options.CacheFanfics)
+                            {
+                                _ = user.Cache.AddToCahce(fics[result]);
 
-                            db.Update(user);
-                            await db.SaveChangesAsync();
+                                db.Update(user);
+                                await db.SaveChangesAsync();
+                            }
 
                             foreach (var e in embeds)
                                 await ctx.RespondAsync(e);
@@ -694,8 +775,6 @@ namespace CloudNine.Discord.Commands.Multiserach
             await ctx.RespondAsync(embed: helpOne);
             await ctx.RespondAsync(embed: helpTwo);
         }
-
-        
 
         private async Task DisplayResults(CommandContext ctx)
         {

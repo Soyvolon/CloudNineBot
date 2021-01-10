@@ -23,6 +23,8 @@ namespace CloudNine.Core.Configuration
         public ConcurrentDictionary<string, Quote> HiddenQuotes { get; set; }
         public ConcurrentDictionary<ulong, SortedSet<int>> FavoriteQuotes { get; set; }
         public MultisearchConfigurationOptions MultisearchConfiguration { get; set; }
+        public MultisearchCache MultisearchCache { get; set; }
+
 
         [NotMapped]
         private HashSet<int>? _keys;
@@ -49,6 +51,7 @@ namespace CloudNine.Core.Configuration
             HiddenQuotes = new ConcurrentDictionary<string, Quote>();
             FavoriteQuotes = new();
             MultisearchConfiguration = new();
+            MultisearchCache = new();
         }
 
         public Task<bool> AddQuote(Quote quote)

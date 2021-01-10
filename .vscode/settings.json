@@ -1,18 +1,23 @@
 {
     "cSpell.words": [
         "Multisearch",
+        "addmodlognotice",
         "addquote",
         "bdaychannel",
         "charlist",
         "coverpage",
         "deletequote",
+        "deletewarn",
         "docsify",
+        "editwarn",
         "fanfic",
         "fanfics",
         "favoritequote",
         "hidequote",
         "listhiddenquotes",
         "listquotes",
+        "modlog",
+        "modlogs",
         "quoterelay",
         "themeable",
         "unfavoritequote"

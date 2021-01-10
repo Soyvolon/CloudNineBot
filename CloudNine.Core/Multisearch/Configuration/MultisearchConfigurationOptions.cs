@@ -14,6 +14,10 @@ namespace CloudNine.Core.Multisearch.Configuration
         public int CharacterTagLimit { get; set; } = 0;
         [JsonProperty("relationship_tag_limit")]
         public int RelationshipTagLimit { get; set; } = 0;
+        [JsonProperty("cache_fanfics")]
+        public bool CacheFanfics { get; set; } = true;
+        [JsonProperty("display_link_data")]
+        public bool DisplayLinkData { get; set; } = true;
         [JsonProperty("search_options")]
         public SearchOptions DefaultSearchOptions { get; set; } = new();
     }
