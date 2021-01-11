@@ -16,10 +16,12 @@ namespace CloudNine.Core.Multisearch.Requests
         private const string create_chose_no_warnings = "Creator Chose Not To Use Archive Warnings";
 
         private string FicId { get; init; }
+        private string Link { get; init; }
 
-        public AO3FicRequest(string fic_id) : base()
+        public AO3FicRequest(string fic_id, string link) : base()
         {
             this.FicId = fic_id;
+            this.Link = link;
         }
 
         public override string GetRequestString(int pageNumber = 1)
@@ -41,7 +43,7 @@ namespace CloudNine.Core.Multisearch.Requests
 
                 // Gather story information
                 var title_node = node.SelectSingleNode(".//div[contains(@class, 'preface')]//h2[contains(@class, 'title')]");
-                fic.Title = new Tuple<string, string>(title_node.InnerText, GetRequestString());
+                fic.Title = new Tuple<string, string>(title_node.InnerText, Link);
                 var author_node = node.SelectSingleNode(".//div[contains(@class, 'preface')]//h3[contains(@class, 'byline')]//a");
                 fic.Author = new Tuple<string, string>(author_node.InnerText, link_base + author_node.Attributes["href"].Value);
 

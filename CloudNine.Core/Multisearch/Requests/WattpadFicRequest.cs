@@ -12,10 +12,12 @@ namespace CloudNine.Core.Multisearch.Requests
     {
         private const string work_base = "https://www.wattpad.com/story/";
         private string WorkId { get; init; }
+        private string Link { get; init; }
 
-        public WattpadFicRequest(string work_id)
+        public WattpadFicRequest(string work_id, string link)
         {
             WorkId = work_id;
+            this.Link = link;
         }
 
         public override string GetRequestString(int pageNumber = 1)
@@ -32,7 +34,7 @@ namespace CloudNine.Core.Multisearch.Requests
 
             var node = Result.DocumentNode.SelectSingleNode("//header[contains(@class, 'background')]");
             var title_node = node.SelectSingleNode(".//div[contains(@class, 'container')]//img");
-            fic.Title = new(title_node.Attributes["alt"].Value.Replace("&#x27;", "'"), GetRequestString());
+            fic.Title = new(title_node.Attributes["alt"].Value.Replace("&#x27;", "'"), Link);
 
             var author_node = node.SelectSingleNode(".//strong//a[contains(@class, 'send-author-event')]");
             fic.Author = new(author_node.InnerText, link_base + author_node.Attributes["href"].Value);

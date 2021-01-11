@@ -109,7 +109,8 @@ namespace CloudNine.Discord.Interactions
         {
             var links = new List<string>();
 
-            var raw = data.Split(" ", StringSplitOptions.RemoveEmptyEntries);
+            var blank = string.Join(" ", data.Split("\n", StringSplitOptions.RemoveEmptyEntries));
+            var raw = blank.Split(" ", StringSplitOptions.RemoveEmptyEntries);
 
             bool ignore = false;
             foreach(var entry in raw)
@@ -201,7 +202,7 @@ namespace CloudNine.Discord.Interactions
                 ficid = cr.GetWorkId();
             }
 
-            return new(ficid);
+            return new(ficid, url);
         }
 
         private FanfictionFicRequest GetFanfictionFicRequest(string url)
@@ -242,7 +243,7 @@ namespace CloudNine.Discord.Interactions
                 wid = cr.GetWorkId();
             }
 
-            return new(wid);
+            return new(wid, url);
         }
 
         private async Task RespondToUser(List<FanFic> fics, DiscordChannel discordChannel, 
