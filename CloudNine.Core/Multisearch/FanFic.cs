@@ -149,10 +149,10 @@ namespace CloudNine.Core.Multisearch
 
             ApplyDetails(ref res);
 
-            AddTags(0, Fandoms, "Fandoms", ref res);
-            AddTags(options.RelationshipTagLimit, RelationshipTags, "Relationships", ref res);
-            AddTags(options.CharacterTagLimit, CharacterTags, "Characters", ref res);
-            AddTags(options.TagLimit, Tags, "Other Tags", ref res);
+            AddTags(0, Fandoms, "Fandoms", SensitiveContentWarning, ref res);
+            AddTags(options.RelationshipTagLimit, RelationshipTags, "Relationships", SensitiveContentWarning, ref res);
+            AddTags(options.CharacterTagLimit, CharacterTags, "Characters", SensitiveContentWarning, ref res);
+            AddTags(options.TagLimit, Tags, "Other Tags", SensitiveContentWarning, ref res);
 
             if (SensitiveContentWarning && options.HideSensitiveContentDescriptions)
             {
@@ -211,7 +211,7 @@ namespace CloudNine.Core.Multisearch
                 $"\n```");
         }
 
-        private static void AddTags(int limit, List<Tuple<string, string>> tags, string title, ref List<DiscordEmbedBuilder> result)
+        private static void AddTags(int limit, List<Tuple<string, string>> tags, string title, bool sensitive, ref List<DiscordEmbedBuilder> result)
         {
             if (tags is null || tags.Count <= 0)
                 return;
@@ -244,21 +244,21 @@ namespace CloudNine.Core.Multisearch
 
             var embed = result.Last();
 
-            if (data.Length > 1024)
+            if (data.Length > 1020)
             {
                 int c = 1;
-                while (data.Length > 1024)
+                while (data.Length > 1020)
                 {
-                    var lastComma = data[..1024].LastIndexOf(",");
+                    var lastComma = data[..1020].LastIndexOf(",");
 
-                    embed.AddField($"{title} {(c == 1 ? "" : $"{c}")}", data.Substring(0, lastComma));
+                    embed.AddField($"{title} {(c == 1 ? "" : $"{c}")}", $"{(sensitive ? "||" : "")}{data.Substring(0, lastComma)}{(sensitive ? " || " : "")}");
                     data = data.Substring(lastComma + 2);
                     c++;
                 }
             }
             else
             {
-                embed.AddField($"{title}", data);
+                embed.AddField($"{title}", $"{(sensitive ? "||" : "")}{data}{(sensitive ? "||" : "")}");
             }
         }
     }
