@@ -21,7 +21,7 @@ jobs:
     - name: Install dependencies
       run: msbuild /t:restore
     - name: Build
-      run: msbuild /t:build CloudNine.Web/CloudNine.Web.csproj /p:Configuration=Debug /p:RestorePackages=false /p:OutputPath=artifact/build/CloudNineWeb
+      run: msbuild /t:build CloudNine.Web/CloudNine.Web.csproj /p:Configuration=Release /p:RestorePackages=false /p:OutputPath=artifact/build/CloudNineWeb
     - name: Copy Dockerfile
       run: cp CloudNine.Web/Dockerfile.Web CloudNine.Web/artifact/
     - name: Stop Current Release
