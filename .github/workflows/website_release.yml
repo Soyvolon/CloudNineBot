@@ -21,12 +21,9 @@ jobs:
     - name: Install dependencies
       run: msbuild /t:restore
     - name: Build
-      run: msbuild /t:build /p:Configuration=Release /p:RestorePackages=false /p:OutputPath=artifact/build/CloudNineWeb
+      run: msbuild /t:build CloudNine.Web/CloudNine.Web.csproj /p:Configuration=Release /p:RestorePackages=false /p:OutputPath=artifact/build/CloudNineWeb
     - name: Copy Dockerfile
       run: cp **Dockerfile.Web artifact/
-    - name: List Files
-      shell: powershell
-      run: ls
     - name: Stop Current Release
       uses: garygrossgarten/github-action-ssh@release
       continue-on-error: true
@@ -39,7 +36,7 @@ jobs:
     - name: Copy Files over SSH
       uses: garygrossgarten/github-action-scp@release
       with:
-        local: artifact/
+        local: CloudNine.Web/artifact/
         remote: ${{ secrets.RELEASE_DEST }}
         host: ${{ secrets.RELEASE_HOST }}
         username: ${{ secrets.RELEASE_USER }}
