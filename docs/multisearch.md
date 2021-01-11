@@ -12,6 +12,65 @@ Both server settings and user settings can be customized for what information is
 The Multisearch feature also will send the fanfiction information for any link posted in a channel Cloud Nine Bot can see, but this can be disabled both by users and by a server.
 
 # Commands
+## Cache
+**Display your cache**
+
+```
+search cache
+```
+
+## Cache Server
+**Display the server cache**
+
+```
+search cache guild
+```
+
+## Cache Details
+**Display the details about an item in the cache**
+
+```
+search cache details <item>
+```
+
+| Parameter  | Usage |
+|------------|-------|
+| item       | Any positive integer that is listed next to an item in the [cache](#cache) command. Defaults to the first item |
+
+## Cache Server Details
+
+```
+search cache guilddetails <item>
+```
+
+| Parameter  | Usage |
+|------------|-------|
+| item       | Any positive integer that is listed next to an item in the [cache server](#cache-server) command. Defaults to the first item |
+
+## Cache Server Clear
+**Clears a single item or the entire cache of a server**
+
+Requires `MANAGE_MESSAGES`
+
+```
+search cache guildclear <item>
+```
+
+| Parameter  | Usage |
+|------------|-------|
+| item       | Any positive integer that is listed next to an item in the [cache server](#cache-server) command. Defaults clearing the entire cache. |
+
+## Cache User Clear
+**Clears a single item or the entire cache of a user**
+
+```
+search cache userclear <item>
+```
+
+| Parameter  | Usage |
+|------------|-------|
+| item       | Any positive integer that is listed next to an item in the [cache](#cache) command. Defaults clearing the entire cache. |
+
 ## Search
 **Search for a fanfic**
 
