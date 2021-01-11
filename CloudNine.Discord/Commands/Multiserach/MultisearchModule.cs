@@ -825,7 +825,7 @@ namespace CloudNine.Discord.Commands.Multiserach
                     "5-0 days  :: Updated less than 5 days ago.\n" +
                     "1-5 days  :: Updated between 1 and 5 days ago." +
                     "\n```\n" +
-                    "Furthermore, you can sepcify the amount of weight the numbers have:" +
+                    "Furthermore, you can specify the amount of weight the numbers have:" +
                     "```http\n" +
                     ">5 days   :: The value 5 is in days.\n" +
                     ">5 weeks  :: The value of 5 is in days times 7 (weeks).\n" +
