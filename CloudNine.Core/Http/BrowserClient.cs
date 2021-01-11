@@ -43,7 +43,6 @@ namespace CloudNine.Core.Http
             _browser = await Puppeteer.LaunchAsync(new LaunchOptions
             {
                 Headless = true,
-                //ExecutablePath = Path.Join("Config", "chrome-linux", "chrome"),
                 Args = new string[] { "--no-sandbox" }
             });
         }

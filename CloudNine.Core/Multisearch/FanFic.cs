@@ -225,7 +225,7 @@ namespace CloudNine.Core.Multisearch
 
                     for (int i = 0; i < tags.Count || i < limit; i++)
                     {
-                        tList.Add($"[{tags[i].Item1.Replace("&amp;", "&")}]({tags[i].Item2})");
+                        tList.Add($"[{tags[i].Item1}]({tags[i].Item2})");
                     }
 
                     data = string.Join(", ", tList);

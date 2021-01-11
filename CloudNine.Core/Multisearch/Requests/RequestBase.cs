@@ -62,16 +62,34 @@ namespace CloudNine.Core.Multisearch.Requests
 
         public void FixBasicErrors()
         {
+            var html = Result.Text;
+
             var errors = Result.ParseErrors.ToList();
             foreach(var error in errors)
             {
                 switch(error.Code)
                 {
                     case HtmlParseErrorCode.TagNotOpened:
-                        Result.LoadHtml("<html>\n" + Result.Text);
+                        html = $"<html>\n{html}";
                         break;
                 }
             }
+
+            html = CleanupCharCodes(html);
+
+            Result.LoadHtml(html);
+        }
+
+        static string CleanupCharCodes(string s)
+        {
+            // replace characters with their equivalents
+            s = s.Replace("&#160;", " ");
+            s = s.Replace("&nbsp;", " ");
+            s = s.Replace("&amp;", "&");
+            s = s.Replace("&#09;", "    ");
+            s = s.Replace("&#13;", "\n");
+            // Add any more replacements you want to do here
+            return s;
         }
     }
 }
