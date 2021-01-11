@@ -23,7 +23,7 @@ jobs:
     - name: Install dependencies
       run: msbuild /t:restore
     - name: Build
-      run: msbuild /t:build /p:Configuration=Release /p:RestorePackages=false /p:OutputPath=artifact/build/CloudNine
+      run: msbuild /t:build /p:Configuration=Release /p:RestorePackages=false /p:OutputPath=artifact/build/CloudNine /p:DeployOnBuild=true /p:PublishProfile=CloudNine/Properties/PublishProfile/GithubRelease.pubxml
     - name: Copy Dockerfile
       run: cp **Dockerfile CloudNine/artifact/
     - name: Stop Current Release
