@@ -5,6 +5,7 @@
     <UserSecretsId>ed04a2e0-fad7-459c-be53-42c202fef895</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <Nullable>enable</Nullable>
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
   </PropertyGroup>
 
   <ItemGroup>
