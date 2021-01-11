@@ -9,64 +9,44 @@ on:
   workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
-jobs:         
-  Uplaod:
-    runs-on: ubuntu-latest
+jobs:
+  build:
+
+    runs-on: windows-latest
+
     steps:
-      - uses: actions/checkout@v2
-      - name: Stop Current Release
-        uses: garygrossgarten/github-action-ssh@release
-        continue-on-error: true
-        with:
-          command: ${{ secrets.DOCKER_WEB_STOP_CMD }}
-          host: ${{ secrets.RELEASE_HOST }}
-          username: ${{ secrets.RELEASE_USER }}
-          passphrase: ${{ secrets.RELEASE_PASSPHRASE }}
-          privateKey: ${{ secrets.RELEASE_PRIVATE_KEY }}
-      - name: Copy Web Project
-        uses: garygrossgarten/github-action-scp@release
-        with:
-          local: CloudNine.Web/
-          remote: ${{ secrets.WEB_RELEASE_DEST }}
-          host: ${{ secrets.RELEASE_HOST }}
-          username: ${{ secrets.RELEASE_USER }}
-          passphrase: ${{ secrets.RELEASE_PASSPHRASE }}
-          privateKey: ${{ secrets.RELEASE_PRIVATE_KEY }}
-      - name: Copy Core Project
-        uses: garygrossgarten/github-action-scp@release
-        with:
-          local: CloudNine.Core/
-          remote: ${{ secrets.WEB_CORE_RELEASE_DEST }}
-          host: ${{ secrets.RELEASE_HOST }}
-          username: ${{ secrets.RELEASE_USER }}
-          passphrase: ${{ secrets.RELEASE_PASSPHRASE }}
-          privateKey: ${{ secrets.RELEASE_PRIVATE_KEY }}
-      - name: Make Config Folder
-        run: mkdir Config
-      - name: Copy .config Files
-        run: cp **.config Config/
-      - name: Copy Configs
-        uses: garygrossgarten/github-action-scp@release
-        with:
-          local: Config/
-          remote: ${{ secrets.WEB_CORE_RELEASE_DEST }}
-          host: ${{ secrets.RELEASE_HOST }}
-          username: ${{ secrets.RELEASE_USER }}
-          passphrase: ${{ secrets.RELEASE_PASSPHRASE }}
-          privateKey: ${{ secrets.RELEASE_PRIVATE_KEY }}
-      - name: Build Web Docker Image
-        uses: garygrossgarten/github-action-ssh@release
-        with:
-          command: ${{ secrets.DOCKER_WEB_BUILD_CMD }}
-          host: ${{ secrets.RELEASE_HOST }}
-          username: ${{ secrets.RELEASE_USER }}
-          passphrase: ${{ secrets.RELEASE_PASSPHRASE }}
-          privateKey: ${{ secrets.RELEASE_PRIVATE_KEY }}
-      - name: Start Web Release
-        uses: garygrossgarten/github-action-ssh@release
-        with:
-          command: ${{ secrets.DOCKER_WEB_START_CMD }}
-          host: ${{ secrets.RELEASE_HOST }}
-          username: ${{ secrets.RELEASE_USER }}
-          passphrase: ${{ secrets.RELEASE_PASSPHRASE }}
-          privateKey: ${{ secrets.RELEASE_PRIVATE_KEY }}
+    - uses: actions/checkout@v2
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+    - name: Install dependencies
+      run: msbuild /t:restore
+    - name: Build
+      run: msbuild /t:build /p:Configuration=Release /p:RestorePackages=false /p:OutputPath=artifact/build/CloudNineWeb
+    - name: Copy Dockerfile
+      run: cp **Dockerfile.Web artifact/
+    - name: Stop Current Release
+      uses: garygrossgarten/github-action-ssh@release
+      continue-on-error: true
+      with:
+        command: ${{ secrets.DOCKER_WEB_STOP_CMD }}
+        host: ${{ secrets.RELEASE_HOST }}
+        username: ${{ secrets.RELEASE_USER }}
+        passphrase: ${{ secrets.RELEASE_PASSPHRASE }}
+        privateKey: ${{ secrets.RELEASE_PRIVATE_KEY }}
+    - name: Copy Files over SSH
+      uses: garygrossgarten/github-action-scp@release
+      with:
+        local: artifact/
+        remote: ${{ secrets.RELEASE_DEST }}
+        host: ${{ secrets.RELEASE_HOST }}
+        username: ${{ secrets.RELEASE_USER }}
+        passphrase: ${{ secrets.RELEASE_PASSPHRASE }}
+        privateKey: ${{ secrets.RELEASE_PRIVATE_KEY }}
+    - name: Start New Release
+      uses: garygrossgarten/github-action-ssh@release
+      with:
+        command: ${{ secrets.DOCKER_WEB_START_CMD }}
+        host: ${{ secrets.RELEASE_HOST }}
+        username: ${{ secrets.RELEASE_USER }}
+        passphrase: ${{ secrets.RELEASE_PASSPHRASE }}
+        privateKey: ${{ secrets.RELEASE_PRIVATE_KEY }}
