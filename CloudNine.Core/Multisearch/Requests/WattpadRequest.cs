@@ -36,7 +36,7 @@ namespace CloudNine.Core.Multisearch.Requests
                 Fandoms.ForEach(x => tags += tags_base + x); // all three take each item and add it to the tags string with tags_base before it
             if(OtherTags is not null)
                 OtherTags.ForEach(x => tags += tags_base + x);
-            tags.Trim();
+            tags = tags.Trim();
             return tags;
         }
 

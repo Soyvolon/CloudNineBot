@@ -8,8 +8,6 @@ using CloudNine.Core.Http;
 using CloudNine.Core.Multisearch.Configuration;
 using CloudNine.Core.Multisearch.Requests;
 
-using RandomUserAgent;
-
 namespace CloudNine.Core.Multisearch
 {
     public class FanfictionLinkManager : HtmlGrabber

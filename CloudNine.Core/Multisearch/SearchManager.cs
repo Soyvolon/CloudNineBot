@@ -15,8 +15,6 @@ using CloudNine.Core.Multisearch.Requests;
 
 using PuppeteerSharp;
 
-using RandomUserAgent;
-
 namespace CloudNine.Core.Multisearch
 {
     public class SearchManager : HtmlGrabber
