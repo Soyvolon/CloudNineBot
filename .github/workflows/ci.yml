@@ -49,5 +49,5 @@ jobs:
           .\.sonar\scanner\dotnet-sonarscanner begin -k:"Soyvolon_CloudNineBot" -o:"soyvolon" -d:sonar.login="${{ secrets.SONAR_TOKEN }}" -d:sonar.host.url="https://sonarcloud.io"
           msbuild /t:restore
           msbuild /t:build /p:Configuration=Release /p:RestorePackages=false
-          msbuild test --no-restore --verbosity normal --collect:"XPlay Code Coverage" -r ./testresults -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+          dotnet test --no-restore --verbosity normal --collect:"XPlay Code Coverage" -r ./testresults -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
           .\.sonar\scanner\dotnet-sonarscanner end -d:sonar.login="${{ secrets.SONAR_TOKEN }}"
