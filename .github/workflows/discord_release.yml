@@ -24,7 +24,7 @@ jobs:
     - name: Build
       run: msbuild /t:build /p:Configuration=Release /p:RestorePackages=false /p:OutputPath=artifact/build/CloudNine
     - name: Copy Dockerfile
-      run: cp **Dockerfile artifact/
+      run: cp **Dockerfile CloudNine/artifact/
     - name: Stop Current Release
       uses: garygrossgarten/github-action-ssh@release
       continue-on-error: true
@@ -37,7 +37,7 @@ jobs:
     - name: Copy Files over SSH
       uses: garygrossgarten/github-action-scp@release
       with:
-        local: artifact/
+        local: CloudNine/artifact/
         remote: ${{ secrets.RELEASE_DEST }}
         host: ${{ secrets.RELEASE_HOST }}
         username: ${{ secrets.RELEASE_USER }}
