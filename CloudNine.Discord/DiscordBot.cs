@@ -85,6 +85,8 @@ namespace CloudNine.Discord
                 IgnoreExtraArguments = true,
                 Services = this.services,
                 UseDefaultCommandHandler = false,
+                EnableDefaultHelp = true,
+                
             };
 
             return cncfg;
@@ -119,6 +121,8 @@ namespace CloudNine.Discord
                 c.CommandExecuted += CommandResponder.RespondSuccess;
 
                 c.RegisterConverter(new DateTimeAttributeConverter());
+
+                c.SetHelpFormatter<CustomHelpFormatter>();
             }
 
             await Client.UseInteractivityAsync(GetInteractivityConfiguration());
