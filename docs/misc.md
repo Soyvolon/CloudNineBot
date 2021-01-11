@@ -7,6 +7,21 @@
 This is not quite a module, but any other commands that don't have a module of their own to call home! These are just fun little things that don't require any other setup to use.
 
 # Commands
+## Purge Server Data
+**Removes all server data from Cloud Nine Bot**
+
+Requires `MANAGE_GUILD`
+
+```
+guildpurge
+```
+
+## Purge User Data
+**Removes all user data from Cloud Nine Bot**
+```
+userpurge
+```
+
 ## Sparkle
 **Sparkle some text**
 
