@@ -33,7 +33,7 @@ namespace CloudNine.Core.Multisearch.Requests
 
         private const string request_part_sort_by = "work_search%5Bsort_column%5D=";
         private const string request_part_sort_dir = "work_search%5Bsort_direction%5D=";
-        private const string request_part_raiting = "work_search%5Brating_ids%5D=";
+        private const string request_part_rating = "work_search%5Brating_ids%5D=";
         private const string request_part_status = "work_search%5Bcomplete%5D=";
         private const string request_part_crossover = "work_search%5Bcrossover%5D=";
 
@@ -222,8 +222,8 @@ namespace CloudNine.Core.Multisearch.Requests
                 request += $"&{request_part_sort_dir}{SortDir}";
             if (SortBy is not null)
                 request += $"&{request_part_sort_by}{SortBy}";
-            if (Raiting is not null)
-                request += $"&{request_part_raiting}{Raiting}";
+            if (Rating is not null)
+                request += $"&{request_part_rating}{Rating}";
             if (Status is not null)
                 request += $"&{request_part_status}{Status}";
             if (Crossover is not null)
@@ -273,12 +273,12 @@ namespace CloudNine.Core.Multisearch.Requests
                         try
                         {
                             var required_tags = node.SelectSingleNode(".//ul[contains(@class, 'required-tags')]");
-                            var raiting = required_tags.SelectSingleNode(".//li//span[contains(@class, 'rating')]");
-                            fic.IsExplicit = raiting.HasClass("rating-explicit");
+                            var rating = required_tags.SelectSingleNode(".//li//span[contains(@class, 'rating')]");
+                            fic.IsExplicit = rating.HasClass("rating-explicit");
                             if (fic.IsExplicit && !searchOptions.AllowExplicit)
                                 continue; // we dont want this fic, it is explicit and we have that diabled.
 
-                            fic.Rating = raiting?.InnerText ?? "";
+                            fic.Rating = rating?.InnerText ?? "";
 
                             var complete = required_tags.SelectSingleNode(".//li//span[contains(@class, 'iswip')]//span[contains(@class, 'text')]");
                             if (complete is not null)

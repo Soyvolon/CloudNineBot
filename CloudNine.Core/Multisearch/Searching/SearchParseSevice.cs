@@ -164,13 +164,13 @@ namespace CloudNine.Core.Multisearch.Searching
                         else Builder.SearchConfiguration.SearchFicsBy = res;
                         break;
 
-                    case "--raiting":
+                    case "--rating":
                     case "-R":
                         if ((error = VerifyArgCount(args, i, 1)) is not null)
                             return error;
-                        else if ((error = EnumArgument<Raiting>(args[++i], out var res)) is not null)
+                        else if ((error = EnumArgument<Rating>(args[++i], out var res)) is not null)
                             return error;
-                        else Builder.SearchConfiguration.FicRaiting = res;
+                        else Builder.SearchConfiguration.FicRating = res;
                         break;
 
                     case "--status":

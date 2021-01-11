@@ -61,12 +61,12 @@ namespace CloudNine.Core.Multisearch.Requests
                 try
                 {
                     var required_tags = node.SelectSingleNode(".//div[contains(@class, 'wrapper')]");
-                    var raiting = required_tags.SelectSingleNode(".//dd[contains(@class, 'rating')]");
-                    fic.IsExplicit = raiting?.InnerText.Equals(explicit_string) ?? false;
+                    var rating = required_tags.SelectSingleNode(".//dd[contains(@class, 'rating')]");
+                    fic.IsExplicit = rating?.InnerText.Equals(explicit_string) ?? false;
                     if (fic.IsExplicit && !searchOptions.AllowExplicit)
                         return fics; // we dont want this fic, it is explicit and we have that diabled.
 
-                    fic.Rating = raiting?.InnerText.Trim() ?? "";
+                    fic.Rating = rating?.InnerText.Trim() ?? "";
 
                     var complete = required_tags.SelectSingleNode(".//dl[contains(@class, 'stats')]//dd[contains(@class, 'chapters')]");
                     if (complete is not null)

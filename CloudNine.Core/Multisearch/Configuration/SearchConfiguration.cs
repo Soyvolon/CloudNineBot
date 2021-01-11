@@ -16,8 +16,8 @@ namespace CloudNine.Core.Multisearch.Configuration
         public SearchDirection? Direction { get; set; } = SearchDirection.Descending;
         [JsonProperty("search_fics_by")]
         public SearchBy? SearchFicsBy { get; set; } = SearchBy.BestMatch;
-        [JsonProperty("fic_raiting")]
-        public Raiting? FicRaiting { get; set; } = Raiting.NotExplicit;
+        [JsonProperty("fic_rating")]
+        public Rating? FicRating { get; set; } = Rating.NotExplicit;
         [JsonProperty("status")]
         public FicStatus? Status { get; set; } = FicStatus.Any;
         [JsonProperty("crossover")]

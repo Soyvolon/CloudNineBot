@@ -28,7 +28,7 @@ namespace CloudNine.Core.Multisearch
 
         public SearchDirection? Direction {get; set;}
         public SearchBy? SearchFicsBy {get; set;}
-        public Raiting? FicRaiting {get; set;}
+        public Rating? FicRating {get; set;}
         public FicStatus? Status {get; set;}
         public CrossoverStatus? Crossover {get; set;}
 
@@ -80,7 +80,7 @@ namespace CloudNine.Core.Multisearch
                 used[13] = false;
             if (SearchFicsBy == 0)
                 used[14] = false;
-            if (FicRaiting == 0)
+            if (FicRating == 0)
                 used[15] = false;
             if (Status == 0)
                 used[16] = false;

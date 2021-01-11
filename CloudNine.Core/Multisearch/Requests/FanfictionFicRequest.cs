@@ -54,8 +54,8 @@ namespace CloudNine.Core.Multisearch.Requests
                 var rating_parts = fic_data.Find(x => x.Contains("Rated"));
                 fic_data.Remove(rating_parts);
 
-                var raiting_string = rating_parts.Split(" ", StringSplitOptions.RemoveEmptyEntries)[1..];
-                fic.Rating = string.Join(" ", raiting_string);
+                var rating_string = rating_parts.Split(" ", StringSplitOptions.RemoveEmptyEntries)[1..];
+                fic.Rating = string.Join(" ", rating_string);
             }
             catch
             {

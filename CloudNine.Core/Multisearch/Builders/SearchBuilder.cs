@@ -190,9 +190,9 @@ namespace CloudNine.Core.Multisearch.Builders
             return this;
         }
 
-        public SearchBuilder SetRating(Raiting raiting)
+        public SearchBuilder SetRating(Rating rating)
         {
-            this.SearchConfiguration.FicRaiting = raiting;
+            this.SearchConfiguration.FicRating = rating;
             return this;
         }
 
@@ -233,7 +233,7 @@ namespace CloudNine.Core.Multisearch.Builders
                 PublishBefore = this.PublishBefore,
                 Direction = this.SearchConfiguration.Direction,
                 SearchFicsBy = this.SearchConfiguration.SearchFicsBy,
-                FicRaiting = this.SearchConfiguration.FicRaiting,
+                FicRating = this.SearchConfiguration.FicRating,
                 Status = this.SearchConfiguration.Status,
                 Crossover = this.SearchConfiguration.Crossover
             };

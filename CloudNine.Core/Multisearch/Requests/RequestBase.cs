@@ -32,7 +32,7 @@ namespace CloudNine.Core.Multisearch.Requests
 
         public string? SortDir { get; set; }
         public string? SortBy { get; set; }
-        public string? Raiting { get; set; }
+        public string? Rating { get; set; }
         public string? Status { get; set; }
         public string? Crossover { get; set; }
 

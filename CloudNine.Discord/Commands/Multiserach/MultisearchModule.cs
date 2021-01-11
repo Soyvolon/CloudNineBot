@@ -35,9 +35,9 @@ namespace CloudNine.Discord.Commands.Multiserach
         [Description("Commands for configuring how Cloud Bot searches and parses the search information.")]
         public class MultisearchSettings : CommandModule
         {
-            protected readonly string[] NotAllowedInGuild = new string[] { "direction", "searchby", "raiting", "complete", "crossover" };
+            protected readonly string[] NotAllowedInGuild = new string[] { "direction", "searchby", "rating", "complete", "crossover" };
             protected readonly string[] AvalibleOptions = new string[] { "overflow", "hidesensitive", "taglimit", "ctaglimit", "rtaglimit",
-                "cache", "link", "explicit", "warnonnowarn", "direction", "searchby", "raiting", "complete", "crossover" };
+                "cache", "link", "explicit", "warnonnowarn", "direction", "searchby", "rating", "complete", "crossover" };
             protected readonly IServiceProvider _services;
             public MultisearchSettings(IServiceProvider services)
             {
@@ -59,7 +59,7 @@ namespace CloudNine.Discord.Commands.Multiserach
                     "`direction` requires one of the following (or the number): ```ascending (1), descending (0).```\n" +
                     "`searchby` requires one of the following (or the number): ```bestmatch (0), likes (1), views (2), updateddate (3)" +
                     $" publisheddate (4), or comments (5).```\n" +
-                    "`raiting` requires one of the following (or the number): ```any (0), general (1), teen (2), mature (3)," +
+                    "`rating` requires one of the following (or the number): ```any (0), general (1), teen (2), mature (3)," +
                 $" explicit (4), notexplicit (5).```\n" +
                     "`complete` requires one of the following (or the number): ```any (0), inprogress (1), complete (2).```\n" +
                     "`crossover` requires one of the following (or the number): ```any (0), nocrossover (1), crossover (2).```")
@@ -113,7 +113,7 @@ namespace CloudNine.Discord.Commands.Multiserach
                 builder.AddField("Search Configuration",
                     $"Search Direction (`direction`): **{settings.DefaultSearchOptions?.SearchConfiguration?.Direction.GetString() ?? "Not Specified"}**\n\n" +
                     $"Search By (`searchby`): **{settings.DefaultSearchOptions?.SearchConfiguration?.SearchFicsBy.GetString() ?? "Not Specified"}**\n\n" +
-                    $"Raiting (`raiting`): **{settings.DefaultSearchOptions?.SearchConfiguration?.FicRaiting.GetString() ?? "Not Specified"}**\n\n" +
+                    $"Rating (`rating`): **{settings.DefaultSearchOptions?.SearchConfiguration?.FicRating.GetString() ?? "Not Specified"}**\n\n" +
                     $"Completion Status (`complete`): **{settings.DefaultSearchOptions?.SearchConfiguration?.Status.GetString() ?? "Not Specified"}**\n\n" +
                     $"Crossover Status (`crossover`): **{settings.DefaultSearchOptions?.SearchConfiguration?.Crossover.GetString() ?? "Not Specified"}**")
                     .WithTitle("User Configuration")
@@ -386,20 +386,20 @@ namespace CloudNine.Discord.Commands.Multiserach
 
                         outVal = options.DefaultSearchOptions.SearchConfiguration.SearchFicsBy.GetString();
                         break;
-                    case "raiting":
+                    case "rating":
                         if (value is null)
                         {
-                            options.DefaultSearchOptions.SearchConfiguration.FicRaiting = defaults.DefaultSearchOptions.SearchConfiguration.FicRaiting;
+                            options.DefaultSearchOptions.SearchConfiguration.FicRating = defaults.DefaultSearchOptions.SearchConfiguration.FicRating;
                         }
                         else
                         {
-                            if ((error = SearchParseSevice.EnumArgument<Raiting>(value, out var res)) is null)
+                            if ((error = SearchParseSevice.EnumArgument<Rating>(value, out var res)) is null)
                             {
-                                options.DefaultSearchOptions.SearchConfiguration.FicRaiting = res;
+                                options.DefaultSearchOptions.SearchConfiguration.FicRating = res;
                             }
                         }
 
-                        outVal = options.DefaultSearchOptions.SearchConfiguration.FicRaiting.GetString();
+                        outVal = options.DefaultSearchOptions.SearchConfiguration.FicRating.GetString();
                         break;
                     case "complete":
                         if (value is null)
@@ -751,10 +751,10 @@ namespace CloudNine.Discord.Commands.Multiserach
                 $"Search By     :: How organize the web results. Must be one of the following: bestmatch (0), likes (1), views (2), updateddate (3)" +
                 $" publisheddate (4), or comments (5)." +
                 "\n```")
-                .AddField("`-R | --raiting <raiting>`", "```http\n" +
+                .AddField("`-R | --rating <rating>`", "```http\n" +
                 $"Usage         :: -R any\n" +
-                $"Usage         :: --raiting 5\n" +
-                $"Raiting       :: Filter web results by a raiting. Must be one of the following: any (0), general (1), teen (2), mature (3)," +
+                $"Usage         :: --rating 5\n" +
+                $"Rating       :: Filter web results by a rating. Must be one of the following: any (0), general (1), teen (2), mature (3)," +
                 $" explicit (4), notexplicit (5)." +
                 "\n```")
                 .AddField("`-S | --status <status>`", "```http\n" +
