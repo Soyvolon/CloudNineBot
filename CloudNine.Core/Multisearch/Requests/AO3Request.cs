@@ -10,9 +10,8 @@ namespace CloudNine.Core.Multisearch.Requests
     /// <summary>
     /// Holds data to send a GET request to Archiveofourown.org and information to decompile the HTML script into a FanFic object
     /// </summary>
-    public class AO3Request : RequestBase
+    public class AO3Request : AO3Base
     {
-        private readonly string link_base = "http://archiveofourown.org";
 
         //TODO: Expand search results to include more information than just a basic search and page number
         private const string request_body = "https://archiveofourown.org/works/search?utf8=%E2%9C%93";
@@ -321,14 +320,14 @@ namespace CloudNine.Core.Multisearch.Requests
                         try
                         {
                             var fic_likes = node.SelectSingleNode(".//dd[contains(@class, 'kudos')]");
-                            fic.Likes = Convert.ToInt64(fic_likes.InnerText);
+                            fic.Likes = Convert.ToUInt64(fic_likes.InnerText);
                         }
                         catch { /* non-essential */ }
 
                         try
                         {
                             var fic_hits = node.SelectSingleNode(".//dd[contains(@class, 'hits')]");
-                            fic.Views = Convert.ToInt64(fic_hits.InnerText);
+                            fic.Views = Convert.ToUInt64(fic_hits.InnerText);
                         }
                         catch { /* non-essential */ }
 

@@ -8,13 +8,10 @@ using System.Threading.Tasks;
 
 namespace CloudNine.Core.Multisearch.Requests
 {
-    public class WattpadRequest : RequestBase
+    public class WattpadRequest : WattpadBase
     {
-        private readonly string link_base = "http://wattpad.com";
-
-        private readonly string request_base = "https://www.wattpad.com/search/";
-        private readonly string tags_base = "%20%23";
-        private readonly Dictionary<char, long> NumConversions = new Dictionary<char, long>{ { 'M', 1000000 }, { 'K', 1000 } };
+        private const string request_base = "https://www.wattpad.com/search/";
+        private const string tags_base = "%20%23";
 
         public WattpadRequest() : base()
         {
@@ -24,13 +21,21 @@ namespace CloudNine.Core.Multisearch.Requests
         public WattpadRequest(Search search) : base(search)
         {
             // Wattpad specefic search querys
+            // oh wait there are none because wattpad is trash!
+            Characters = search.Characters;
+            Fandoms = search.Fandoms;
+            OtherTags = search.OtherTags;
         }
+
         private string CompileTagString()
         {
             string tags = string.Empty;
-            Characters.ForEach(x => tags += tags_base + x);
-            Fandoms.ForEach(x => tags += tags_base + x); // all three take each item and add it to the tags string with tags_base before it
-            OtherTags.ForEach(x => tags += tags_base + x);
+            if(Characters is not null)
+                Characters.ForEach(x => tags += tags_base + x);
+            if(Fandoms is not null)
+                Fandoms.ForEach(x => tags += tags_base + x); // all three take each item and add it to the tags string with tags_base before it
+            if(OtherTags is not null)
+                OtherTags.ForEach(x => tags += tags_base + x);
             tags.Trim();
             return tags;
         }
@@ -82,25 +87,23 @@ namespace CloudNine.Core.Multisearch.Requests
                         try
                         {
                             var reads_node = meta_node.SelectSingleNode(".//small[contains(@class, 'reads')]");
-                            if (ConvertStringMetaNumbers(reads_node.InnerText, out long views))
+                            if (ConvertStringMetaNumbers(reads_node.InnerText, out ulong views))
                             {
                                 fic.Views = views;
                             }
                         }
-                        catch
-                        { }
+                        catch { /* non-essential */ }
 
 
                         try
                         {
                             var likes_node = meta_node.SelectSingleNode(".//small[contains(@class, 'votes')]");
-                            if (ConvertStringMetaNumbers(likes_node.InnerText, out long likes))
+                            if (ConvertStringMetaNumbers(likes_node.InnerText, out ulong likes))
                             {
                                 fic.Likes = likes;
                             }
                         }
-                        catch
-                        { }
+                        catch { /* non-essential */ }
 
                         // Get completion status
                         var completed_node = node.SelectSingleNode(".//div[contains(@class, 'story-status')]//span");
@@ -113,12 +116,16 @@ namespace CloudNine.Core.Multisearch.Requests
                             fic.Completed = false;
                         }
 
-                        // Get Tags
-                        var tag_nodes = node.SelectNodes(".//button[contains(@class, 'tag-item')]");
-                        foreach (var tag in tag_nodes)
+                        try
                         {
-                            fic.Tags.Add(new Tuple<string, string>(tag.InnerText, ""));
+                            // Get Tags
+                            var tag_nodes = node.SelectNodes(".//a[contains(@class, 'tag-item')]");
+                            foreach (var tag in tag_nodes)
+                            {
+                                fic.Tags.Add(new Tuple<string, string>(tag.InnerText, ""));
+                            }
                         }
+                        catch { /* non-essential */ }
 
                         //Add fic to final list
                         fics.Add(fic);
@@ -133,9 +140,9 @@ namespace CloudNine.Core.Multisearch.Requests
             return fics;
         }
 
-        private bool ConvertStringMetaNumbers(string meta, out long num)
+        private bool ConvertStringMetaNumbers(string meta, out ulong num)
         {
-            if (long.TryParse(meta, out long likes))
+            if (ulong.TryParse(meta, out ulong likes))
             {
                 num = likes;
                 return true;
@@ -149,7 +156,7 @@ namespace CloudNine.Core.Multisearch.Requests
                         meta = meta.Trim(id);
                         if (float.TryParse(meta, out float likes_mod))
                         {
-                            num = Convert.ToInt64(likes_mod * NumConversions[id]);
+                            num = Convert.ToUInt64(likes_mod * NumConversions[id]);
                             return true;
                         }
                     }

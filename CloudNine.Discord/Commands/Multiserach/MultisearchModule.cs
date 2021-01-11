@@ -630,6 +630,20 @@ namespace CloudNine.Discord.Commands.Multiserach
 
             await ctx.RespondAsync(embed: startEmbed);
 
+            var guild = await db.FindAsync<DiscordGuildConfiguration>(ctx.Guild.Id);
+            if(guild is null)
+            {
+                guild = new()
+                {
+                    Id = ctx.Guild.Id 
+                };
+
+                await db.AddAsync(guild);
+                await db.SaveChangesAsync();
+            }
+
+            res.SearchOptions = guild.MultisearchConfiguration.DefaultSearchOptions.Combine(res.SearchOptions ?? new());
+
             _  = await searchUser.NewSearch(_services.GetRequiredService<BrowserClient>(), res.SearchBuilder?.Build() ?? new(), res.SearchOptions);
 
             if (searchUser.Manager is not null)

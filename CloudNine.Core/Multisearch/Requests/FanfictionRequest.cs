@@ -7,16 +7,18 @@ using CloudNine.Core.Multisearch.Configuration;
 
 namespace CloudNine.Core.Multisearch.Requests
 {
-    public class FanfictionRequest : RequestBase
+    public class FanfictionRequest : FanfictionBase
     {
-        private readonly string link_base = "https://fanfiction.net";
-
         //TODO: Expand search results to include more information than just a basic search and page number
-        private readonly string request_body = "https://www.fanfiction.net/search/?ready=1";
-        private readonly string type_body = "&type=";
-        private readonly string keywords_body = "&keywords=";
+        private const string request_body = "https://www.fanfiction.net/search/?ready=1";
+        private const string type_body = "&type=";
+        private const string keywords_body = "&keywords=";
+        private const string match_body = "&match=";
+        private const string sort_by_body = "&sort=";
+        private const string crossover_body = "&typeid=";
 
         public string Type { get; set; }
+        public string Match { get; set; }
         
         public FanfictionRequest() : base()
         {
@@ -26,10 +28,37 @@ namespace CloudNine.Core.Multisearch.Requests
         public FanfictionRequest(Search search) : base(search)
         {
             Type = "story";
+
+            if(search.Title is not null && search.Basic is null)
+            {
+                Query = search.Title;
+                Match = "title";
+            }
+            else
+            {
+                Match = "any";
+            }
+
+            Crossover = search.Crossover switch
+            {
+                CrossoverStatus.Any => "any",
+                CrossoverStatus.Crossover => "1",
+                CrossoverStatus.NoCrossover => "2",
+                _ => "any"
+            };
+
+            SortBy = search.SearchFicsBy switch
+            {
+                SearchBy.BestMatch => "0",
+                SearchBy.UpdatedDate => "dateupdate",
+                SearchBy.PublishedDate => "datesubmit",
+                _ => "0"
+            };
         }
         public override string GetRequestString(int pageNumber = 1)
         {
-            return request_body + keywords_body + Query + type_body + Type;
+            return request_body + keywords_body + Query + type_body + Type + match_body 
+                + Match + sort_by_body + SortBy + crossover_body + Crossover;
         }
 
         public override List<FanFic> DecodeHTML(SearchOptions searchOptions)
@@ -83,7 +112,7 @@ namespace CloudNine.Core.Multisearch.Requests
                             var fav_str = fic_data.Find(x => x.Contains("Favs"));
                             var fav_num = fav_str.Split(" ", StringSplitOptions.RemoveEmptyEntries).Last();
                             fav_num = fav_num.Replace(",", "");
-                            fic.Likes = Convert.ToInt64(fav_num);
+                            fic.Likes = Convert.ToUInt64(fav_num);
                         }
                         catch
                         {

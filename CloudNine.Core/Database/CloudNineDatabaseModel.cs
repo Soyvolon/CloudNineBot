@@ -24,7 +24,7 @@ namespace CloudNine.Core.Database
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            using FileStream fs = new FileStream(Path.Join("Config", "database_config.json"), FileMode.Open);
+            using FileStream fs = new FileStream(Path.Join("Config", "database_config.json"), FileMode.Open, FileAccess.Read, FileShare.Read);
             using StreamReader sr = new StreamReader(fs);
             var json = sr.ReadToEnd();
 

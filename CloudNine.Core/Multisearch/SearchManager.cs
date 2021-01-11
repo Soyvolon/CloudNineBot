@@ -19,14 +19,13 @@ using RandomUserAgent;
 
 namespace CloudNine.Core.Multisearch
 {
-    public class SearchManager
+    public class SearchManager : HtmlGrabber
     {
         public ulong User { get; set; }
         public int WebsitePageNumber { get; set; }
         public Search? ActiveSearch { get; private set; }
 
         private ConcurrentDictionary<int, List<FanFic>> _fanFics { get; set; }
-        private readonly BrowserClient _client;
 
         private readonly SearchOptions _searchOptions;
 
@@ -64,13 +63,12 @@ namespace CloudNine.Core.Multisearch
             return true;
         }
 
-        public SearchManager(BrowserClient client, SearchOptions options)
+        public SearchManager(BrowserClient client, SearchOptions options) : base(client)
         {
             _fanFics = new();
             WebsitePageNumber = 1; // start on first page
 
             _searchOptions = options;
-            _client = client;
         }
 
         public async Task NewSearch(Search search)
@@ -98,7 +96,7 @@ namespace CloudNine.Core.Multisearch
                 string rstring = request.GetRequestString(WebsitePageNumber);
                 if (rstring != null && rstring != "")
                 {
-                    var html = await GetHtml(rstring);
+                    var html = await GetHtmlAsync(rstring);
                     
                     request.Result.LoadHtml(html);
                     request.FixBasicErrors();
@@ -109,17 +107,6 @@ namespace CloudNine.Core.Multisearch
                     _fanFics[WebsitePageNumber].AddRange(request.DecodeHTML(_searchOptions));
                 }
             }
-        }
-
-        private async Task<string> GetHtml(string url)
-        {
-            await using var page = await _client.Browser.NewPageAsync();
-            await page.SetJavaScriptEnabledAsync(true);
-            await page.SetUserAgentAsync(RandomUa.RandomUserAgent);
-            await page.GoToAsync(url);
-            var html = await page.GetContentAsync();
-
-            return html;
         }
     }
 }

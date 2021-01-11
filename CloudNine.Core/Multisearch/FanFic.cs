@@ -26,9 +26,13 @@ namespace CloudNine.Core.Multisearch
         [JsonProperty("relationship_tags")]
         public List<Tuple<string, string>> RelationshipTags { get; set; } = new();
         [JsonProperty("likes")]
-        public long Likes { get; set; } = 0;
+        public ulong Likes { get; set; } = 0;
         [JsonProperty("views")]
-        public long Views { get; set; } = 0;
+        public ulong Views { get; set; } = 0;
+        [JsonProperty("words")]
+        public ulong WordCount { get; set; } = 0;
+        [JsonProperty("chapters")]
+        public ulong Chapters { get; set; } = 0;
         [JsonProperty("description")]
         public string Description { get; set; } = "";
         [JsonProperty("paid_story")]
@@ -82,20 +86,7 @@ namespace CloudNine.Core.Multisearch
 
         public List<DiscordEmbedBuilder>? GetDiscordEmbeds(MultisearchConfigurationOptions guildOptions, MultisearchConfigurationOptions userOptions)
         {
-            var options = new MultisearchConfigurationOptions()
-            {
-                CharacterTagLimit = Math.Min(guildOptions.CharacterTagLimit, userOptions.CharacterTagLimit),
-                DefaultSearchOptions = new()
-                {
-                    AllowExplicit = guildOptions.DefaultSearchOptions.AllowExplicit && userOptions.DefaultSearchOptions.AllowExplicit,
-                    TreatWarningsNotUsedAsWarnings = guildOptions.DefaultSearchOptions.TreatWarningsNotUsedAsWarnings || userOptions.DefaultSearchOptions.TreatWarningsNotUsedAsWarnings,
-                    SearchConfiguration = userOptions.DefaultSearchOptions.SearchConfiguration // guilds dont get to set this one.
-                },
-                HideSensitiveContentDescriptions = guildOptions.HideSensitiveContentDescriptions || userOptions.HideSensitiveContentDescriptions,
-                OverflowDescription = guildOptions.OverflowDescription || userOptions.OverflowDescription,
-                RelationshipTagLimit = Math.Min(guildOptions.CharacterTagLimit, userOptions.CharacterTagLimit),
-                TagLimit = Math.Min(guildOptions.TagLimit, userOptions.TagLimit)
-            };
+            var options = guildOptions.Combine(userOptions);
 
             return GetDiscordEmbeds(options);
         }
@@ -207,8 +198,10 @@ namespace CloudNine.Core.Multisearch
 
             last.AddField("Fic Details",
                 $"```http\n" +
-                $"Likes           :: {Likes:N0}\n" +
-                $"Views           :: {Views:N0}\n" +
+                $"Likes           :: {(Likes == 0 ? "n/a" : Likes.ToString("N0"))}\n" +
+                $"Views           :: {(Views == 0 ? "n/a" : Views.ToString("N0"))}\n" +
+                $"Chapters        :: {(Chapters == 0 ? "n/a" : Chapters.ToString("N0"))}\n" +
+                $"Word Count      :: {(WordCount == 0 ? "n/a" : WordCount.ToString("N0"))}\n" +
                 $"Completed       :: {Completed}\n" +
                 $"```\n" +
                 $"```http\n" +

@@ -48,7 +48,8 @@ namespace CloudNine
                 .AddSingleton<HttpClient>()
                 .AddSingleton<BrowserClient>()
                 .AddTransient<SearchParseSevice>()
-                .AddSingleton<MultisearchInteractivityService>();
+                .AddSingleton<MultisearchInteractivityService>()
+                .AddSingleton<FanfictionLinkResponderService>();
 
             await using var serviceProvider = services.BuildServiceProvider();
 
@@ -57,7 +58,7 @@ namespace CloudNine
             Discord = new DiscordBot(MinimumLogLevel, serviceProvider);
 
             string json = "";
-            using (FileStream fs = new FileStream("Config/bot_config.json", FileMode.Open))
+            using (FileStream fs = new FileStream("Config/bot_config.json", FileMode.Open, FileAccess.Read, FileShare.Read))
             {
                 using StreamReader sr = new StreamReader(fs);
                 json = await sr.ReadToEndAsync();

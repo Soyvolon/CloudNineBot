@@ -134,6 +134,10 @@ namespace CloudNine.Discord
             Client.MessageReactionRemoved += iservice.Client_MessageReactionRemoved;
             Client.MessageReactionsCleared += iservice.Client_MessageReactionsCleared;
 
+            var ffrservice = services.GetRequiredService<FanfictionLinkResponderService>();
+
+            Client.MessageCreated += ffrservice.Client_MessageCreated;
+
             var relay = services.GetRequiredService<QuoteService>();
             Client.MessageCreated += relay.MessageRecievedAsync;
 
