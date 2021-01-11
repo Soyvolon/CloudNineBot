@@ -24,6 +24,9 @@ jobs:
       run: msbuild /t:build /p:Configuration=Release /p:RestorePackages=false /p:OutputPath=artifact/build/CloudNineWeb
     - name: Copy Dockerfile
       run: cp **Dockerfile.Web artifact/
+    - name: List Files
+      shell: powershell
+      run: ls
     - name: Stop Current Release
       uses: garygrossgarten/github-action-ssh@release
       continue-on-error: true
