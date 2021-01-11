@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -41,11 +42,9 @@ namespace CloudNine.Core.Http
             await new BrowserFetcher().DownloadAsync(BrowserFetcher.DefaultRevision);
             _browser = await Puppeteer.LaunchAsync(new LaunchOptions
             {
-#if DEBUG
                 Headless = true,
-#else
-                Headless = true,
-#endif
+                //ExecutablePath = Path.Join("Config", "chrome-linux", "chrome"),
+                Args = new string[] { "--no-sandbox" }
             });
         }
     }
