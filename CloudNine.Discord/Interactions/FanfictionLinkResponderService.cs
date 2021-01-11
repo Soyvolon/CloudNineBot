@@ -92,12 +92,22 @@ namespace CloudNine.Discord.Interactions
                                 await RespondToUser(res, e.Channel, guild?.MultisearchConfiguration ?? new(), user?.Options ?? new());
 
                                 if (guild is not null && guild.MultisearchConfiguration.CacheFanfics)
+                                {
                                     foreach (var f in res)
                                         _ = guild.MultisearchCache.AddToCahce(f);
 
+                                    db.Update(guild);
+                                    await db.SaveChangesAsync();
+                                }
+
                                 if (user is not null && user.Options.CacheFanfics)
+                                {
                                     foreach (var f in res)
                                         _ = user.Cache.AddToCahce(f);
+
+                                    db.Update(user);
+                                    await db.SaveChangesAsync();
+                                }
                             }
                         }
                     }

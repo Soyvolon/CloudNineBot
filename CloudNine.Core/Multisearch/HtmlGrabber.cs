@@ -24,7 +24,20 @@ namespace CloudNine.Core.Multisearch
             await using var page = await _client.Browser.NewPageAsync();
             await page.SetJavaScriptEnabledAsync(true);
             await page.SetUserAgentAsync(RandomUa.RandomUserAgent);
+            await page.SetCookieAsync(new PuppeteerSharp.CookieParam[] { new()
+                {
+                    Name = "view_adult",
+                    Value = "true",
+                    Domain = "archiveofourown.org",
+                    Path = "/",                    
+                }
+            });
             await page.GoToAsync(url);
+            if (url.Contains("archiveofourown.org"))
+            {
+                await page.EvaluateExpressionAsync("localStorage.setItem('accepted_tos', '20180523');");
+                await page.ReloadAsync();
+            }
             var html = await page.GetContentAsync();
 
             return html;

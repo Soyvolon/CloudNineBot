@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -39,6 +40,34 @@ namespace CloudNine.Core.Multisearch.Configuration
             }
 
             return null;
+        }
+
+        public bool TryGetValue(int item, [NotNullWhen(true)] out object? value)
+        {
+            if(item < 10)
+            {
+                if(Cache.Count > item)
+                {
+                    value = Cache[item];
+                    return true;
+                }
+
+                value = null;
+                return false;
+            }
+            else
+            {
+                item -= 10;
+
+                if(History.Count > item)
+                {
+                    value = History[item];
+                    return true;
+                }
+
+                value = null;
+                return false;
+            }
         }
     }
 }

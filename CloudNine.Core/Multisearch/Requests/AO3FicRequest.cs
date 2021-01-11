@@ -43,9 +43,9 @@ namespace CloudNine.Core.Multisearch.Requests
 
                 // Gather story information
                 var title_node = node.SelectSingleNode(".//div[contains(@class, 'preface')]//h2[contains(@class, 'title')]");
-                fic.Title = new Tuple<string, string>(title_node.InnerText, Link);
+                fic.Title = new Tuple<string, string>(title_node.InnerText.Trim(), Link);
                 var author_node = node.SelectSingleNode(".//div[contains(@class, 'preface')]//h3[contains(@class, 'byline')]//a");
-                fic.Author = new Tuple<string, string>(author_node.InnerText, link_base + author_node.Attributes["href"].Value);
+                fic.Author = new Tuple<string, string>(author_node.InnerText.Trim(), link_base + author_node.Attributes["href"].Value);
 
                 try // non-essential
                 {
@@ -62,7 +62,7 @@ namespace CloudNine.Core.Multisearch.Requests
                 {
                     var required_tags = node.SelectSingleNode(".//div[contains(@class, 'wrapper')]");
                     var rating = required_tags.SelectSingleNode(".//dd[contains(@class, 'rating')]");
-                    fic.IsExplicit = rating?.InnerText.Equals(explicit_string) ?? false;
+                    fic.IsExplicit = rating?.InnerText.Trim().Equals(explicit_string) ?? false;
                     if (fic.IsExplicit && !searchOptions.AllowExplicit)
                         return fics; // we dont want this fic, it is explicit and we have that diabled.
 

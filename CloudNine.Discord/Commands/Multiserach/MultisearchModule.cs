@@ -16,6 +16,8 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using DSharpPlus.Interactivity.Enums;
+using DSharpPlus.Interactivity.Extensions;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -23,7 +25,7 @@ namespace CloudNine.Discord.Commands.Multiserach
 {
     [Group("search")]
     [Description("Commands for the Fanfiction Multisearch module.")]
-    public class MultisearchModule : CommandModule
+    public partial class MultisearchModule : CommandModule
     {
         protected readonly IServiceProvider _services;
         public MultisearchModule(IServiceProvider services)
