@@ -38,7 +38,14 @@ namespace CloudNine.Core.Multisearch
                 await page.EvaluateExpressionAsync("localStorage.setItem('accepted_tos', '20180523');");
                 await page.ReloadAsync();
             }
+
             var html = await page.GetContentAsync();
+
+            if(html.Contains(@"<div class=""cf-browser-verification cf-im-under-attack"">"))
+            {
+                await Task.Delay(TimeSpan.FromSeconds(5));
+                html = await page.GetContentAsync();
+            }
 
             return html;
         }
