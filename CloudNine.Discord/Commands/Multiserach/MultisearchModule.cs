@@ -671,7 +671,6 @@ namespace CloudNine.Discord.Commands.Multiserach
                 .WithDescription("The Multiserach module is a set of commands that allow users to " +
                 "use a single serach to search multiple Fanfiction websites.\n\n" +
                 "**Sites Supported:**\n" +
-                "Archive Of Our Own\n" +
                 "Fanfiction.net\n" +
                 "Wattpad")
                 .AddField("`--help | -h`", "Displays this embed.")
