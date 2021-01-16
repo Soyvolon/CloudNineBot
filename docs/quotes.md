@@ -136,7 +136,7 @@ unfavoritequote <quote ID>
 ## Search Quotes
 **Search for quotes matching a query**
 ```
-serachquotes <query>
+searchquotes <query>
 ```
 
 | Parameter | Usage |
