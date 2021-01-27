@@ -46,10 +46,15 @@ namespace CloudNine
                 .AddDbContext<CloudNineDatabaseModel>(ServiceLifetime.Transient, ServiceLifetime.Scoped)
                 .AddSingleton<QuoteService>()
                 .AddSingleton<HttpClient>()
-                .AddSingleton<BrowserClient>()
                 .AddTransient<SearchParseSevice>()
                 .AddSingleton<MultisearchInteractivityService>()
                 .AddSingleton<FanfictionLinkResponderService>();
+
+            services.AddHttpClient<FanfictionClient>(client =>
+            {
+                // do cookie setup here.
+                client.DefaultRequestHeaders.Add("Cookie", "view_adult=true");
+            });
 
             await using var serviceProvider = services.BuildServiceProvider();
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,7 +16,7 @@ namespace CloudNine.Core.Multisearch
         private readonly List<RequestBase> _requests;
         private readonly SearchOptions _options;
 
-        public FanfictionLinkManager(List<RequestBase> requests, BrowserClient client, SearchOptions searchOptions) : base(client)
+        public FanfictionLinkManager(List<RequestBase> requests, FanfictionClient client, SearchOptions searchOptions) : base(client)
         {
             _requests = requests;
             _options = searchOptions;

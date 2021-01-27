@@ -33,7 +33,7 @@ namespace CloudNine.Core.Multisearch
             Cache = new();
         }
 
-        public async Task<List<FanFic>?> NewSearch(BrowserClient client, Search search, SearchOptions? options = null)
+        public async Task<List<FanFic>?> NewSearch(FanfictionClient client, Search search, SearchOptions? options = null)
         {
             Manager = new(client, options ?? Options.DefaultSearchOptions);
             await Manager.NewSearch(search);

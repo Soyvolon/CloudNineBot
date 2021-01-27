@@ -9,11 +9,8 @@ using System.Net.Http;
 using System.Threading.Tasks;
 
 using CloudNine.Core.Http;
-using CloudNine.Core.Multisearch.Builders;
 using CloudNine.Core.Multisearch.Configuration;
 using CloudNine.Core.Multisearch.Requests;
-
-using PuppeteerSharp;
 
 namespace CloudNine.Core.Multisearch
 {
@@ -61,7 +58,7 @@ namespace CloudNine.Core.Multisearch
             return true;
         }
 
-        public SearchManager(BrowserClient client, SearchOptions options) : base(client)
+        public SearchManager(FanfictionClient client, SearchOptions options) : base(client)
         {
             _fanFics = new();
             WebsitePageNumber = 1; // start on first page

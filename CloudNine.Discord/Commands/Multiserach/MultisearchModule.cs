@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -646,7 +647,7 @@ namespace CloudNine.Discord.Commands.Multiserach
 
             res.SearchOptions = guild.MultisearchConfiguration.DefaultSearchOptions.Combine(res.SearchOptions ?? new());
 
-            _  = await searchUser.NewSearch(_services.GetRequiredService<BrowserClient>(), res.SearchBuilder?.Build() ?? new(), res.SearchOptions);
+            _  = await searchUser.NewSearch(_services.GetRequiredService<FanfictionClient>(), res.SearchBuilder?.Build() ?? new(), res.SearchOptions);
 
             if (searchUser.Manager is not null)
             {

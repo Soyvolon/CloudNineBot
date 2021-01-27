@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -26,7 +27,7 @@ namespace CloudNine.Discord.Interactions
         private readonly ILogger _logger;
 
         private readonly IReadOnlyDictionary<LinkType, string> _urls = new Dictionary<LinkType, string>()
-        { { LinkType.ao3, "archiveofourown.org" }, { LinkType.ff, "fanfiction.net" }, { LinkType.wattpad, "wattpad.com" } };
+        { { LinkType.ao3, "archiveofourown.org" }, /*{ LinkType.ff, "fanfiction.net" },*/ { LinkType.wattpad, "wattpad.com" } };
 
         public enum LinkType
         {
@@ -35,7 +36,7 @@ namespace CloudNine.Discord.Interactions
             wattpad
         }
 
-        public FanfictionLinkResponderService(IServiceProvider services, ILogger<FanfictionLinkResponderService> logger, BrowserClient browser) : base(browser)
+        public FanfictionLinkResponderService(IServiceProvider services, ILogger<FanfictionLinkResponderService> logger, FanfictionClient browser) : base(browser)
         {
             _services = services;
             _logger = logger;
@@ -170,7 +171,7 @@ namespace CloudNine.Discord.Interactions
                 }
             }
 
-            var manager = new FanfictionLinkManager(requests, _client, searchOptions);
+            var manager = new FanfictionLinkManager(requests, Web, searchOptions);
 
             var res = await manager.MakeWebRequest();
 

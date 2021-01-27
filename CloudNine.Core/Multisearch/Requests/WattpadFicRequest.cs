@@ -66,8 +66,12 @@ namespace CloudNine.Core.Multisearch.Requests
             }
             catch {  /* non-essential */ }
 
-            var complete_node = node.SelectSingleNode(".//small//span[contains(@class, 'hidden-xs')]");
-            fic.Completed = !complete_node.InnerText.Contains("Ongoing");
+            try
+            {
+                var complete_node = node.SelectSingleNode(".//small//span[contains(@class, 'hidden-xs')]");
+                fic.Completed = !complete_node.InnerText.Contains("Ongoing");
+            }
+            catch { /* non-essential */ }
 
             var desc_node = Result.DocumentNode.SelectSingleNode("//h2[contains(@class, 'description')]");
             fic.Description = desc_node.InnerText;
