@@ -46,6 +46,8 @@ namespace CloudNine.Core.Moderation
         }
         private HashSet<string>? _keys;
 
+        public TimeSpan ForgiveAfter { get; set; }
+
         public ModCore() : this(0, new()) { }
 
         public ModCore(ulong guildId) : this(guildId, new()) { }

@@ -17,6 +17,18 @@ namespace CloudNine.Core.Moderation
 
         public string Message { get; set; }
         public ulong SavedBy { get; set; }
+        /// <summary>
+        /// Is false when the warn is still eligible for frogiveness.
+        /// </summary>
+        public bool NotForgiven { get; set; }
+        /// <summary>
+        /// Is true when the warn is forgiven.
+        /// </summary>
+        public bool Forgiven { get; set; }
+        /// <summary>
+        /// Delay review until the specified date time.
+        /// </summary>
+        public DateTime? IgnoreUntil { get; set; }
         
         public SortedList<DateTime, string> Edits { get; set; }
 
