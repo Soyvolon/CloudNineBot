@@ -96,7 +96,7 @@ namespace CloudNine.Discord.Commands.Moderation
 
                     if(mod.Warns.TryGetValue(toWarn.Id, out var warnings))
                     {
-                        if(mod.ModlogNotices.TryGetValue(warnings.Count, out var notice))
+                        if(mod.ModlogNotices.TryGetValue(warnings.Where(x => !x.Value.Forgiven).Count(), out var notice))
                         {
                             await DisplayWarnNotice(ctx, notice, toWarn);
                         }
