@@ -14,18 +14,20 @@ on:
 jobs:
   build:
 
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
-    - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v1.0.2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.100
     - name: Install dependencies
-      run: msbuild /t:restore
+      run: dotnet restore
     - name: Build
-      run: msbuild /t:build /p:Configuration=Release /p:RestorePackages=false /p:OutputPath=artifact/build/CloudNine /p:DeployOnBuild=true /p:PublishProfile=CloudNine/Properties/PublishProfile/GithubRelease.pubxml
+      run: dotnet build --configuration Release --no-restore --output artifact/build/CloudNine
     - name: Copy Dockerfile
-      run: cp **Dockerfile CloudNine/artifact/
+      run: cp **Dockerfile artifact/
     - name: Stop Current Release
       uses: garygrossgarten/github-action-ssh@release
       continue-on-error: true
@@ -38,7 +40,7 @@ jobs:
     - name: Copy Files over SSH
       uses: garygrossgarten/github-action-scp@release
       with:
-        local: CloudNine/artifact/
+        local: artifact/
         remote: ${{ secrets.RELEASE_DEST }}
         host: ${{ secrets.RELEASE_HOST }}
         username: ${{ secrets.RELEASE_USER }}
