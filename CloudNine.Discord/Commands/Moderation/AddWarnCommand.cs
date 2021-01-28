@@ -183,6 +183,9 @@ namespace CloudNine.Discord.Commands.Moderation
                 .WithFooter($"Saved By: {username}")
                 .WithTimestamp(warn.CreatedOn);
 
+                if (warn.Forgiven)
+                    embed.WithDescription("**This warn has been marked as FORGIVEN**");
+
                 if (warn.Reverts.Count > 0)
                 {
                     string data = "";

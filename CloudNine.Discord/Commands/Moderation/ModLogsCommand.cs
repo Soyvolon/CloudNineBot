@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 using CloudNine.Core.Database;
@@ -44,11 +45,12 @@ namespace CloudNine.Discord.Commands.Moderation
 
             if (mod.Warns.TryGetValue(member.Id, out var warns))
             {
+                var validWarns = warns.Where(x => !x.Value.Forgiven).Count();
                 var embed = new DiscordEmbedBuilder()
                     .WithColor(DiscordColor.Blurple)
                     .WithTitle($"ID: {member.Id}")
                     .WithAuthor($"Modlogs For: {member.DisplayName}", null, member.AvatarUrl)
-                    .WithFooter($"Total Warns: {warns.Count}", null);
+                    .WithFooter($"Total Valid Warns: {validWarns} | Forgiven Warns: {warns.Count - validWarns}", null);
 
                 int c = 0;
                 List<string>? extraWarns = null;
@@ -76,7 +78,7 @@ namespace CloudNine.Discord.Commands.Moderation
                             username = warn.SavedBy.ToString();
                         }
 
-                        embed.AddField($"Warn: `{warn.Key}`",
+                        embed.AddField($"Warn: `{warn.Key}`{(warn.Forgiven ? " - FORGIVEN" : "")}",
                             $"Created On: `{warn.CreatedOn:g}` - Last Edit: `{warn.LastEdit:g}`\n" +
                             $"{(warn.Reverts.Count > 0 ? $"*`reverted {warn.Reverts.Count} times ...`*" : "")}\n" +
                             $"```\n" +

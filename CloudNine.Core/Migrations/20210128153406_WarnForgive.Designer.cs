@@ -3,14 +3,16 @@ using System;
 using CloudNine.Core.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace CloudNine.Core.Migrations
 {
     [DbContext(typeof(CloudNineDatabaseModel))]
-    partial class CloudNineDatabaseModelModelSnapshot : ModelSnapshot
+    [Migration("20210128153406_WarnForgive")]
+    partial class WarnForgive
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
