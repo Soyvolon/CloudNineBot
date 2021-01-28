@@ -45,6 +45,18 @@ warn <warn ID>
 | Parameter | Usage |
 |-----------|-------|
 | warn ID   |  ID of the warning to display |
+
+## Clear Warn Status
+**Clears any forgiven or not forgiven status on a warn**
+
+```
+clearwarnstatus <warn ID>
+```
+
+| Parameter | Usage |
+|-----------|-------|
+| warn ID   |  ID of the warning to clear status for |
+
 ## Delete Warning
 **Deletes an existing warning**
 
@@ -72,6 +84,20 @@ editwarn <warn ID> <message>
 | warn ID   |  ID of the warning to edit |
 | message   | The new message for the warning |
 
+## Forgive Warning
+**Forgives a warning, or, marks a warning as not forgiven**
+
+Requires `MANAGE_MESSAGES`
+
+```
+forgivewarn <warn ID> <not Forgiven>
+```
+
+| Parameter    | Usage |
+|--------------|-------|
+| warn ID      |  ID of the warning to forgive |
+| not Forgiven | A boolean value that defaults to `false` and determines is a warn should be marked as not Forgiven instead of Forgiven. This is optional. |
+
 ## Redo Warning Edit
 **Redo an edit to a warning**
 
@@ -98,6 +124,19 @@ removemodlognotice <count>
 |-----------|-------|
 | count     | Number of warnings needed for the notice you want to remove to be triggered |
 
+## Set Review Delay
+**Sets a length of time before a warning is eligible for review**
+
+Requires `MANAGE_GUILD`
+
+```
+reviewtime <days>
+```
+
+| Parameter | Usage |
+|-----------|-------|
+| days      | Number of days a warn must exist before it is eligible for review |
+
 ## Undo Warning Edit
 **Undo an edit to a warning**
 
@@ -123,3 +162,12 @@ modlogs <member>
 | Parameter | Usage |
 |-----------|-------|
 | member    | Member to view all warnings for. Either their mention or user ID |
+
+## View Warnings to Review
+**Views all warnings eligible for forgiveness**
+
+Requires `MANAGE_MESSAGES`
+
+```
+warnstoforgive
+```
