@@ -7,9 +7,13 @@ The Fanfiction Multisearch module is designed to search multiple fanfiction webs
 # Information
 The Fanfiction Multisearch module is an easy way to search Multiple Fanfiction websites and get your results in a single place! By running a single command, Cloud Nine Bot automatically searches Fanfiction.net and Wattpad for fanfiction matching your search.
 
+!> Archive of Our Own disallows indexing of search results, and will not be supported.
+
 Both server settings and user settings can be customized for what information is displayed when searching with the `search config` command. 
 
 The Multisearch feature also will send the fanfiction information for any link posted in a channel Cloud Nine Bot can see, but this can be disabled both by users and by a server.
+
+!> Fanfiction.net uses CloudFlare, which prevents gathering information from a link. Fanfiction.net links will not be supported.
 
 # Commands
 ## Cache
