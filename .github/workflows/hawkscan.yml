@@ -27,7 +27,7 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore
       - name: Build
-        run: dotnet build CloudNine.Web\CloudNine.Web.csproj --no-restore
+        run: dotnet build CloudNine.Web/CloudNine.Web.csproj --no-restore
       - name: Run HawkScan
         uses: stackhawk/hawkscan-action@v1.1
         with:
