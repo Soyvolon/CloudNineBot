@@ -96,7 +96,7 @@ namespace CloudNine.Web
 
             SlashClient = new DiscordSlashClient(new DiscordSlashConfiguration()
             {
-                ClientId = ulong.Parse(Configuration["Client"]),
+                ShardedClient = Client,
                 Token = botCfg.Token,
                 DefaultResponseType = DSharpPlus.SlashCommands.Enums.InteractionResponseType.ACKWithSource
             }, c);

@@ -16,11 +16,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1. Project", "1. Project", 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudNine.Web", "CloudNine.Web\CloudNine.Web.csproj", "{1397FDA0-B634-46B8-B6A3-9CD72FB32223}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudNine", "CloudNine\CloudNine.csproj", "{48012530-854B-486A-8B81-FEE99A495786}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudNine.Atmo", "CloudNine.Atmo\CloudNine.Atmo.csproj", "{79BA9B51-3FB0-4103-A1B1-9FDB8AAAA058}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudNine.Atmo", "CloudNine.Atmo\CloudNine.Atmo.csproj", "{79BA9B51-3FB0-4103-A1B1-9FDB8AAAA058}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudNine.Web", "CloudNine.Web\CloudNine.Web.csproj", "{C50C52D9-AB3B-46F8-97CA-E51BA21553B5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,10 +36,6 @@ Global
 		{1F0CAB1B-2BA5-4133-B81A-7059DF7D2122}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1F0CAB1B-2BA5-4133-B81A-7059DF7D2122}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1F0CAB1B-2BA5-4133-B81A-7059DF7D2122}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1397FDA0-B634-46B8-B6A3-9CD72FB32223}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1397FDA0-B634-46B8-B6A3-9CD72FB32223}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1397FDA0-B634-46B8-B6A3-9CD72FB32223}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1397FDA0-B634-46B8-B6A3-9CD72FB32223}.Release|Any CPU.Build.0 = Release|Any CPU
 		{48012530-854B-486A-8B81-FEE99A495786}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{48012530-854B-486A-8B81-FEE99A495786}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{48012530-854B-486A-8B81-FEE99A495786}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -48,6 +44,10 @@ Global
 		{79BA9B51-3FB0-4103-A1B1-9FDB8AAAA058}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{79BA9B51-3FB0-4103-A1B1-9FDB8AAAA058}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{79BA9B51-3FB0-4103-A1B1-9FDB8AAAA058}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C50C52D9-AB3B-46F8-97CA-E51BA21553B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C50C52D9-AB3B-46F8-97CA-E51BA21553B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C50C52D9-AB3B-46F8-97CA-E51BA21553B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C50C52D9-AB3B-46F8-97CA-E51BA21553B5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
