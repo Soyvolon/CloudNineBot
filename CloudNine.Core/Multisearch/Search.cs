@@ -105,7 +105,7 @@ namespace CloudNine.Core.Multisearch
         /// </summary>
         public void BuildRequests()
         {
-            BuildFanficRequest();
+            //BuildFanficRequest();
             //BuildAO3Request(); // disabled due to violation of robots.txt
             BuildWattpadRequest();
         }
