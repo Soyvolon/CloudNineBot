@@ -49,7 +49,7 @@ jobs:
           json: ${{ secrets.JSON_INFINITY_CONFIG }}
           dir: Config
       - name: Run
-        run: dotnet CloudNine.Web/bin/Debug/net5.0/CloudNine.Web.dll
+        run: start dotnet CloudNine.Web/bin/Debug/net5.0/CloudNine.Web.dll
       - name: Run HawkScan
         uses: stackhawk/hawkscan-action@v1.1
         with:
