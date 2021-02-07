@@ -48,8 +48,8 @@ jobs:
           name: "infinity_config.json"
           json: ${{ secrets.JSON_INFINITY_CONFIG }}
           dir: Config
-      - name: Run
-        run: start dotnet CloudNine.Web/bin/Debug/net5.0/CloudNine.Web.dll
+      - name: Run Webapp
+        run: Start-Job -ScriptBlock{dotnet CloudNine.Web/bin/Debug/net5.0/CloudNine.Web.dll}
       - name: Run HawkScan
         uses: stackhawk/hawkscan-action@v1.1
         with:
