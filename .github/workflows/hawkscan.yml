@@ -29,25 +29,25 @@ jobs:
       - name: Build
         run: dotnet build CloudNine.Web/CloudNine.Web.csproj --no-restore --configuration Debug
       - name: Make Config Folder
-        run: mkdir CloudNine.Web/bin/Debug/net5.0/Config
+        run: Config
       - name: Write Bot Config
         uses: jsdaniell/create-json@1.1.2
         with:
           name: "bot_config.json"
           json: ${{ secrets.JSON_BOT_CONFIG }}
-          dir: CloudNine.Web/bin/Debug/net5.0/Config
+          dir: Config
       - name: Write Database Config
         uses: jsdaniell/create-json@1.1.2
         with:
           name: "database_config.json"
           json: ${{ secrets.JSON_DATABASE_CONFIG }}
-          dir: CloudNine.Web/bin/Debug/net5.0/Config
+          dir: Config
       - name: Write Infinity Config
         uses: jsdaniell/create-json@1.1.2
         with:
           name: "infinity_config.json"
           json: ${{ secrets.JSON_INFINITY_CONFIG }}
-          dir: CloudNine.Web/bin/Debug/net5.0/Config
+          dir: Config
       - name: Run
         run: dotnet CloudNine.Web/bin/Debug/net5.0/CloudNine.Web.dll
       - name: Run HawkScan
