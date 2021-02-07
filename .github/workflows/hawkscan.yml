@@ -51,7 +51,7 @@ jobs:
       - name: Run Webapp
         uses: Amadevus/pwsh-script@v2.0.1
         with:
-          script: dotnet CloudNine.Web.dll
+          script: "dotnet CloudNine.Web.dll"
       - name: Run HawkScan
         uses: stackhawk/hawkscan-action@v1.1
         with:
