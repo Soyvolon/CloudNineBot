@@ -2,3 +2,9 @@ app:
   applicationId: 28bd3d34-726a-4ac0-baf9-6b6f2aea850c
   host: https://localhost:5001
   env: Development
+  hawk:
+   spider:
+     base: true # (default)
+     ajax: true # (default)
+     maxDurationMinutes: 2 # (default)
+   startupTimeoutMinutes: 5 # (default)
