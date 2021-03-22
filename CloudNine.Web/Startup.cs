@@ -27,6 +27,9 @@ using DSharpPlus.SlashCommands;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc;
 using CloudNine.Core.Configuration;
+using Markdig;
+using Microsoft.OpenApi.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace CloudNine.Web
 {
@@ -73,6 +76,7 @@ namespace CloudNine.Web
                 .AddSingleton(x => new LoginManager(Client, botCfg.Secret, InfinityConfig.AuthorizedUsers.ToHashSet()))
                 .AddLogging(o => o.AddConsole())
                 .AddDbContext<CloudNineDatabaseModel>(ServiceLifetime.Transient, ServiceLifetime.Scoped)
+                .AddDbContext<BlogDatabaseModel>(ServiceLifetime.Transient, ServiceLifetime.Scoped)
                 .AddHttpContextAccessor()
                 .AddHttpClient()
                 .AddScoped<HttpClient>()
@@ -82,7 +86,32 @@ namespace CloudNine.Web
                     options.CheckConsentNeeded = context => true;
                     options.MinimumSameSitePolicy = SameSiteMode.None;
                 })
-                .AddScoped<IRefreshRequestService, RefreshRequestService>();
+                .AddScoped<IRefreshRequestService, RefreshRequestService>()
+                .AddSingleton((x) =>
+                {
+                    return new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
+                });
+
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "Out of Bounds API",
+                    Version = "v1",
+                    Description = "The API for the andrewbounds.com website.",
+                    Contact = new()
+                    {
+                        Name = "Andrew Bounds",
+                        Email = string.Empty,
+                        Url = new Uri("https://github.com/Soyvolon/CloudNineBot/issues")
+                    },
+                    License = new()
+                    {
+                        Name = "Licensed under the MIT License",
+                        Url = new Uri("https://github.com/Soyvolon/CloudNineBot/blob/main/LICENSE")
+                    }
+                });
+            });
 
             services.AddControllers();
             services.AddRazorPages().AddRazorPagesOptions(o =>
@@ -118,6 +147,12 @@ namespace CloudNine.Web
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            var cdb = app.ApplicationServices.GetRequiredService<CloudNineDatabaseModel>();
+            ApplyDatabaseMigrations(cdb);
+
+            var bdb = app.ApplicationServices.GetRequiredService<BlogDatabaseModel>();
+            ApplyDatabaseMigrations(bdb);
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -128,6 +163,9 @@ namespace CloudNine.Web
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+
+            app.UseSwagger();
+            app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Out of Bounds API"));
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
@@ -143,6 +181,17 @@ namespace CloudNine.Web
             });
 
             SlashClient.StartAsync().GetAwaiter().GetResult();
+        }
+
+        private static void ApplyDatabaseMigrations(DbContext database)
+        {
+            if (!(database.Database.GetPendingMigrations()).Any())
+            {
+                return;
+            }
+
+            database.Database.Migrate();
+            database.SaveChanges();
         }
     }
 }

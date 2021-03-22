@@ -1,0 +1,31 @@
+﻿@inject BlogDatabaseModel _database
+@inject MarkdownPipeline _markpipe
+
+@{
+    if (Markup is not null)
+    {
+        <div class="jumbotron">
+            @Markup
+        </div>
+    }
+}
+
+@code {
+    [Parameter]
+    public string ShowcaseName { get; set; }
+
+    private Showcase? Showcase { get; set; }
+    private MarkupString? Markup { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        Showcase = await _database.FindAsync<Showcase>(ShowcaseName);
+
+        if (Showcase is not null && Showcase.Enabled)
+        {
+            Markup = new(Markdown.ToHtml(Showcase.Markdown, _markpipe));
+        }
+
+        await base.OnParametersSetAsync();
+    }
+}

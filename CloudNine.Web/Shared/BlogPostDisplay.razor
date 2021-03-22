@@ -1,0 +1,60 @@
+﻿@inject MarkdownPipeline _markpipe
+
+<div class="card border-info mb-3">
+
+    <h3 class="card-title">@Post.Name [#@Post.Id]</h3>
+
+    <div class="card-body">
+        @Markup
+    </div>
+
+    @if (Post.Tags.Count > 0)
+    {
+    <div class="card-body">
+        @*@foreach (var v in Post.Tags)
+        {
+            <a href="#" class="card-link">v</a>
+        }*@
+        Tags: @TagString
+    </div>
+    }
+
+    <div class="card-body">
+        <h5 class="card-title">Author: @Post.Author</h5>
+        @if(EditorString is not null)
+        {
+            <h6 class="card-subtitle text-muted">Edited By: @EditorString</h6>
+        }
+    </div>
+
+    <div class="card-footer text-muted">
+        Posted On: @Post.PostedOn.ToString("dd MMMM yyy")
+        @if(Post.LastUpdate is not null)
+        {
+            <span>| @Post.LastUpdate.Value.ToString("dd MMMM yyy")</span>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public BlogPost Post { get; set; }
+
+    public MarkupString Markup { get; set; }
+    public string TagString { get; set; }
+    public string? EditorString { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        Markup = new(Markdown.ToHtml(Post.Markdown, _markpipe));
+
+        TagString = string.Join(", ", Post.Tags);
+
+        if(Post.Editors is not null)
+        {
+            EditorString = string.Join(", ", Post.Editors);
+        }
+
+        await base.OnParametersSetAsync();
+    }
+}

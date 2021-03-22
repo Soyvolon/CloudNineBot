@@ -20,7 +20,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudNine", "CloudNine\Clou
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudNine.Atmo", "CloudNine.Atmo\CloudNine.Atmo.csproj", "{79BA9B51-3FB0-4103-A1B1-9FDB8AAAA058}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudNine.Web", "CloudNine.Web\CloudNine.Web.csproj", "{C50C52D9-AB3B-46F8-97CA-E51BA21553B5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudNine.Web", "CloudNine.Web\CloudNine.Web.csproj", "{C50C52D9-AB3B-46F8-97CA-E51BA21553B5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

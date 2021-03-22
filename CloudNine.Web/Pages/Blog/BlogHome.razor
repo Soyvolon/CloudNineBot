@@ -1,0 +1,93 @@
+﻿@page "/blog"
+@inject BlogDatabaseModel _database
+@inject LoginManager _login
+@inject IRefreshRequestService _refresh
+
+<h1 class="text-center">Out of Bounds Fanfiction</h1>
+
+<hr />
+
+<ShowcaseDisplay ShowcaseName="blog_home" />
+
+<!-- Featured Blog Posts -->
+@if (Featured is not null)
+{
+    <div id="featured-blog-posts">
+        <div class="navbar-expand-lg navbar-dark bg-secondary p-2">
+            <h2 class="text-center text-white">Featured Posts</h2>
+        </div>
+
+        @foreach (var p in Featured)
+        {
+            <BlogPostDisplay Post="p" />
+        }
+    </div>
+}
+
+<br />
+
+<!-- Recent Blog Posts -->
+
+@if(Latest is not null)
+{
+    <div id="latest-blog-posts">
+        <div class="navbar-expand-lg navbar-dark bg-info p-2">
+            <h2 class="text-center text-white">Recent Posts</h2>
+        </div>
+
+        @foreach(var p in Latest)
+        {
+            <BlogPostDisplay Post="p" />
+        }
+    </div>
+}
+
+<br />
+
+<!-- All blog posts button -->
+
+<div id="blog-footer" class="text-center">
+    <NavLink href="/blog/all" class="text-white">
+        <span class="btn btn-info btn-block">
+            All Posts
+        </span>
+    </NavLink>
+</div>
+
+@code {
+    public List<BlogPost>? Featured { get; private set; }
+    public List<BlogPost>? Latest { get; private set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _refresh.RefreshRequested += RefreshMe;
+
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        Featured = _database.BlogPosts.Where(x => x.Featured).ToList();
+
+        if(_database.BlogPosts.Count() > 3)
+        {
+            Latest = _database.BlogPosts.TakeLast(3).ToList();
+        }
+        else
+        {
+            Latest = _database.BlogPosts.ToList();
+        }
+
+        if (Featured.Count <= 0)
+            Featured = null;
+        if (Latest.Count <= 0)
+            Latest = null;
+
+        await base.OnParametersSetAsync();
+    }
+
+    private void RefreshMe()
+    {
+        StateHasChanged();
+    }
+}

@@ -83,7 +83,7 @@ namespace CloudNine
             await Task.Delay(-1);
         }
 
-        private static async Task ApplyDatabaseMigrations(CloudNineDatabaseModel database)
+        private static async Task ApplyDatabaseMigrations(DbContext database)
         {
             if (!(await database.Database.GetPendingMigrationsAsync()).Any())
             {

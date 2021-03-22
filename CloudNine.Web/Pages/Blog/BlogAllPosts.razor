@@ -1,0 +1,37 @@
+﻿@page "/blog/all"
+@inject BlogDatabaseModel _database
+@inject LoginManager _login
+@inject MarkdownPipeline _markpipe
+@inject IRefreshRequestService _refresh
+
+<h1 class="text-center">Out of Bounds Fanfiction</h1>
+
+<hr />
+
+<ShowcaseDisplay ShowcaseName="blog_all_posts" />
+
+<div id="blog-footer" class="text-center">
+    <span class="btn btn-primary btn-block">
+        <NavLink href="/blog/all">
+            All Posts
+        </NavLink>
+    </span>
+</div>
+
+<div id="blog-posts">
+    
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        _refresh.RefreshRequested += RefreshMe;
+
+        await base.OnInitializedAsync();
+    }
+
+    private void RefreshMe()
+    {
+        StateHasChanged();
+    }
+}
