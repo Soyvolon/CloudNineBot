@@ -39,7 +39,7 @@ namespace CloudNine.Discord.Utilities
             bdayChecker.Start();
             lastDay = DateTime.UtcNow.AddDays(-1);
             this._services = services;
-            _logger = services.GetService<ILogger<BirthdayManager>>();
+            _logger = services.GetRequiredService<ILogger<BirthdayManager>>();
         }
 
         private async void BdayChecker_Elapsed(object sender, ElapsedEventArgs e)
@@ -102,7 +102,7 @@ namespace CloudNine.Discord.Utilities
                                             }
                                             catch (UnauthorizedException ex)
                                             {
-                                                throw ex;
+                                                _logger.LogError(ex, "BDay Handler Failed");
                                                 continue;
                                             }
                                         }
@@ -138,7 +138,7 @@ namespace CloudNine.Discord.Utilities
                                         }
                                         catch (UnauthorizedException ex)
                                         {
-                                            throw ex;
+                                            _logger.LogError(ex, "BDay Handler Failed");
                                             continue;
                                         }
                                     }
@@ -175,7 +175,7 @@ namespace CloudNine.Discord.Utilities
                                         }
                                         catch (UnauthorizedException ex)
                                         {
-                                            throw ex;
+                                            _logger.LogError(ex, "BDay Handler Failed");
                                             continue;
                                         }
                                     }
