@@ -90,7 +90,7 @@ namespace CloudNine.Web.Api
                 return Ok(
                     JsonConvert.SerializeObject(
                         new InteractionResponseBuilder()
-                            .WithType(InteractionResponseType.Pong)
+                            .WithType(DSharpPlus.SlashCommands.Enums.InteractionResponseType.Pong)
                             .Build()
                         )
                     ); // ... and return the pong if it is.

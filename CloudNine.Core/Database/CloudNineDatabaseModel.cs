@@ -5,6 +5,7 @@ using System.IO;
 
 using CloudNine.Core.Birthdays;
 using CloudNine.Core.Configuration;
+using CloudNine.Core.MagicChannel;
 using CloudNine.Core.Moderation;
 using CloudNine.Core.Multisearch;
 using CloudNine.Core.Multisearch.Configuration;
@@ -21,6 +22,7 @@ namespace CloudNine.Core.Database
         public DbSet<DiscordGuildConfiguration> ServerConfigurations { get; set; }
         public DbSet<ModCore> Moderation { get; set; }
         public DbSet<MultisearchUser> MultisearchUsers { get; set; }
+        public DbSet<MagicChannelData> MagicChannels { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -101,6 +103,16 @@ namespace CloudNine.Core.Database
                 .HasConversion(
                     v => JsonConvert.SerializeObject(v),
                     v => JsonConvert.DeserializeObject<MultisearchConfigurationOptions>(v) ?? new());
+
+            var mchan = modelBuilder.Entity<MagicChannelData>();
+            mchan.Property(b => b.RolesToIgnore)
+                .HasConversion(
+                    v => JsonConvert.SerializeObject(v),
+                    v => JsonConvert.DeserializeObject<HashSet<ulong>>(v) ?? new());
+            mchan.Property(b => b.UsersToIgnore)
+                .HasConversion(
+                    v => JsonConvert.SerializeObject(v),
+                    v => JsonConvert.DeserializeObject<HashSet<ulong>>(v) ?? new());
         }
     }
 }

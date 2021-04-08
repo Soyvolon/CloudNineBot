@@ -48,7 +48,8 @@ namespace CloudNine
                 .AddSingleton<HttpClient>()
                 .AddTransient<SearchParseSevice>()
                 .AddSingleton<MultisearchInteractivityService>()
-                .AddSingleton<FanfictionLinkResponderService>();
+                .AddSingleton<FanfictionLinkResponderService>()
+                .AddSingleton<MagicChannelService>();
 
             services.AddHttpClient<FanfictionClient>(client =>
             {
@@ -79,6 +80,10 @@ namespace CloudNine
             {
                 Console.WriteLine(ex.Message);
             }
+
+            var chans = serviceProvider.GetRequiredService<MagicChannelService>();
+
+            await chans.InitalizeAsync();
 
             await Task.Delay(-1);
         }
