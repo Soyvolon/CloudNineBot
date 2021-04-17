@@ -98,8 +98,13 @@ namespace CloudNine.Web.Api
             else
             {// ... then pass the raw request body to the client ...
                 var response = await Startup.SlashClient.HandleWebhookPost(raw);
-                if (response is not null) // ... if the clients response is not null ...
-                    return Ok(JsonConvert.SerializeObject(response)); // ... serialie it and send it.
+                if (response is not null)
+                {
+                    // ... if the clients response is not null ... 
+                    Response.Headers.Add("Content-Type", "application/json");
+                    // ... serialie it and send it.
+                    return Ok(JsonConvert.SerializeObject(response));
+                }
                 else return BadRequest("Failed to parse request JSON."); // ... or send a bad request message.
             }
         }
