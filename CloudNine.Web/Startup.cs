@@ -127,7 +127,7 @@ namespace CloudNine.Web
             {
                 ShardedClient = Client,
                 Token = botCfg.Token,
-                DefaultResponseType = InteractionResponseType.ChannelMessageWithSource
+                DefaultResponseType = InteractionResponseType.DeferredChannelMessageWithSource
             }, c);
 
             SlashClient.RegisterCommands(Assembly.GetExecutingAssembly());
