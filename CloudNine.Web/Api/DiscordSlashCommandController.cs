@@ -101,7 +101,7 @@ namespace CloudNine.Web.Api
                 if (response is not null)
                 {
                     // ... if the clients response is not null ... 
-                    Response.Headers.Add("Content-Type", "application/json");
+                    Response.ContentType = "application/json";
                     // ... serialie it and send it.
                     return Ok(JsonConvert.SerializeObject(response, new JsonSerializerSettings
                     {
