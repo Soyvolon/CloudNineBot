@@ -50,6 +50,12 @@ namespace CloudNine.Discord.Commands.Quotes
 
             if (args is null || args.Length <= 0)
             {
+                if(cfg.Keys.Count == 0)
+                {
+                    await RespondError("No quotes found!");
+                    return;
+                }
+
                 var quoteId = cfg.Keys.Random();
                 await SendQuoteByIdAsync(ctx, cfg, quoteId);
                 _database.Update(cfg);

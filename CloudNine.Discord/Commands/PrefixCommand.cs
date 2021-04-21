@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
+using CloudNine.Config.Bot;
 using CloudNine.Core.Configuration;
 using CloudNine.Core.Database;
 
@@ -17,10 +18,12 @@ namespace CloudNine.Discord.Commands
     public class PrefixCommand : CommandModule
     {
         private readonly IServiceProvider _services;
+        private readonly DiscordBotConfiguration _config;
 
-        public PrefixCommand(IServiceProvider services)
+        public PrefixCommand(IServiceProvider services, DiscordBotConfiguration config)
         {
             this._services = services;
+            _config = config;
         }
 
         [Command("prefix")]
@@ -43,7 +46,7 @@ namespace CloudNine.Discord.Commands
                 await _database.AddAsync(cfg);
             }
 
-            cfg.Prefix = prefix ?? DiscordBot.Bot.BotConfiguration.Prefix;
+            cfg.Prefix = prefix ?? _config.Prefix;
 
             await _database.SaveChangesAsync();
 

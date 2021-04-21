@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 
 namespace CloudNine.Config.Bot
 {
-    public struct DiscordBotConfiguration
+    public class DiscordBotConfiguration
     {
         [JsonProperty("token")]
         public string Token { get; private set; }

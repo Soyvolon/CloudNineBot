@@ -36,7 +36,6 @@ namespace CloudNine.Web
     public class Startup
     {
         public DiscordShardedClient Client { get; private set; }
-        public static DiscordSlashClient SlashClient { get; private set; }
         public static string PublicKey { get; private set; }
         public static InfinityConfiguration InfinityConfig { get; private set; }
 
@@ -122,15 +121,6 @@ namespace CloudNine.Web
 
             IServiceCollection c = new ServiceCollection()
                 .AddDbContext<CloudNineDatabaseModel>(ServiceLifetime.Transient, ServiceLifetime.Scoped);
-
-            SlashClient = new DiscordSlashClient(new DiscordSlashConfiguration()
-            {
-                ShardedClient = Client,
-                Token = botCfg.Token,
-                DefaultResponseType = InteractionResponseType.DeferredChannelMessageWithSource
-            }, c);
-
-            SlashClient.RegisterCommands(Assembly.GetExecutingAssembly());
         }
 
         public DiscordConfiguration GetDiscordConfiguration(string botToken)
@@ -179,8 +169,6 @@ namespace CloudNine.Web
                 endpoints.MapControllers();
                 endpoints.MapFallbackToPage("/_Host");
             });
-
-            SlashClient.StartAsync().GetAwaiter().GetResult();
         }
 
         private static void ApplyDatabaseMigrations(DbContext database)

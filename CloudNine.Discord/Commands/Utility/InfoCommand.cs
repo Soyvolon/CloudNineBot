@@ -10,6 +10,13 @@ namespace CloudNine.Discord.Commands.Utility
 {
     public class InfoCommand : CommandModule
     {
+        private readonly DiscordShardedClient _client;
+
+        public InfoCommand(DiscordShardedClient client)
+        {
+            _client = client;
+        }
+
         [Command("info")]
         [Description("Shows info about Cloud Nine Bot")]
         [Aliases("about")]
@@ -18,7 +25,7 @@ namespace CloudNine.Discord.Commands.Utility
             var embed = new DiscordEmbedBuilder();
             embed.WithColor(Color_Cloud)
                 .WithTitle("Cloud Nine Bot")
-                .WithDescription($"Server Count: {DiscordBot.Bot.Client.ShardClients.Sum(x => x.Value.Guilds.Count)}\n" +
+                .WithDescription($"Server Count: {_client.ShardClients.Sum(x => x.Value.Guilds.Count)}\n" +
                 $"Current Shard: {ctx.Client.ShardId}\n" +
                 $"\n" +
                 $"Check out our [Documentation](https://docs.andrewbounds.com/)\n" +

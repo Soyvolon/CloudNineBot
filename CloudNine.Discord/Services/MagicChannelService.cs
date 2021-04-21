@@ -29,11 +29,12 @@ namespace CloudNine.Discord.Services
         private ConcurrentDictionary<ulong, Timer> ActiveChannels { get; init; }
         private ConcurrentDictionary<ulong, ConcurrentDictionary<ulong, (int, int, ulong)>> MessageCounts { get; init; }
 
-        public MagicChannelService(IServiceProvider services)
+        public MagicChannelService(IServiceProvider services, DiscordShardedClient client,
+            DiscordRestClient rest)
         {
             _services = services;
-            _client = DiscordBot.Bot.Client;
-            _rest = DiscordBot.Bot.Rest;
+            _client = client;
+            _rest = rest;
             _logger = _client.Logger;
 
             ActiveChannels = new();
@@ -42,7 +43,7 @@ namespace CloudNine.Discord.Services
 
         public async Task InitalizeAsync()
         {
-            DiscordBot.Bot.Client.MessageCreated += Client_MessageReceived;
+            _client.MessageCreated += Client_MessageReceived;
 
             var db = _services.GetRequiredService<CloudNineDatabaseModel>();
 
@@ -160,14 +161,21 @@ namespace CloudNine.Discord.Services
             {
                 tasks.Add(Task.Run(() =>
                 {
-                    if (channel.UsersToIgnore.Contains(mem.Id))
-                        return;
-                    else if (mem.Roles.Any(x => channel.RolesToIgnore.Contains(x.Id)))
-                        return;
-                    else if (mem.Roles.Any(x => channel.RoleToAssign.Equals(x.Id)))
-                        toRemove.Add(mem);
-                    else
-                        valid.Add(mem);
+                    try
+                    {
+                        if (channel.UsersToIgnore.Contains(mem.Id))
+                            return;
+                        else if (mem.Roles.Any(x => channel.RolesToIgnore.Contains(x.Id)))
+                            return;
+                        else if (mem.Roles.Any(x => channel.RoleToAssign.Equals(x.Id)))
+                            toRemove.Add(mem);
+                        else
+                            valid.Add(mem);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Magic member add failed.");
+                    }
                 }));
             }
 
@@ -180,6 +188,8 @@ namespace CloudNine.Discord.Services
                 {
                     _ = Task.Run(async () =>
                     {
+                        if (mem is null) return;
+
                         await mem.RevokeRoleAsync(role, "Magic.");
 
                         if (MessageCounts.TryGetValue(channel.ChannelId, out var mcount))
@@ -199,6 +209,8 @@ namespace CloudNine.Discord.Services
 
                 foreach (var mem in selection)
                 {
+                    if (mem is null) continue;
+
                     _ = Task.Run(async () =>
                     {
                         await mem.GrantRoleAsync(role, "Magic.");

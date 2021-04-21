@@ -1,5 +1,7 @@
 ﻿using System.Threading.Tasks;
 
+using CloudNine.Discord.Utilities;
+
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 
@@ -7,6 +9,13 @@ namespace CloudNine.Discord.Commands.Birthday
 {
     public class TriggerNextTimerEventCmd : CommandModule
     {
+        private readonly BirthdayManager _birthdays;
+
+        public TriggerNextTimerEventCmd(BirthdayManager birthdays)
+        {
+            _birthdays = birthdays;
+        }
+
         [Command("bdaytrigger")]
         [RequireGuild]
         [RequireOwner]
@@ -15,7 +24,7 @@ namespace CloudNine.Discord.Commands.Birthday
         {
             if (DiscordBot.IsDebug)
             {
-                DiscordBot.Bot.Birthdays.DebugTrigger = true;
+                _birthdays.DebugTrigger = true;
                 await ctx.RespondAsync("Triggered").ConfigureAwait(false);
             }
         }

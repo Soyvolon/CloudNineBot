@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
 
+using CloudNine.Config.Bot;
 using CloudNine.Core.Birthdays;
 using CloudNine.Core.Configuration;
 using CloudNine.Core.Database;
@@ -27,10 +28,12 @@ namespace CloudNine.Discord.Utilities
         private DateTime lastDay;
         private bool disposedValue;
         private const int elapsedCounter = 1;
-        private readonly ServiceProvider _services;
+        private readonly IServiceProvider _services;
+        private readonly DiscordRestClient _rest;
+        private readonly DiscordBotConfiguration _config;
         private readonly ILogger _logger;
 
-        public BirthdayManager(int trigger_at, ServiceProvider services)
+        public BirthdayManager(int trigger_at, IServiceProvider services)
         {
             TriggerBdayAt = trigger_at;
 
@@ -40,6 +43,8 @@ namespace CloudNine.Discord.Utilities
             lastDay = DateTime.UtcNow.AddDays(-1);
             this._services = services;
             _logger = services.GetRequiredService<ILogger<BirthdayManager>>();
+            _rest = services.GetRequiredService<DiscordRestClient>();
+            _config = services.GetRequiredService<DiscordBotConfiguration>();
         }
 
         private async void BdayChecker_Elapsed(object sender, ElapsedEventArgs e)
@@ -249,11 +254,11 @@ namespace CloudNine.Discord.Utilities
 
             if (DiscordBot.IsDebug)
             { // Use this to get around the channel update rate limits.
-                await DiscordBot.Bot.Rest.CreateMessageAsync(755610860680118283, channelTopic).ConfigureAwait(false);
+                await _rest.CreateMessageAsync(755610860680118283, channelTopic).ConfigureAwait(false);
             }
             else
             {
-                await DiscordBot.Bot.Rest.ModifyChannelAsync(c, x => x.Topic = channelTopic).ConfigureAwait(false);
+                await _rest.ModifyChannelAsync(c, x => x.Topic = channelTopic).ConfigureAwait(false);
             }
         }
 
@@ -294,7 +299,7 @@ namespace CloudNine.Discord.Utilities
                 cfg = new DiscordGuildConfiguration()
                 {
                     Id = server,
-                    Prefix = DiscordBot.Bot.BotConfiguration.Prefix
+                    Prefix = _config.Prefix
                 };
 
                 _database.Add(cfg);

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+using CloudNine.Config.Bot;
 using CloudNine.Core.Configuration;
 using CloudNine.Core.Database;
 using CloudNine.Discord.Utilities;
@@ -22,13 +23,15 @@ namespace CloudNine.Discord.Services
     public class CommandHandlerService
     {
         private readonly ILogger _logger;
-		private readonly ServiceProvider _services;
+		private readonly IServiceProvider _services;
+		private readonly DiscordBotConfiguration _config;
         private ConcurrentDictionary<MessageCreateEventArgs, Tuple<Task, CancellationTokenSource>> RunningCommands;
 
-        public CommandHandlerService(ILogger<BaseDiscordClient> logger, ServiceProvider services)
+        public CommandHandlerService(ILogger<BaseDiscordClient> logger, IServiceProvider services, DiscordBotConfiguration config)
         {
             this._logger = logger;
 			this._services = services;
+			this._config = config;
 
 
             RunningCommands = new ConcurrentDictionary<MessageCreateEventArgs, Tuple<Task, CancellationTokenSource>>();
@@ -126,7 +129,7 @@ namespace CloudNine.Discord.Services
 					guildConfig = new DiscordGuildConfiguration
 					{
 						Id = e.Guild.Id,
-						Prefix = DiscordBot.Bot.BotConfiguration.Prefix
+						Prefix = _config.Prefix
 					};
 
 					model.Add(guildConfig);
@@ -188,7 +191,7 @@ namespace CloudNine.Discord.Services
 				{
 					if(guildConfig.Prefix is null)
                     {
-						guildConfig.Prefix = DiscordBot.Bot.BotConfiguration.Prefix;
+						guildConfig.Prefix = _config.Prefix;
 					}
 
 					if (msg.Content.StartsWith(guildConfig.Prefix))

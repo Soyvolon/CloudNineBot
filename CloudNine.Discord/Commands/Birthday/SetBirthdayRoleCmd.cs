@@ -1,5 +1,7 @@
 ﻿using System.Threading.Tasks;
 
+using CloudNine.Discord.Utilities;
+
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
@@ -9,6 +11,13 @@ namespace CloudNine.Discord.Commands.Birthday
 {
     public class SetBirthdayRoleCmd : CommandModule
     {
+        private readonly BirthdayManager _birthdays;
+
+        public SetBirthdayRoleCmd(BirthdayManager birthdays)
+        {
+            _birthdays = birthdays;
+        }
+
         [Command("role")]
         [RequireGuild]
         [Hidden]
@@ -16,7 +25,7 @@ namespace CloudNine.Discord.Commands.Birthday
         [RequireUserPermissions(Permissions.ManageGuild)]
         public async Task SetBirthdayRoleAsync(CommandContext ctx, DiscordRole role)
         {
-            DiscordBot.Bot.Birthdays.UpdateBirthdayRole(ctx.Guild.Id, role);
+            _birthdays.UpdateBirthdayRole(ctx.Guild.Id, role);
             await ctx.RespondAsync($"Set birthday role to {role.Mention}").ConfigureAwait(false);
         }
     }

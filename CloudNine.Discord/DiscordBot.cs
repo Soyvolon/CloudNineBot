@@ -12,6 +12,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
+using DSharpPlus.SlashCommands;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -46,34 +47,25 @@ namespace CloudNine.Discord
 
         public static DiscordBot Bot { get; private set; }
 
-        public DiscordShardedClient Client { get; private set; }
-        public DiscordRestClient Rest { get; private set; }
-        public BirthdayManager Birthdays { get; private set; }
-        public DiscordBotConfiguration BotConfiguration { get; private set; }
+        private readonly DiscordShardedClient _client;
+        private readonly DiscordRestClient _rest;
+        private readonly DiscordSlashClient _slash;
+        private readonly DiscordBotConfiguration _config;
+        private readonly BirthdayManager _birthdays;
+        private readonly IServiceProvider _services;
 
-        private LogLevel logLevel;
-        private ServiceProvider services;
-
-        public DiscordBot(LogLevel logLevel, ServiceProvider services)
+        public DiscordBot(IServiceProvider services,
+            DiscordShardedClient client, DiscordRestClient rest, DiscordSlashClient slash,
+            DiscordBotConfiguration config, BirthdayManager birthdays)
         {
-            this.logLevel = logLevel;
-            this.services = services;
+            this._services = services;
+            this._client = client;
+            this._rest = rest;
+            this._slash = slash;
+            this._config = config;
+            this._birthdays = birthdays;
 
             Bot = this;
-        }
-
-        private DiscordConfiguration GetDiscordConfiguration(DiscordBotConfiguration botCfg)
-        {
-            var cfg = new DiscordConfiguration
-            {
-                TokenType = TokenType.Bot,
-                Token = botCfg.Token,
-                MinimumLogLevel = logLevel,
-                Intents = DiscordIntents.DirectMessages | DiscordIntents.GuildMessageReactions 
-                    | DiscordIntents.Guilds | DiscordIntents.GuildMessages
-            };
-
-            return cfg;
         }
 
         private CommandsNextConfiguration GetCommandsNextConfiguration(DiscordBotConfiguration botCfg)
@@ -83,7 +75,7 @@ namespace CloudNine.Discord
                 CaseSensitive = false,
                 EnableDms = false,
                 IgnoreExtraArguments = true,
-                Services = this.services,
+                Services = this._services,
                 UseDefaultCommandHandler = false,
                 EnableDefaultHelp = true,
                 
@@ -103,16 +95,9 @@ namespace CloudNine.Discord
             return icfg;
         }
 
-        public async Task Start(DiscordBotConfiguration botCfg)
+        public async Task StartAsync()
         {
-            BotConfiguration = botCfg;
-
-            var cfg = GetDiscordConfiguration(botCfg);
-
-            Client = new DiscordShardedClient(cfg);
-            Rest = new DiscordRestClient(cfg);
-
-            var commands = await Client.UseCommandsNextAsync(GetCommandsNextConfiguration(botCfg));
+            var commands = await _client.UseCommandsNextAsync(GetCommandsNextConfiguration(_config));
             foreach (var c in commands.Values)
             {
                 c.RegisterCommands(Assembly.GetExecutingAssembly());
@@ -125,41 +110,44 @@ namespace CloudNine.Discord
                 c.SetHelpFormatter<CustomHelpFormatter>();
             }
 
-            await Client.UseInteractivityAsync(GetInteractivityConfiguration());
+            await _client.UseInteractivityAsync(GetInteractivityConfiguration());
 
-            var commandHander = new CommandHandlerService(Client.Logger, services);
+            var commandHander = _services.GetRequiredService<CommandHandlerService>();
 
-            Client.Ready += Client_Ready;
-            Client.MessageCreated += commandHander.MessageRecievedAsync;
+            _client.Ready += Client_Ready;
+            _client.MessageCreated += commandHander.MessageRecievedAsync;
 
-            var iservice = services.GetRequiredService<MultisearchInteractivityService>();
+            var iservice = _services.GetRequiredService<MultisearchInteractivityService>();
 
-            Client.MessageReactionAdded += iservice.Client_MessageReactionAdded;
-            Client.MessageReactionRemoved += iservice.Client_MessageReactionRemoved;
-            Client.MessageReactionsCleared += iservice.Client_MessageReactionsCleared;
+            _client.MessageReactionAdded += iservice.Client_MessageReactionAdded;
+            _client.MessageReactionRemoved += iservice.Client_MessageReactionRemoved;
+            _client.MessageReactionsCleared += iservice.Client_MessageReactionsCleared;
 
-            var ffrservice = services.GetRequiredService<FanfictionLinkResponderService>();
+            var ffrservice = _services.GetRequiredService<FanfictionLinkResponderService>();
 
-            Client.MessageCreated += ffrservice.Client_MessageCreated;
+            _client.MessageCreated += ffrservice.Client_MessageCreated;
 
-            var relay = services.GetRequiredService<QuoteService>();
-            Client.MessageCreated += relay.MessageRecievedAsync;
+            var relay = _services.GetRequiredService<QuoteService>();
+            _client.MessageCreated += relay.MessageRecievedAsync;
 
-            InitalizeOtherParts(botCfg);
+            _slash.RegisterCommands(Assembly.GetExecutingAssembly());
 
-            await Client.StartAsync().ConfigureAwait(false);
+            _client.InteractionCreated += _slash.HandleGatewayEvent;
+            _client.InteractionCreated += (x, y) =>
+            {
+                _client.Logger.LogDebug("Interaction Created");
+                return Task.CompletedTask;
+            };
+
+            await _client.StartAsync();
+            await _slash.StartAsync();
 
             await Task.Run(async () =>
             {
                 await Task.Delay(TimeSpan.FromSeconds(5));
-                await Client.UpdateStatusAsync(
-                    new DiscordActivity($"{botCfg.Prefix}help | {VERSION}", ActivityType.Playing));
+                await _client.UpdateStatusAsync(
+                    new DiscordActivity($"{_config.Prefix}help | {VERSION}", ActivityType.Playing));
             });
-        }
-
-        private void InitalizeOtherParts(DiscordBotConfiguration cfg)
-        {
-            Birthdays = new BirthdayManager(cfg.TriggerBday, services);
         }
 
         private Task Client_Ready(DiscordClient c, DSharpPlus.EventArgs.ReadyEventArgs e)
@@ -171,7 +159,7 @@ namespace CloudNine.Discord
 
         public async Task<DiscordClient?> GetClientForGuildId(ulong discordId)
         {
-            foreach(var shard in Client.ShardClients.Values)
+            foreach(var shard in _client.ShardClients.Values)
             {
                 if (shard.Guilds.ContainsKey(discordId))
                     return shard;
@@ -187,13 +175,13 @@ namespace CloudNine.Discord
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects)
-                    Client.StopAsync().GetAwaiter().GetResult();
-                    foreach (var c in Client.ShardClients.Values)
+                    _client.StopAsync().GetAwaiter().GetResult();
+                    foreach (var c in _client.ShardClients.Values)
                         c.Dispose();
 
-                    Rest.Dispose();
+                    _rest.Dispose();
 
-                    Birthdays.Dispose();
+                    _birthdays.Dispose();
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer

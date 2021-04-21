@@ -12,6 +12,10 @@ using CloudNine.Core.Multisearch.Searching;
 using CloudNine.Discord;
 using CloudNine.Discord.Interactions;
 using CloudNine.Discord.Services;
+using CloudNine.Discord.Utilities;
+
+using DSharpPlus;
+using DSharpPlus.SlashCommands;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,9 +27,6 @@ namespace CloudNine
 {
     class Program
     {
-        public static DiscordBotConfiguration? DiscordConfig;
-        public static DiscordBot? Discord;
-
         static void Main(string[] args)
         {
             Start(args).GetAwaiter().GetResult();
@@ -57,12 +58,6 @@ namespace CloudNine
                 client.DefaultRequestHeaders.Add("Cookie", "view_adult=true");
             });
 
-            await using var serviceProvider = services.BuildServiceProvider();
-
-            await ApplyDatabaseMigrations(serviceProvider.GetRequiredService<CloudNineDatabaseModel>());
-
-            Discord = new DiscordBot(MinimumLogLevel, serviceProvider);
-
             string json = "";
             using (FileStream fs = new FileStream("Config/bot_config.json", FileMode.Open, FileAccess.Read, FileShare.Read))
             {
@@ -70,11 +65,34 @@ namespace CloudNine
                 json = await sr.ReadToEndAsync();
             }
 
-            DiscordConfig = JsonConvert.DeserializeObject<DiscordBotConfiguration>(json);
+            var discordConfig = JsonConvert.DeserializeObject<DiscordBotConfiguration>(json);
+
+            services.AddSingleton(discordConfig)
+                .AddSingleton(GetDiscordConfiguration(discordConfig, MinimumLogLevel))
+                .AddSingleton<DiscordShardedClient>()
+                .AddSingleton<DiscordRestClient>()
+                .AddSingleton<DiscordSlashClient>((x) =>
+                {
+                    return new(new()
+                    {
+                        ShardedClient = x.GetRequiredService<DiscordShardedClient>(),
+                        DefaultResponseType = InteractionResponseType.DeferredChannelMessageWithSource,
+                        Token = discordConfig.Token
+                    },
+                    services);
+                })
+                .AddSingleton<BirthdayManager>((x) => new(discordConfig.TriggerBday, x))
+                .AddSingleton<CommandHandlerService>()
+                .AddSingleton<DiscordBot>();
+
+
+            await using var serviceProvider = services.BuildServiceProvider();
+
+            await ApplyDatabaseMigrations(serviceProvider.GetRequiredService<CloudNineDatabaseModel>());
 
             try
             {
-                await Discord.Start(DiscordConfig ?? new());
+                await serviceProvider.GetRequiredService<DiscordBot>().StartAsync();
             }
             catch (Exception ex)
             {
@@ -97,6 +115,20 @@ namespace CloudNine
 
             await database.Database.MigrateAsync();
             await database.SaveChangesAsync();
+        }
+
+        private static DiscordConfiguration GetDiscordConfiguration(DiscordBotConfiguration botCfg, LogLevel minLogLevel)
+        {
+            var cfg = new DiscordConfiguration
+            {
+                TokenType = TokenType.Bot,
+                Token = botCfg.Token,
+                MinimumLogLevel = minLogLevel,
+                Intents = DiscordIntents.DirectMessages | DiscordIntents.GuildMessageReactions
+                    | DiscordIntents.Guilds | DiscordIntents.GuildMessages
+            };
+
+            return cfg;
         }
     }
 }

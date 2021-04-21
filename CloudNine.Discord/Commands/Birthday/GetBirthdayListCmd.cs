@@ -1,6 +1,8 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 
+using CloudNine.Discord.Utilities;
+
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
@@ -10,6 +12,13 @@ namespace CloudNine.Discord.Commands.Birthday
 {
     public class GetBirthdayListCmd : CommandModule
     {
+        private readonly BirthdayManager _birthdays;
+
+        public GetBirthdayListCmd(BirthdayManager birthdays)
+        {
+            _birthdays = birthdays;
+        }
+
         [Command("bdaylist")]
         [RequireGuild]
         [Aliases("brithdays")]
@@ -18,7 +27,7 @@ namespace CloudNine.Discord.Commands.Birthday
         {
             string str = $"{ctx.Guild.Name}'s Bday List:";
 
-            var data = DiscordBot.Bot.Birthdays.GetAllBirthdaysForServer(ctx.Guild.Id, !(prams is null) && prams.ToLower().StartsWith("s"));
+            var data = _birthdays.GetAllBirthdaysForServer(ctx.Guild.Id, !(prams is null) && prams.ToLower().StartsWith("s"));
 
             if (data is null)
             {
