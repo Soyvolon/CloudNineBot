@@ -38,14 +38,24 @@ jobs:
         run: |
           New-Item -Path .\.sonar\scanner -ItemType Directory
           dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
-      - name: Build and analyze
+      - name: Start sonar scanner
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
           .\.sonar\scanner\dotnet-sonarscanner begin -k:"Soyvolon_CloudNineBot" -o:"soyvolon" -d:sonar.login="${{ secrets.SONAR_TOKEN }}" -d:sonar.host.url="https://sonarcloud.io"
-          dotnet restore
-          dotnet build --configuration Release --no-restore
+      - name: Restore
+        shell: powershell
+        run: "dotnet restore"
+      - name: Build
+        shell: powershell
+        run: "dotnet build --configuration Release --no-restore"
+      - name: Test
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        shell: powershell
+        run: |
           dotnet test --no-restore --verbosity normal --collect:"XPlay Code Coverage" -r ./testresults -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
-          .\.sonar\scanner\dotnet-sonarscanner end -d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+          .\.sonar\scanner\dotnet-sonarscanner end -d:sonar.login="${{ secrets.SONAR_TOKEN }}
