@@ -7,6 +7,7 @@ using CloudNine.Core.Configuration;
 using CloudNine.Core.Database;
 using CloudNine.Core.Extensions;
 
+using DSharpPlus;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.SlashCommands.Attributes;
 using DSharpPlus.SlashCommands.Entities;
@@ -39,7 +40,7 @@ namespace CloudNine.Web.Commands
                     await db.SaveChangesAsync();
 
                     await ctx.ReplyAsync(new InteractionResponseBuilder()
-                        .WithType(DSharpPlus.SlashCommands.Enums.InteractionResponseType.ChannelMessage)
+                        .WithType(InteractionResponseType.ChannelMessageWithSource)
                         .WithData(new InteractionApplicationCommandCallbackDataBuilder()
                             .WithEmbed(embed))
                         .Build());
