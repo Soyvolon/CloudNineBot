@@ -11,10 +11,10 @@
     <PackageReference Include="DSharpPlus.Interactivity" Version="4.0.1-nightly-00841" />
     <PackageReference Include="DSharpPlus.Rest" Version="4.0.1-nightly-00841" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.9.0" />
+    <PackageReference Include="Soyvolon.DSharpPlus.SlashCommands" Version="0.4.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\DSharpPlus.SlashCommands\DSharpPlus.SlashCommands\DSharpPlus.SlashCommands.csproj" />
     <ProjectReference Include="..\CloudNine.Core\CloudNine.Core.csproj" />
   </ItemGroup>
 
