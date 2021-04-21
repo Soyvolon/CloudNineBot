@@ -103,7 +103,11 @@ namespace CloudNine.Web.Api
                     // ... if the clients response is not null ... 
                     Response.Headers.Add("Content-Type", "application/json");
                     // ... serialie it and send it.
-                    return Ok(JsonConvert.SerializeObject(response));
+                    return Ok(JsonConvert.SerializeObject(response, new JsonSerializerSettings
+                    {
+                        NullValueHandling = NullValueHandling.Ignore,
+                        DefaultValueHandling = DefaultValueHandling.Ignore
+                    }));
                 }
                 else return BadRequest("Failed to parse request JSON."); // ... or send a bad request message.
             }
