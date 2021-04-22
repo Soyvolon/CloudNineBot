@@ -77,14 +77,13 @@ namespace CloudNine
                     {
                         ShardedClient = x.GetRequiredService<DiscordShardedClient>(),
                         DefaultResponseType = InteractionResponseType.DeferredChannelMessageWithSource,
-                        Token = discordConfig.Token
-                    },
-                    services);
+                        Token = discordConfig.Token,
+                        Services = x
+                    });
                 })
                 .AddSingleton<BirthdayManager>((x) => new(discordConfig.TriggerBday, x))
                 .AddSingleton<CommandHandlerService>()
                 .AddSingleton<DiscordBot>();
-
 
             await using var serviceProvider = services.BuildServiceProvider();
 

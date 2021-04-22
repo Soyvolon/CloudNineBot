@@ -37,11 +37,29 @@ namespace CloudNine.Discord.Commands.Slash
 
             var perms = member.PermissionsIn(ctx.Interaction.Channel);
 
-            if(false /*perms.HasPermission(Permissions.ManageMessages)*/)
+            if (perms.HasPermission(Permissions.ManageMessages))
             {
                 var _client = _services.GetRequiredService<DiscordShardedClient>();
 
-                var shard = _client.GetShard(ctx.Interaction.Guild);
+                DiscordClient? shard = null;
+                foreach (var s in _client.ShardClients.Values)
+                {
+                    if (s.Guilds.TryGetValue(ctx.Interaction.GuildId ?? 0, out _))
+                    {
+                        shard = s;
+                    }
+                }
+
+                if(shard is null)
+                {
+                    await ctx.ReplyAsync(new InteractionResponseBuilder()
+                        .WithType(InteractionResponseType.ChannelMessageWithSource)
+                        .WithData(new InteractionApplicationCommandCallbackDataBuilder()
+                            .WithEmbed(new DiscordEmbedBuilder()
+                                .WithDescription("No guild found. You cant add a quote if you aren't in a guild.")
+                                .WithColor(DiscordColor.Red).Build())
+                            ).Build());
+                }
 
                 var cnext = shard.GetCommandsNext();
 
@@ -52,6 +70,14 @@ namespace CloudNine.Discord.Commands.Slash
                 var fake = cnext.CreateFakeContext(ctx.Interaction.User, ctx.Interaction.Channel, contents, "c!", cmd, raw);
 
                 await cnext.ExecuteCommandAsync(fake);
+
+                await ctx.ReplyAsync(new InteractionResponseBuilder()
+                    .WithType(InteractionResponseType.ChannelMessageWithSource)
+                    .WithData(new InteractionApplicationCommandCallbackDataBuilder()
+                        .WithEmbed(new DiscordEmbedBuilder()
+                            .WithDescription("Quote Added!")
+                            .WithColor(DiscordColor.DarkGreen).Build())
+                        ).Build());
             }
             else
             {
