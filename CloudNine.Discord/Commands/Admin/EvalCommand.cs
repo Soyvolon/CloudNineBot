@@ -16,6 +16,7 @@ using System;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis;
 using System.Runtime.Loader;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CloudNine.Discord.Commands.Admin
 {
@@ -45,6 +46,8 @@ using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
+using Microsoft.Extensions.DependencyInjection;
 
 public static class __evalcompile__
 {{
@@ -78,6 +81,8 @@ using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
+using Microsoft.Extensions.DependencyInjection;
 
 public static class __evalcompile__
 {{
@@ -97,6 +102,7 @@ public static class __evalcompile__
             {
                 MetadataReference.CreateFromFile(typeof(System.Linq.Enumerable).GetTypeInfo().Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(System.Threading.Tasks.Task).GetTypeInfo().Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(ServiceProvider).GetTypeInfo().Assembly.Location),
                 MetadataReference.CreateFromFile(Assembly.Load("netstandard, Version=2.0.0.0").Location),
                 MetadataReference.CreateFromFile(Assembly.Load("System.Runtime, Version=5.0.0.0").Location),
                 MetadataReference.CreateFromFile("DSharpPlus.dll"),
