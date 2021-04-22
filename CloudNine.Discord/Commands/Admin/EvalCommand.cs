@@ -104,6 +104,7 @@ public static class __evalcompile__
                 MetadataReference.CreateFromFile(typeof(System.Linq.Enumerable).GetTypeInfo().Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(System.Threading.Tasks.Task).GetTypeInfo().Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(IServiceProvider).GetTypeInfo().Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(ServiceProvider).GetTypeInfo().Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(System.ComponentModel.AddingNewEventArgs).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(ConcurrentDictionary<string, string>).Assembly.Location),
                 MetadataReference.CreateFromFile(Assembly.Load("netstandard, Version=2.0.0.0").Location),
