@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis;
 using System.Runtime.Loader;
 using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Concurrent;
 
 namespace CloudNine.Discord.Commands.Admin
 {
@@ -102,7 +103,9 @@ public static class __evalcompile__
             {
                 MetadataReference.CreateFromFile(typeof(System.Linq.Enumerable).GetTypeInfo().Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(System.Threading.Tasks.Task).GetTypeInfo().Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(ServiceProvider).GetTypeInfo().Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(IServiceProvider).GetTypeInfo().Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(System.ComponentModel.AddingNewEventArgs).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(ConcurrentDictionary<string, string>).Assembly.Location),
                 MetadataReference.CreateFromFile(Assembly.Load("netstandard, Version=2.0.0.0").Location),
                 MetadataReference.CreateFromFile(Assembly.Load("System.Runtime, Version=5.0.0.0").Location),
                 MetadataReference.CreateFromFile("DSharpPlus.dll"),
