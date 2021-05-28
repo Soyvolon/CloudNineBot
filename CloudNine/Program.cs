@@ -124,7 +124,7 @@ namespace CloudNine
                 Token = botCfg.Token,
                 MinimumLogLevel = minLogLevel,
                 Intents = DiscordIntents.DirectMessages | DiscordIntents.GuildMessageReactions
-                    | DiscordIntents.Guilds | DiscordIntents.GuildMessages
+                    | DiscordIntents.Guilds | DiscordIntents.GuildMessages | DiscordIntents.GuildMembers
             };
 
             return cfg;
