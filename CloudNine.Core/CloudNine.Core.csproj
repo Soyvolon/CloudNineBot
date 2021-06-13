@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DSharpPlus" Version="4.0.1-nightly-00841" />
+    <PackageReference Include="DSharpPlus" Version="4.0.1-nightly-00879" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.32" />
     <PackageReference Include="Markdig" Version="0.24.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.5" />

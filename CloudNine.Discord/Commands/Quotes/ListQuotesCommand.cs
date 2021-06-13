@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using CloudNine.Core.Configuration;
 using CloudNine.Core.Database;
 using CloudNine.Core.Quotes;
-
+using CloudNine.Discord.Utilities;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
@@ -56,7 +56,7 @@ namespace CloudNine.Discord.Commands.Quotes
 
             var pages = GetQuotePages(quoteList, interact, embedBase);
 
-            _ = Task.Run(async () => await interact.SendPaginatedMessageAsync(ctx.Channel, ctx.Member, pages));
+            _ = Task.Run(async () => await interact.SendPaignatedMessageWithButtonsAsync(ctx.Channel, ctx.User, pages));
         }
 
         public static IEnumerable<Page>? GetQuotePages(IEnumerable<Quote> quoteList, InteractivityExtension interact, DiscordEmbedBuilder embedBase)

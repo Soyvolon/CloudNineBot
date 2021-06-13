@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using CloudNine.Core.Configuration;
 using CloudNine.Core.Database;
 using CloudNine.Core.Quotes;
-
+using CloudNine.Discord.Utilities;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
@@ -65,7 +65,7 @@ namespace CloudNine.Discord.Commands.Quotes.Management
 
             var pages = interact.GeneratePagesInEmbed(data, DSharpPlus.Interactivity.Enums.SplitType.Line, embedBase);
 
-            interact.SendPaginatedMessageAsync(ctx.Channel, ctx.Member, pages);
+            _ = interact.SendPaignatedMessageWithButtonsAsync(ctx.Channel, ctx.Member, pages);
         }
     }
 }
