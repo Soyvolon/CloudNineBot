@@ -147,9 +147,7 @@ namespace CloudNine.Discord.Services
 
             DiscordGuild? guild = null;
             foreach (var shard in _client.ShardClients.Values)
-                if (shard.Guilds.TryGetValue(chan.GuildId.Value, out guild)) ;
-
-            if (guild is null) return;
+                if (!shard.Guilds.TryGetValue(chan.GuildId.Value, out guild)) return;
 
             var members = await guild.GetAllMembersAsync();
 
