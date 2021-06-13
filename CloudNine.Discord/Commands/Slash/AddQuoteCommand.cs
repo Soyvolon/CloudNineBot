@@ -63,7 +63,7 @@ namespace CloudNine.Discord.Commands.Slash
 
                 var cnext = shard.GetCommandsNext();
 
-                var contents = $"addquote {quote} --author {author.Username}";
+                var contents = $"addquote {quote} --author \"{author.Username}\"";
 
                 var cmd = cnext.FindCommand(contents, out string raw);
 
