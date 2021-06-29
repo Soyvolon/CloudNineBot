@@ -26,7 +26,7 @@ See the [Quick Start](/quickstart) guide for more details on using Cloud Nine Bo
 Please consider donating if you enjoy using Cloud Nine Bot! It helps development and for hosting the official release, so please consider buying me [a cup of coffee](ko-fi.com/Soyvolon).
 
 # Development
-Want sneak peeks at the latest features? Want to help test or just have questions? Join our [Development Server](https://discord.gg/ReAYqQN).
+Want sneak peeks at the latest features? Want to help test or just have questions? Join our [Development Server](https://discord.gg/Cb4P9PKMAh).
 
 # Get Cloud Nine Bot
 Invite Cloud Nine Bot to your server [here](https://discord.com/api/oauth2/authorize?client_id=750486299789754389&permissions=388176&redirect_uri=https%3A%2F%2Fandrewbounds.com%2Flogin&scope=bot%20applications.commands).
