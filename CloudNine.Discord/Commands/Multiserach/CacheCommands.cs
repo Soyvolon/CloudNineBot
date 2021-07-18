@@ -78,7 +78,7 @@ namespace CloudNine.Discord.Commands.Multiserach
 
                 var pages = interact.GeneratePagesInEmbed(content, SplitType.Line, InteractBase());
 
-                _ = interact.SendPaginatedMessageAsync(ctx.Channel, ctx.User, pages);
+                _ = interact.SendPaginatedMessageAsync(ctx.Channel, ctx.User, pages, buttons: null);
             }
 
             [Command("details")]

@@ -90,6 +90,14 @@ namespace CloudNine.Discord
             {
                 PaginationBehaviour = DSharpPlus.Interactivity.Enums.PaginationBehaviour.WrapAround,
                 PaginationDeletion = DSharpPlus.Interactivity.Enums.PaginationDeletion.DeleteEmojis,
+                PaginationButtons = new()
+                {
+                    Left = new DiscordButtonComponent(ButtonStyle.Secondary, "left", "Back"),
+                    SkipLeft = new DiscordButtonComponent(ButtonStyle.Secondary, "skipleft", "Start"),
+                    Right = new DiscordButtonComponent(ButtonStyle.Secondary, "right", "Next"),
+                    SkipRight = new DiscordButtonComponent(ButtonStyle.Secondary, "skipright", "End"),
+                    Stop = new DiscordButtonComponent(ButtonStyle.Secondary, "end", "Close")
+                }
             };
 
             return icfg;

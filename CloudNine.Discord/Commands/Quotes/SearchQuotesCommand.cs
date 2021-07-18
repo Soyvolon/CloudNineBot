@@ -11,6 +11,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Enums;
+using DSharpPlus.Interactivity.EventHandling;
 using DSharpPlus.Interactivity.Extensions;
 
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
@@ -144,7 +145,7 @@ namespace CloudNine.Discord.Commands.Quotes
 
             var pages = interact.GeneratePagesInEmbed(data, SplitType.Line, embedBase);
 
-            interact.SendPaginatedMessageAsync(ctx.Channel, ctx.Member, pages);
+            interact.SendPaginatedMessageAsync(ctx.Channel, ctx.Member, pages, buttons: null);
         }
 
         private async Task SearchQuotesHelpAsync(CommandContext ctx)

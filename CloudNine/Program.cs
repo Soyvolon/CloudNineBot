@@ -35,7 +35,6 @@ namespace CloudNine
         private static async Task Start(string[] args)
         {
             ServiceCollection services = new ServiceCollection();
-            services.AddLogging(o => o.AddConsole());
 
 #if DEBUG
             LogLevel MinimumLogLevel = LogLevel.Debug;
@@ -43,7 +42,7 @@ namespace CloudNine
             LogLevel MinimumLogLevel = LogLevel.Error;
 #endif
 
-            services.AddLogging(o => o.SetMinimumLevel(MinimumLogLevel))
+            services.AddLogging(o => o.AddConsole().SetMinimumLevel(MinimumLogLevel))
                 .AddDbContext<CloudNineDatabaseModel>(ServiceLifetime.Transient, ServiceLifetime.Scoped)
                 .AddSingleton<QuoteService>()
                 .AddSingleton<HttpClient>()
@@ -73,12 +72,15 @@ namespace CloudNine
                 .AddSingleton<DiscordRestClient>()
                 .AddSingleton<DiscordSlashClient>((x) =>
                 {
+                    var c = x.GetRequiredService<DiscordShardedClient>();
+
                     return new(new()
                     {
-                        ShardedClient = x.GetRequiredService<DiscordShardedClient>(),
+                        ShardedClient = c,
                         DefaultResponseType = InteractionResponseType.DeferredChannelMessageWithSource,
                         Token = discordConfig.Token,
-                        Services = x
+                        Services = x,
+                        Logger = c.Logger
                     });
                 })
                 .AddSingleton<BirthdayManager>((x) => new(discordConfig.TriggerBday, x))

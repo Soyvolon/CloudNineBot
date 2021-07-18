@@ -122,109 +122,116 @@ namespace CloudNine.Discord.Services
 
         private async Task PopulateChannelAsync(ulong cid, TimeSpan? interval = null)
         {
-            var db = _services.GetRequiredService<CloudNineDatabaseModel>();
-            var channel = await db.FindAsync<MagicChannelData>(cid);
-
-            if (interval is null)
-            {
-                var rundiff = DateTime.UtcNow - channel.LastRun;
-                var saftey = channel.Interval - TimeSpan.FromSeconds(30);
-                if (rundiff < saftey)
-                {
-                    ActiveChannels[cid] = new Timer(async (x) => await PopulateChannelAsync(cid, channel.Interval), null, rundiff, Timeout.InfiniteTimeSpan);
-                    return;
-                }
-            }
-            else
-            {
-                ActiveChannels[cid].Change(interval.Value, interval.Value);
-                return;
-            }
-
-            var chan = await _rest.GetChannelAsync(channel.ChannelId);
-
-            if (chan.GuildId is null) return;
-
-            DiscordGuild? guild = null;
-            foreach (var shard in _client.ShardClients.Values)
-                if (!shard.Guilds.TryGetValue(chan.GuildId.Value, out guild)) return;
-
-            var members = await guild.GetAllMembersAsync();
-
-            HashSet<DiscordMember> valid = new();
-            HashSet<DiscordMember> toRemove = new();
-
-            List<Task> tasks = new();
-            foreach(var mem in members)
-            {
-                tasks.Add(Task.Run(() =>
-                {
-                    try
-                    {
-                        if (channel.UsersToIgnore.Contains(mem.Id))
-                            return;
-                        else if (mem.Roles.Any(x => channel.RolesToIgnore.Contains(x.Id)))
-                            return;
-                        else if (mem.Roles.Any(x => channel.RoleToAssign.Equals(x.Id)))
-                            toRemove.Add(mem);
-                        else
-                            valid.Add(mem);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Magic member add failed.");
-                    }
-                }));
-            }
-
-            await Task.WhenAll(tasks);
-
             try
             {
-                var role = guild.GetRole(channel.RoleToAssign);
-                foreach (var mem in toRemove)
+                var db = _services.GetRequiredService<CloudNineDatabaseModel>();
+                var channel = await db.FindAsync<MagicChannelData>(cid);
+
+                if (interval is null)
                 {
-                    _ = Task.Run(async () =>
+                    var rundiff = DateTime.UtcNow - channel.LastRun;
+                    var saftey = channel.Interval - TimeSpan.FromSeconds(30);
+                    if (rundiff < saftey)
                     {
-                        if (mem is null) return;
-
-                        await mem.RevokeRoleAsync(role, "Magic.");
-
-                        if (MessageCounts.TryGetValue(channel.ChannelId, out var mcount))
-                            _ = mcount.TryRemove(mem.Id, out _);
-                    });
+                        ActiveChannels[cid] = new Timer(async (x) => await PopulateChannelAsync(cid, channel.Interval), null, rundiff, Timeout.InfiniteTimeSpan);
+                        return;
+                    }
+                }
+                else
+                {
+                    ActiveChannels[cid].Change(interval.Value, interval.Value);
+                    return;
                 }
 
-                HashSet<DiscordMember> selection = new();
+                var chan = await _rest.GetChannelAsync(channel.ChannelId);
 
-                do
+                if (chan.GuildId is null) return;
+
+                DiscordGuild? guild = null;
+                foreach (var shard in _client.ShardClients.Values)
+                    if (!shard.Guilds.TryGetValue(chan.GuildId.Value, out guild)) return;
+
+                var members = await guild.GetAllMembersAsync();
+
+                HashSet<DiscordMember> valid = new();
+                HashSet<DiscordMember> toRemove = new();
+
+                List<Task> tasks = new();
+                foreach (var mem in members)
                 {
-                    if (valid.Count <= 0) break;
-
-                    selection.Add(valid.Random());
-                } while (selection.Count < 0
-                || ((decimal)selection.Count / valid.Count) < channel.MemberPercent);
-
-                foreach (var mem in selection)
-                {
-                    if (mem is null) continue;
-
-                    _ = Task.Run(async () =>
+                    tasks.Add(Task.Run(() =>
                     {
-                        await mem.GrantRoleAsync(role, "Magic.");
-
-                        MessageCounts[channel.ChannelId][mem.Id] = (0, channel.RemoveAfterMessages, channel.RoleToAssign);
-                    });
+                        try
+                        {
+                            if (channel.UsersToIgnore.Contains(mem.Id))
+                                return;
+                            else if (mem.Roles.Any(x => channel.RolesToIgnore.Contains(x.Id)))
+                                return;
+                            else if (mem.Roles.Any(x => channel.RoleToAssign.Equals(x.Id)))
+                                toRemove.Add(mem);
+                            else
+                                valid.Add(mem);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Magic member add failed.");
+                        }
+                    }));
                 }
 
-                channel.LastRun = DateTime.UtcNow;
+                await Task.WhenAll(tasks);
 
-                db.Update(channel);
-                await db.SaveChangesAsync();
+                try
+                {
+                    var role = guild.GetRole(channel.RoleToAssign);
+                    foreach (var mem in toRemove)
+                    {
+                        _ = Task.Run(async () =>
+                        {
+                            if (mem is null) return;
+
+                            await mem.RevokeRoleAsync(role, "Magic.");
+
+                            if (MessageCounts.TryGetValue(channel.ChannelId, out var mcount))
+                                _ = mcount.TryRemove(mem.Id, out _);
+                        });
+                    }
+
+                    HashSet<DiscordMember> selection = new();
+
+                    do
+                    {
+                        if (valid.Count <= 0) break;
+
+                        selection.Add(valid.Random());
+                    } while (selection.Count < 0
+                    || ((decimal)selection.Count / valid.Count) < channel.MemberPercent);
+
+                    foreach (var mem in selection)
+                    {
+                        if (mem is null) continue;
+
+                        _ = Task.Run(async () =>
+                        {
+                            await mem.GrantRoleAsync(role, "Magic.");
+
+                            MessageCounts[channel.ChannelId][mem.Id] = (0, channel.RemoveAfterMessages, channel.RoleToAssign);
+                        });
+                    }
+
+                    channel.LastRun = DateTime.UtcNow;
+
+                    db.Update(channel);
+                    await db.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to get role from guild.");
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to get role from guild.");
+                _logger.LogWarning(ex, "Some other error occoured");
             }
         }
 
