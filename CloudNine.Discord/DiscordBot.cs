@@ -46,7 +46,7 @@ namespace CloudNine.Discord
             }
         }
 
-        public const string VERSION = "1.8.1";
+        public const string VERSION = "2.0.0";
         private bool disposedValue;
 
         public static DiscordBot Bot { get; private set; }
