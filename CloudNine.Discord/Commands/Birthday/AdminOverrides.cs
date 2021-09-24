@@ -7,42 +7,57 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using DSharpPlus.SlashCommands;
+using DSharpPlus.SlashCommands.Attributes;
 
 namespace CloudNine.Discord.Commands.Birthday
 {
-    public class AdminOverrides : CommandModule
+    [SlashCommandGroup("bday", "Birthday Commands!")]
+    public partial class BirthdayCommands : SlashCommandBase
     {
         private readonly BirthdayManager _birthdays;
         private readonly DiscordRestClient _rest;
 
-        public AdminOverrides(BirthdayManager birthdays, DiscordRestClient rest)
+        public BirthdayCommands(BirthdayManager birthdays, DiscordRestClient rest)
         {
             _birthdays = birthdays;
             _rest = rest;
         }
 
-        [Command("aregister")]
-        [RequireGuild]
-        [RequireUserPermissions(Permissions.ManageGuild)]
-        public async Task AdminRegisterUser(CommandContext ctx, DiscordUser m, [RemainingText] DateTime bday)
+        [SlashCommand("adminregister", "Admin register command.")]
+        [SlashRequireGuild]
+        [SlashRequireUserPermissions(Permissions.ManageGuild)]
+        public async Task AdminRegisterUser(InteractionContext ctx,
+            [Option("User", "User to add a birthday for.")]
+            DiscordUser m,
+            [Option("Month", "What month is your birthday in?")]
+            long month,
+
+            [Option("Day", "Day of the month")]
+            long day)
         {
+            await ctx.CreateResponseAsync(DSharpPlus.InteractionResponseType.DeferredChannelMessageWithSource);
+            DateTime bday = new(DateTime.UtcNow.Year, (int)month, (int)day);
             _birthdays.UpdateBirthday(ctx.Guild.Id, m.Id, bday);
-            await ctx.RespondAsync($"Updated {m.Username}'s bday to {bday:dd MMMM}");
+            await Respond($"Updated {m.Username}'s bday to {bday:dd MMMM}");
         }
 
-        [Command("aremove")]
-        [RequireUserPermissions(Permissions.ManageGuild)]
-        public async Task AdminRemoveUser(CommandContext ctx, DiscordUser user)
+        [SlashCommand("adminremove", "Admin remove command.")]
+        [SlashRequireUserPermissions(Permissions.ManageGuild)]
+        public async Task AdminRemoveUser(InteractionContext ctx, 
+            [Option("User", "User to remove a birthday for.")]
+            DiscordUser user)
         {
+            await ctx.CreateResponseAsync(DSharpPlus.InteractionResponseType.DeferredChannelMessageWithSource);
             _birthdays.RemoveBirthday(ctx.Guild.Id, user.Id);
-            await ctx.RespondAsync($"Removed {user.Username}'s bday.");
+            await Respond($"Removed {user.Username}'s bday.");
         }
 
-        [Command("testperms")]
-        [Hidden]
-        [RequireOwner]
-        public async Task TestPermsAsync(CommandContext ctx)
+        [SlashCommand("testperms", "Tests bot permissions.")]
+        [SlashRequireOwner]
+        public async Task TestPermsAsync(InteractionContext ctx)
         {
+            await ctx.CreateResponseAsync(DSharpPlus.InteractionResponseType.DeferredChannelMessageWithSource);
             await ctx.Channel.AddOverwriteAsync(ctx.Member, DSharpPlus.Permissions.AccessChannels, DSharpPlus.Permissions.AddReactions, "testing");
             await _rest.EditChannelPermissionsAsync(ctx.Channel.Id, ctx.Member.Id, DSharpPlus.Permissions.AddReactions, DSharpPlus.Permissions.AccessChannels, "member", "Testing");
         }

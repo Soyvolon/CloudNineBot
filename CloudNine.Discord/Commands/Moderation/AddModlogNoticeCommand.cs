@@ -7,49 +7,55 @@ using CloudNine.Core.Moderation;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.SlashCommands;
+using DSharpPlus.SlashCommands.Attributes;
 
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CloudNine.Discord.Commands.Moderation
 {
-    public class AddModlogNoticeCommand : CommandModule
+    [SlashCommandGroup("mod", "Moderation related commands.")]
+    public partial class ModerationCommands : SlashCommandBase
     {
-        private readonly IServiceProvider _services;
-
-        public AddModlogNoticeCommand(IServiceProvider services)
+        [SlashCommandGroup("notice", "Moderation notice actions.")]
+        public partial class NoticeActions : SlashCommandBase
         {
-            this._services = services;
-        }
+            private readonly IServiceProvider _services;
 
-        [Command("addmodlognotice")]
-        [Description("Adds a notice when a users gains a specified number of warnings. Only one message is allowed per # of warns.")]
-        [Aliases("amln", "addmodnotice")]
-        [RequireUserPermissions(Permissions.ManageMessages)]
-        public async Task AddModlogNoticeCommandAsync(CommandContext ctx,
-            [Description("Amount of warns needed to trigger this notice.")]
-            int warnCount,
-            
-            [Description("Message to send back to the moderator")]
-            [RemainingText]
-            string message)
-        {
-            var database = _services.GetRequiredService<CloudNineDatabaseModel>();
-            var mod = await database.FindAsync<ModCore>(ctx.Guild.Id);
-
-            if(mod is null)
+            public NoticeActions(IServiceProvider services)
             {
-                mod = new ModCore(ctx.Guild.Id);
-                await database.AddAsync(mod);
-                await database.SaveChangesAsync();
+                this._services = services;
             }
 
-            mod.ModlogNotices[warnCount] = message;
+            [SlashCommand("add", "Adds a notice when a users gains a specified number of warnings.")]
+            [SlashRequireUserPermissions(Permissions.ManageMessages)]
+            public async Task AddModlogNoticeCommandAsync(InteractionContext ctx,
+                [Option("Warns", "Amount of warns needed to trigger this notice.")]
+                long warnCountLong,
 
-            database.Update(mod);
-            await database.SaveChangesAsync();
+                [Option("Message", "Message to send back to the moderator")]
+                string message)
+            {
+                int warnCount = (int)warnCountLong;
 
-            await Respond($"Updated modlog notices for when a user receives {warnCount} warns and will now display the following message: ");
-            await AddWarnCommand.DisplayWarnNotice(ctx, message, ctx.Member);
+                var database = _services.GetRequiredService<CloudNineDatabaseModel>();
+                var mod = await database.FindAsync<ModCore>(ctx.Guild.Id);
+
+                if (mod is null)
+                {
+                    mod = new ModCore(ctx.Guild.Id);
+                    await database.AddAsync(mod);
+                    await database.SaveChangesAsync();
+                }
+
+                mod.ModlogNotices[warnCount] = message;
+
+                database.Update(mod);
+                await database.SaveChangesAsync();
+
+                await Respond($"Updated modlog notices for when a user receives {warnCount} warns and will now display the following message: ");
+                await WarnCommands.DisplayWarnNotice(ctx, message, ctx.Member);
+            }
         }
     }
 }

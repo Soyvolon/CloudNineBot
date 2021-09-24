@@ -8,12 +8,15 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using DSharpPlus.SlashCommands;
+using DSharpPlus.SlashCommands.Attributes;
 
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CloudNine.Discord.Commands.Quotes.Favorites
 {
-    public class AddFavoriteQuoteCommand : CommandModule
+    [SlashCommandGroup("favorite", "Commands for favoriting quotes!")]
+    public class AddFavoriteQuoteCommand : SlashCommandBase
     {
         private readonly IServiceProvider _services;
 
@@ -22,16 +25,19 @@ namespace CloudNine.Discord.Commands.Quotes.Favorites
             this._services = services;
         }
 
-        [Command("favoritequote")]
-        [Description("Add a quote to your favorite quotes for this server!")]
-        [Aliases("favquote", "favq", "favouritequote")]
-        public async Task AddFavoriteQuoteCommandAsync(CommandContext ctx, 
-            [Description("ID of the quote to favorite")]
-            int quoteId)
+        [SlashCommand("quote", "Add a quote to your favorite quotes for this server!")]
+        [SlashRequireGuild]
+        public async Task AddFavoriteQuoteCommandAsync(InteractionContext ctx, 
+            [Option("ID", "ID of the quote to favorite")]
+            long quoteLong)
         {
+            int quoteId = (int)quoteLong;
+
             var database = _services.GetRequiredService<CloudNineDatabaseModel>();
 
             var config = await database.FindAsync<DiscordGuildConfiguration>(ctx.Guild.Id);
+
+            await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
 
             if(config is null || config.Quotes.IsEmpty)
             {
@@ -61,7 +67,7 @@ namespace CloudNine.Discord.Commands.Quotes.Favorites
                     embed.WithColor(Color_Cloud)
                         .WithDescription($"Favorited quote {quoteId}!");
 
-                    await ctx.RespondAsync(embed: embed);
+                    await RespondAsync(embed);
                 }
                 else
                 {

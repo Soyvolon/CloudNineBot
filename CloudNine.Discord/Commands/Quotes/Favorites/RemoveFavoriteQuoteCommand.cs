@@ -9,12 +9,15 @@ using CloudNine.Core.Database;
 
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.SlashCommands;
+using DSharpPlus.SlashCommands.Attributes;
 
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CloudNine.Discord.Commands.Quotes.Favorites
 {
-    public class RemoveFavoriteQuoteCommand : CommandModule
+    [SlashCommandGroup("unfavorite", "Unfavorite commands.")]
+    public class RemoveFavoriteQuoteCommand : SlashCommandBase
     {
         private readonly IServiceProvider _services;
 
@@ -23,16 +26,19 @@ namespace CloudNine.Discord.Commands.Quotes.Favorites
             this._services = services;
         }
 
-        [Command("unfavoritequote")]
-        [Description("Removes a quote from your favorite quotes for this server.")]
-        [Aliases("unfavquote", "ufavq", "unfavouritequote")]
-        public async Task RemoveFavoriteQuoteCommandAsync(CommandContext ctx,
-            [Description("ID of the quote to remove from your favoites")]
-            int quoteId)
+        [SlashCommand("quote", "Removes a quote from your favorite quotes for this server.")]
+        [SlashRequireGuild]
+        public async Task RemoveFavoriteQuoteCommandAsync(InteractionContext ctx,
+            [Option("ID", "ID of the quote to remove from your favoites")]
+            long quoteLong)
         {
+            var quoteId = (int)quoteLong;
+
             var database = _services.GetRequiredService<CloudNineDatabaseModel>();
 
             var config = await database.FindAsync<DiscordGuildConfiguration>(ctx.Guild.Id);
+
+            await ctx.CreateResponseAsync(DSharpPlus.InteractionResponseType.DeferredChannelMessageWithSource);
 
             if (config is null || config.Quotes.IsEmpty)
             {

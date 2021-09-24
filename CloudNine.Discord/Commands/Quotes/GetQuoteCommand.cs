@@ -7,17 +7,20 @@ using CloudNine.Core.Configuration;
 using CloudNine.Core.Database;
 using CloudNine.Core.Extensions;
 
+using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
+using DSharpPlus.SlashCommands;
+using DSharpPlus.SlashCommands.Attributes;
 
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CloudNine.Discord.Commands.Quotes
 {
-    public class GetQuoteCommand : CommandModule
+    public class GetQuoteCommand : SlashCommandBase
     {
         private readonly IServiceProvider _services;
 
@@ -26,27 +29,33 @@ namespace CloudNine.Discord.Commands.Quotes
             this._services = services;
         }
 
-        [Command("quote")]
-        [RequireGuild]
-        [Description("Gets a saved quote!")]
-        [Aliases("getquote")]
-        public async Task GetQuoteCommandAsync(CommandContext ctx,
-            [Description("Arguments for the quote command. Use `help` for more information")]
-            params string[] args)
+        [SlashCommand("random", "Gets a random quote!")]
+        [SlashRequireGuild]
+        public async Task GetQuoteCommandAsync(InteractionContext ctx)
+            => await GetQuoteCommandAsync(ctx, "");
+
+        [SlashCommand("quote", "Gets a saved quote! Use /random to get a random quote!")]
+        [SlashRequireGuild]
+        public async Task GetQuoteCommandAsync(InteractionContext ctx,
+            [Option("ID", "ID of the quote to get!")]
+            string rawArgs)
         {
+            await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
+
             var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
             var cfg = await _database.FindAsync<DiscordGuildConfiguration>(ctx.Guild.Id);
             if (cfg is null)
             {
                 cfg = new DiscordGuildConfiguration()
                 {
-                    Id = ctx.Guild.Id,
-                    Prefix = ctx.Prefix
+                    Id = ctx.Guild.Id
                 };
 
                 await _database.AddAsync(cfg);
                 await _database.SaveChangesAsync();
             }
+
+            var args = rawArgs.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
             if (args is null || args.Length <= 0)
             {
@@ -66,28 +75,28 @@ namespace CloudNine.Discord.Commands.Quotes
                     .WithColor(Color_Cloud)
                     .WithTitle("Quote Help")
                     .WithDescription("Detailed help for the quote command.\n" +
-                        $"Using `{ctx.Prefix}quote` without anything else will get you a random quote from this server.")
+                        $"Using `/quote` without anything else will get you a random quote from this server.")
                     .AddField("help", "```http\n" +
-                        $"Usage     :: {ctx.Prefix}quote help\n" +
+                        $"Usage     :: /quote help\n" +
                         $"Returns   :: This embed." +
                         $"\n```")
                     .AddField("id", "```http\n" +
-                        $"Usage     :: {ctx.Prefix}quote id <quote id>\n" +
+                        $"Usage     :: /quote id <quote id>\n" +
                         $"Quote Id  :: The ID of the quote you want to get.\n" +
                         $"Returns   :: A specific quote." +
                         $"\n```");
                 /*.AddField("global", "```http\n" +
-                    $"Usage     :: {ctx.Prefix}quote global\n" +
+                    $"Usage     :: /quote global\n" +
                     $"Returns   :: A random globaly shared quote." +
                     $"\n```");*/
 
-                await ctx.RespondAsync(embed: embed);
+                await RespondAsync(embed: embed);
             }
             else if (args[0] == "id")
             {
                 if (args.Length < 2)
                 {
-                    await ctx.RespondAsync("No ID provided. Make sure to include an ID for the quote you want to get.");
+                    await Respond("No ID provided. Make sure to include an ID for the quote you want to get.");
                 }
                 else if (int.TryParse(args[1], out int id))
                 {
@@ -101,7 +110,7 @@ namespace CloudNine.Discord.Commands.Quotes
                 }
                 else
                 {
-                    await ctx.RespondAsync("Could not parse the provided ID. Please input a number value. `Ex: 5`");
+                    await Respond("Could not parse the provided ID. Please input a number value. `Ex: 5`");
                 }
             }
             else if (int.TryParse(args[0], out int id))
@@ -116,42 +125,37 @@ namespace CloudNine.Discord.Commands.Quotes
             }
             else
             {
-                await ctx.RespondAsync("No quote found!");
+                await RespondError("No quote found!");
             }
 
             await _database.SaveChangesAsync();
         }
 
-        private async Task SendHiddenQuoteById(CommandContext ctx, DiscordGuildConfiguration cfg, string quoteId)
+        private async Task SendHiddenQuoteById(InteractionContext ctx, DiscordGuildConfiguration cfg, string quoteId)
         {
             if (cfg.HiddenQuotes.TryGetValue(quoteId, out var quote))
             {
-                try
-                {
-                    await ctx.Message.DeleteAsync();
-                }
-                catch (NotFoundException) { }
                 var embed = quote.UseQuote();
 
-                await ctx.RespondAsync(embed: embed);
+                await RespondAsync(embed: embed);
             }
             else
             {
-                await ctx.RespondAsync("No quote by that ID found.");
+                await Respond("No quote by that ID found.");
             }
         }
 
-        private async Task SendQuoteByIdAsync(CommandContext ctx, DiscordGuildConfiguration cfg, int quoteId)
+        private async Task SendQuoteByIdAsync(InteractionContext ctx, DiscordGuildConfiguration cfg, int quoteId)
         {
             if (cfg.Quotes.TryGetValue(quoteId, out var quote))
             {
                 var embed = quote.UseQuote();
 
-                await ctx.RespondAsync(embed: embed);
+                await RespondAsync(embed: embed);
             }
             else
             {
-                await ctx.RespondAsync("No quote by that ID found.");
+                await RespondError("No quote by that ID found.");
             }
         }
     }

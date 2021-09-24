@@ -8,57 +8,63 @@ using CloudNine.Core.Moderation;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.SlashCommands;
+using DSharpPlus.SlashCommands.Attributes;
 
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CloudNine.Discord.Commands.Moderation
 {
-    public class DelayWarnReviewCommand : CommandModule
+    public partial class ModerationCommands : SlashCommandBase
     {
-        private readonly IServiceProvider _services;
-
-        public DelayWarnReviewCommand(IServiceProvider services)
-            => _services = services;
-
-        [Command("delaywarnreview")]
-        [Description("Delays the review of a warn for the specified amount of days.")]
-        [Aliases("delayreview")]
-        [RequireUserPermissions(Permissions.ManageMessages)]
-        public async Task DelayWarnReviewCommandAsync(CommandContext ctx,
-            [Description("The warn ID to forgive (or not forgive).")]
-            string warnId,
-            [Description("Days to delay review by")]
-            int days)
+        [SlashCommandGroup("delay", "Delay based commands.")]
+        public partial class DelayCommands : SlashCommandBase
         {
-            if(days <= 0)
+            private readonly IServiceProvider _services;
+
+            public DelayCommands(IServiceProvider services)
+                => _services = services;
+
+            [SlashCommand("warn", "Delays the review of a warn for the specified amount of days.")]
+            [SlashRequireUserPermissions(Permissions.ManageMessages)]
+            public async Task DelayWarnReviewCommandAsync(InteractionContext ctx,
+                [Option("ID", "The warn ID to forgive (or not forgive).")]
+                string warnId,
+                [Option("Days", "Days to delay review by")]
+                long days)
             {
-                await RespondError("Days can not be less than or equal to 0.");
-                return;
-            }
+                await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
 
-            var db = _services.GetRequiredService<CloudNineDatabaseModel>();
-            var mod = await db.FindAsync<ModCore>(ctx.Guild.Id);
-
-            if (mod is null)
-                await RespondError("There are no warnings on this server.");
-            else
-            {
-                var warn = mod.WarnSet.FirstOrDefault(x => x.Key == warnId);
-
-                if(warn is null)
+                if (days <= 0)
                 {
-                    await RespondError("No warn by that ID was found.");
+                    await RespondError("Days can not be less than or equal to 0.");
                     return;
                 }
 
-                var toReviewOn = DateTime.UtcNow.AddDays(days);
+                var db = _services.GetRequiredService<CloudNineDatabaseModel>();
+                var mod = await db.FindAsync<ModCore>(ctx.Guild.Id);
 
-                warn.IgnoreUntil = toReviewOn;
+                if (mod is null)
+                    await RespondError("There are no warnings on this server.");
+                else
+                {
+                    var warn = mod.WarnSet.FirstOrDefault(x => x.Key == warnId);
 
-                db.Update(mod);
-                await db.SaveChangesAsync();
+                    if (warn is null)
+                    {
+                        await RespondError("No warn by that ID was found.");
+                        return;
+                    }
 
-                await RespondWarn($"Review for `{warn.Key}` until {toReviewOn:D}");
+                    var toReviewOn = DateTime.UtcNow.AddDays(days);
+
+                    warn.IgnoreUntil = toReviewOn;
+
+                    db.Update(mod);
+                    await db.SaveChangesAsync();
+
+                    await RespondWarn($"Review for `{warn.Key}` until {toReviewOn:D}");
+                }
             }
         }
     }

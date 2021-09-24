@@ -4,28 +4,22 @@ using CloudNine.Discord.Utilities;
 
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.SlashCommands;
+using DSharpPlus.SlashCommands.Attributes;
 
 namespace CloudNine.Discord.Commands.Birthday
 {
-    public class UnRegisterBirthdayCmd : CommandModule
+    public partial class BirthdayCommands : SlashCommandBase
     {
-        private readonly BirthdayManager _birthdays;
-
-        public UnRegisterBirthdayCmd(BirthdayManager birthdays)
+        [SlashCommand("remove", "Removes you from the birthday list on this server.")]
+        [SlashRequireGuild]
+        public async Task UnregisterBirthdayAsync(InteractionContext ctx)
         {
-            _birthdays = birthdays;
-        }
-
-        [Command("remove")]
-        [Aliases("unregister")]
-        [RequireGuild]
-        [Description("Removes you from the birthday list on this server.")]
-        public async Task UnregisterBirthdayAsync(CommandContext ctx)
-        {
-            if (_birthdays.RemoveBirthday(ctx.Guild.Id, ctx.Member.Id))
-                await ctx.RespondAsync("Birthday removed sucsessfuly!").ConfigureAwait(false);
+            await ctx.CreateResponseAsync(DSharpPlus.InteractionResponseType.DeferredChannelMessageWithSource);
+            if (_birthdays.RemoveBirthday(ctx.Guild.Id, ctx.User.Id))
+                await Respond("Birthday removed sucsessfuly!");
             else
-                await ctx.RespondAsync("You don't have a birthday registered on this server.").ConfigureAwait(false);
+                await Respond("You don't have a birthday registered on this server.");
         }
     }
 }

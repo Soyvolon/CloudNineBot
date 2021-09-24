@@ -10,8 +10,6 @@ using CloudNine.Core.Extensions;
 using DSharpPlus;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.SlashCommands.Attributes;
-using DSharpPlus.SlashCommands.Entities;
-using DSharpPlus.SlashCommands.Entities.Builders;
 
 using Microsoft.Extensions.DependencyInjection;
 

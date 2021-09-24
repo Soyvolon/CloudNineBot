@@ -6,27 +6,23 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using DSharpPlus.SlashCommands;
+using DSharpPlus.SlashCommands.Attributes;
 
 namespace CloudNine.Discord.Commands.Birthday
 {
-    public class SetBirthdayRoleCmd : CommandModule
+    public partial class BirthdayCommands : SlashCommandBase
     {
-        private readonly BirthdayManager _birthdays;
-
-        public SetBirthdayRoleCmd(BirthdayManager birthdays)
+        [SlashCommand("role", "Sets the role to be given to a user whos birthday is today.")]
+        [SlashRequireGuild]
+        [SlashRequireUserPermissions(Permissions.ManageRoles)]
+        public async Task SetBirthdayRoleAsync(InteractionContext ctx,
+            [Option("Role", "Role to give the birthday person.")]
+            DiscordRole role)
         {
-            _birthdays = birthdays;
-        }
-
-        [Command("role")]
-        [RequireGuild]
-        [Hidden]
-        [Description("Sets the role to be given to a user whos birthday is today.")]
-        [RequireUserPermissions(Permissions.ManageGuild)]
-        public async Task SetBirthdayRoleAsync(CommandContext ctx, DiscordRole role)
-        {
+            await ctx.CreateResponseAsync(DSharpPlus.InteractionResponseType.DeferredChannelMessageWithSource);
             _birthdays.UpdateBirthdayRole(ctx.Guild.Id, role);
-            await ctx.RespondAsync($"Set birthday role to {role.Mention}").ConfigureAwait(false);
+            await Respond($"Set birthday role to {role.Mention}");
         }
     }
 }

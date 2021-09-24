@@ -12,6 +12,8 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using DSharpPlus.SlashCommands;
+using DSharpPlus.SlashCommands.Attributes;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -19,7 +21,8 @@ using static CloudNine.Discord.Services.QuoteService;
 
 namespace CloudNine.Discord.Commands.Quotes.Management
 {
-    public class AddQuoteCommand : CommandModule
+    [SlashCommandGroup("add", "Command Group for adding things!")]
+    public class AddQuoteCommand : ApplicationCommandModule
     {
         private readonly IServiceProvider _services;
         private readonly QuoteService _quotes;
@@ -30,30 +33,35 @@ namespace CloudNine.Discord.Commands.Quotes.Management
             this._quotes = quotes;
         }
 
-        [Command("addquote")]
-        [RequireGuild]
-        [Description("Adds a quote.")]
-        [Aliases("aquote")]
-        [Priority(1)]
-        [RequireUserPermissions(Permissions.ManageMessages)]
-        public async Task AddQuoteCommandAsync(CommandContext ctx,
-            [Description("Quote to add")]
-            params string[] argsArray)
+        [SlashCommand("quote", "Adds a quote.")]
+        [SlashRequireGuild]
+        [SlashRequireUserPermissions(Permissions.ManageMessages)]
+        public async Task AddQuoteCommandAsync(InteractionContext ctx,
+            [Option("Author", "Author of this quote.")]
+            DiscordUser author,
+
+            [Option("Arguments", "Arguments to add. Use --help to view help.")]
+            string argsRaw)
         {
-            if(argsArray.Length <= 0)
+            await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
+
+            if (argsRaw.Length <= 0)
             {
                 await SendAddQuoteHelp(ctx);
                 return;
             }
 
-            List<string> args = argsArray.ToList();
+            List<string> args = argsRaw.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
+
+            args.Insert(0, author.Username);
+            args.Insert(0, "-a");
 
             QuoteData data = new();
             List<string> content = new();
 
-            for(int i = 0; i < args.Count; i++)
+            for (int i = 0; i < args.Count; i++)
             {
-                switch(args[i])
+                switch (args[i])
                 {
                     case "-h":
                     case "--help":
@@ -62,7 +70,7 @@ namespace CloudNine.Discord.Commands.Quotes.Management
                 }
 
                 bool argRun;
-                (i, data, argRun) = await _quotes.ExecuteArgumentChecks(args, i, data, ctx.Message);
+                (i, data, argRun) = await _quotes.ExecuteArgumentChecks(args, i, data, ctx);
 
                 if (i == -1 || data is null) return;
 
@@ -112,8 +120,7 @@ namespace CloudNine.Discord.Commands.Quotes.Management
             {
                 cfg = new DiscordGuildConfiguration()
                 {
-                    Id = ctx.Guild.Id,
-                    Prefix = ctx.Prefix,
+                    Id = ctx.Guild.Id
                 };
                 await _database.AddAsync(cfg);
                 await _database.SaveChangesAsync();
@@ -125,39 +132,23 @@ namespace CloudNine.Discord.Commands.Quotes.Management
 
             await _database.SaveChangesAsync();
 
-            await ctx.RespondAsync("Added a new quote: ");
-            var cnext = ctx.Client.GetCommandsNext();
-
-            var cmd = cnext.FindCommand("quote", out _);
-
-            var fakeCtx = cnext.CreateFakeContext(ctx.Member, ctx.Channel, $"{ctx.Prefix}quote id {quote.Id}", ctx.Prefix, cmd, $"id {quote.Id}");
-            await cnext.ExecuteCommandAsync(fakeCtx);
+            await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder()
+                .AddEmbed(quote.BuildQuote())
+                .WithContent($"Added quote: "));
         }
 
-        [Command("addquote")]
-        [Priority(2)]
-        public async Task AddQuoteCommandAsync(CommandContext ctx,
-            [Description("Author of the quote.")]
-            DiscordMember? discordMember,
-
-            [Description("Quote to add")]
-            [RemainingText]
-            string quote)
-        => await AddQuoteCommandAsync(ctx, quote, "--author", $"{discordMember?.Username ?? "unknown"}");
-
-        [Command("addquote")]
-        public async Task SendAddQuoteHelp(CommandContext ctx)
+        public async Task SendAddQuoteHelp(InteractionContext ctx)
         {
             var embed = new DiscordEmbedBuilder()
-                    .WithColor(Color_Cloud)
+                    .WithColor(CommandModule.Color_Cloud)
                     .WithTitle("Edit Quote Help")
-                    .WithDescription("Detailed help for the `addquote` command.\n" +
-                        $"Using `{ctx.Prefix}addquote` without anything else will get you this help command.")
+                    .WithDescription("Detailed help for the `/quote add new` command.\n" +
+                        $"Using `/quote add new` without anything else will get you this help command.")
                     .AddField("Full Usage",
                         "The add quote command is a variable system that allows for editing as many or as few attributes as needed" +
                         " when creating a new quote." +
                         "```http\n" +
-                        $"Usage        :: {ctx.Prefix}editquote <quote> <arguments>\n" +
+                        $"Usage        :: /editquote <quote> <arguments>\n" +
                         $"Quote        :: Any plain text not attached to an argument becomes the Quotes body.\n" +
                         $"Arguments    :: See the arguments section for a full list.\n" +
                         "```")
@@ -196,12 +187,13 @@ namespace CloudNine.Discord.Commands.Quotes.Management
                         $"Time         :: The custom ID used by the quote.\n" +
                         $"\n```")
                     .AddField("`-h | --help`", "```http\n" +
-                        $"Usage     :: {ctx.Prefix}editquote -h\n" +
-                        $"Usage     :: {ctx.Prefix}editquote --help\n" +
+                        $"Usage     :: /quote add new -h\n" +
+                        $"Usage     :: /quote add new --help\n" +
                         $"Returns   :: This embed." +
                         $"\n```");
 
-            await ctx.RespondAsync(embed: embed);
+            await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder()
+                .AddEmbed(embed));
         }
     }
 }

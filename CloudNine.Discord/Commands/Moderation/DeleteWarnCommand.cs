@@ -9,69 +9,57 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Interactivity.Extensions;
+using DSharpPlus.SlashCommands;
+using DSharpPlus.SlashCommands.Attributes;
 
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CloudNine.Discord.Commands.Moderation
 {
-    public class DeleteWarnCommand : CommandModule
+    public partial class ModerationCommands : SlashCommandBase
     {
-        private readonly IServiceProvider _services;
+        [SlashCommandGroup("warn", "Warn commands.")]
+        public partial class WarnCommands : SlashCommandBase
+        { 
+            private readonly IServiceProvider _services;
 
-        public DeleteWarnCommand(IServiceProvider services)
-        {
-            _services = services;
-        }
-
-        [Command("deletewarn")]
-        [Description("Premanetly deletes a warn")]
-        [Aliases("delwarn")]
-        [RequireUserPermissions(Permissions.ManageGuild)]
-        public async Task DeleteWarnCommandAsync(CommandContext ctx,
-            [Description("ID of the warn to delete.")]
-            string warnId)
-        {
-            var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
-            var mod = await _database.FindAsync<ModCore>(ctx.Guild.Id);
-
-            if (mod is null)
+            public WarnCommands(IServiceProvider services)
             {
-                await RespondError("There are no warnings on this server!");
-                return;
+                _services = services;
             }
 
-            var warn = mod.WarnSet.FirstOrDefault(x => x.Key == warnId);
-
-            if (warn is not null)
+            [SlashCommand("delete", "Premanetly deletes a warn")]
+            [SlashRequireUserPermissions(Permissions.ManageGuild)]
+            public async Task DeleteWarnCommandAsync(InteractionContext ctx,
+                [Option("ID", "ID of the warn to delete.")]
+                string warnId)
             {
-                var interact = ctx.Client.GetInteractivity();
+                await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
 
-                await ctx.RespondAsync(":warning: **This action is irreversible!** :warning:\n" +
-                    "**Re-enter the warn ID to confirm deletion of this warn and all of its edits.**");
+                var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
+                var mod = await _database.FindAsync<ModCore>(ctx.Guild.Id);
 
-                var res = await interact.WaitForMessageAsync(x => x.Author.Id == ctx.Message.Author.Id);
-
-                if(res.TimedOut)
+                if (mod is null)
                 {
-                    await RespondError("Response timed out.");
-                    return;
-                }
-                else if(res.Result.Content != warnId)
-                {
-                    await RespondError("Warn ID's do not match.");
+                    await RespondError("There are no warnings on this server!");
                     return;
                 }
 
-                mod.RemoveWarn(warnId);
+                var warn = mod.WarnSet.FirstOrDefault(x => x.Key == warnId);
 
-                _database.Update(mod);
-                await _database.SaveChangesAsync();
+                if (warn is not null)
+                {
+                    mod.RemoveWarn(warnId);
 
-                await RespondWarn($"Warn `{warnId}` was deleted succesfully.");
-            }
-            else
-            {
-                await RespondError("No warn with that ID found.");
+                    _database.Update(mod);
+                    await _database.SaveChangesAsync();
+
+                    await RespondWarn($"Warn `{warnId}` was deleted succesfully.");
+                }
+                else
+                {
+                    await RespondError("No warn with that ID found.");
+                }
             }
         }
     }

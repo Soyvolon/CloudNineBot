@@ -16,6 +16,7 @@ using ConcurrentCollections;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
+using DSharpPlus.SlashCommands;
 
 using Microsoft.Extensions.Logging;
 
@@ -122,56 +123,27 @@ namespace CloudNine.Discord.Services
             return true;
         }
 
-        public Task MessageRecievedAsync(DiscordClient source, MessageCreateEventArgs e)
+        private async Task Relay_MessageCreatedAsync(DiscordClient source, InteractionContext e, string argsRaw)
         {
-            var cancelSource = new CancellationTokenSource();
-            RunningRelays[e] = new Tuple<Task, CancellationTokenSource>(
-                Task.Run(async () => await Relay_MessageCreatedAsync(source, e)),
-                cancelSource);
-
-            return Task.CompletedTask;
-        }
-
-        private async Task Relay_MessageCreatedAsync(DiscordClient source, MessageCreateEventArgs e)
-        {
-            try
+            if (ActiveLinks.TryGetValue(e.User.Id, out var r))
             {
-                if (ActiveLinks.TryGetValue(e.Author.Id, out var r))
+                var args = GetParamsString(argsRaw);
+
+                if (args.Count > 0 && args[0].StartsWith(r.ActionKey))
                 {
-                    var args = GetParamsString(e.Message.Content);
+                    if (args[0].Equals(r.ActionKey))
+                        args.RemoveAt(0);
+                    else if (args[0].Length > 1)
+                        args[0] = args[0][1..];
+                    else
+                        return; // failed to separate the prefix. This should be impossible.
 
-                    if (args.Count > 0 && args[0].StartsWith(r.ActionKey))
-                    {
-                        if (args[0].Equals(r.ActionKey))
-                            args.RemoveAt(0);
-                        else if (args[0].Length > 1)
-                            args[0] = args[0][1..];
-                        else
-                            return; // failed to separate the prefix. This should be impossible.
-
-                        await SendQuoteRelay(e.Message, r, args, source);
-                    }
-                }
-
-                return;
-            }
-            finally
-            {
-                if (RunningRelays.TryRemove(e, out var taskData))
-                {
-                    try
-                    {
-                        taskData.Item2.Dispose();
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Quote relay dispose failed");
-                    }
+                    await SendQuoteRelay(e, r, args, source);
                 }
             }
         }
 
-        private async Task SendQuoteRelay(DiscordMessage source, Relay relay, List<string> args, DiscordClient client)
+        private async Task SendQuoteRelay(InteractionContext source, Relay relay, List<string> args, DiscordClient client)
         {
             var data = new QuoteData();
 
@@ -316,7 +288,7 @@ namespace CloudNine.Discord.Services
                         return;
 
                     case "--shutdown":
-                        await TryCloseRelayAsync(source.Author);
+                        await TryCloseRelayAsync(source.User);
                         await source.Channel.SendMessageAsync(embed: new DiscordEmbedBuilder()
                             .WithColor(DiscordColor.DarkRed)
                             .WithDescription("Relay Closed."));
@@ -372,10 +344,12 @@ namespace CloudNine.Discord.Services
                 relay.Data.Time, r => relay.Data.Time = (DateTime?)r);
 
             await relay.Destination.GetChannel((ulong)data.ChannelId).SendMessageAsync(embed: quote.BuildQuote());
-            await source.CreateReactionAsync(DiscordEmoji.FromName(client, ":white_check_mark:"));
+            await source.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                new DiscordInteractionResponseBuilder()
+                .WithContent($"Sent Relay at {DateTime.UtcNow.ToShortTimeString()}"));
         }
 
-        public async Task<(int, QuoteData, bool)> ExecuteArgumentChecks(List<string> args, int i, QuoteData data, DiscordMessage source)
+        public async Task<(int, QuoteData, bool)> ExecuteArgumentChecks(List<string> args, int i, QuoteData data, InteractionContext source)
         {
             bool argRun = false;
             switch(args[i])
@@ -447,31 +421,15 @@ namespace CloudNine.Discord.Services
                 case "--image":
                     argRun = true;
                     string url = "";
-                    if (args.Count <= i + 1)
+                    try
                     {
-                        if (source.Attachments.Count > 0)
-                        {
-                            url = source.Attachments[0].Url;
-                        }
-                        else
-                        {
-                            await source.Channel.SendMessageAsync("Failed to parse `--image`, not enough paramaters, and/or image not attached.");
-                            return (-1, null, false);
-                        }
+                        var uri = new Uri(args[++i]);
+                        url = uri.AbsoluteUri;
                     }
-                    else
+                    catch
                     {
-
-                        try
-                        {
-                            var uri = new Uri(args[++i]);
-                            url = uri.AbsoluteUri;
-                        }
-                        catch
-                        {
-                            await source.Channel.SendMessageAsync("Failed to parse `--image`, failed to get a valid URL.");
-                            return (-1, null, false);
-                        }
+                        await source.Channel.SendMessageAsync("Failed to parse `--image`, failed to get a valid URL.");
+                        return (-1, null, false);
                     }
 
                     data.ImageUrl = url;
@@ -643,7 +601,7 @@ namespace CloudNine.Discord.Services
             }
         }
 
-        private async Task<string?> TryParseUserId(string author, DiscordMessage source)
+        private async Task<string?> TryParseUserId(string author, InteractionContext source)
         {
             var res = "";
             if (author.StartsWith("<@!") && author.EndsWith(">"))

@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
 using CloudNine.Config.Bot;
+using CloudNine.Discord.Commands.Birthday;
+using CloudNine.Discord.Commands.Moderation;
 using CloudNine.Discord.Interactions;
 using CloudNine.Discord.Services;
 using CloudNine.Discord.Utilities;
@@ -49,19 +53,16 @@ namespace CloudNine.Discord
 
         private readonly DiscordShardedClient _client;
         private readonly DiscordRestClient _rest;
-        private readonly DiscordSlashClient _slash;
         private readonly DiscordBotConfiguration _config;
         private readonly BirthdayManager _birthdays;
         private readonly IServiceProvider _services;
 
         public DiscordBot(IServiceProvider services,
-            DiscordShardedClient client, DiscordRestClient rest, DiscordSlashClient slash,
-            DiscordBotConfiguration config, BirthdayManager birthdays)
+            DiscordShardedClient client, DiscordRestClient rest, DiscordBotConfiguration config, BirthdayManager birthdays)
         {
             this._services = services;
             this._client = client;
             this._rest = rest;
-            this._slash = slash;
             this._config = config;
             this._birthdays = birthdays;
 
@@ -116,6 +117,45 @@ namespace CloudNine.Discord
                 c.RegisterConverter(new DateTimeAttributeConverter());
 
                 c.SetHelpFormatter<CustomHelpFormatter>();
+
+                var slash = c.Client.UseSlashCommands(new()
+                {
+                    Services = this._services
+                });
+
+                List<Type> parentGroups = new() { typeof(ModerationCommands), typeof(BirthdayCommands) };
+                List<Type> ignoreGrouping = new();
+                foreach (var p in parentGroups)
+                    ignoreGrouping.AddRange(p.GetNestedTypes());
+
+                var types = Assembly.GetAssembly(typeof(DiscordBot))?.GetTypes();
+                if (types is not null)
+                    foreach (var t in types)
+                        if (t.IsSubclassOf(typeof(ApplicationCommandModule))
+                            && !parentGroups.Any(x => t.IsSubclassOf(x))
+                            && !ignoreGrouping.Contains(t))
+#if DEBUG
+                            slash.RegisterCommands(t, 750486424469372970);
+#else
+                            slash.RegisterCommands(t);
+#endif
+                slash.SlashCommandErrored += (x, y) =>
+                {
+                    Task.Run(async () =>
+                    {
+                        if (y.Exception is SlashExecutionChecksFailedException ex)
+                        {
+                            await y.Context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                                new DiscordInteractionResponseBuilder()
+                                    .WithContent("You do not have permission to run that command."));
+                        }
+                        else
+                        {
+                            x.Client.Logger.LogError(y.Exception, $"Slash Command Errored.");
+                        }
+                    });
+                    return Task.CompletedTask;
+                };
             }
 
             await _client.UseInteractivityAsync(GetInteractivityConfiguration());
@@ -123,7 +163,6 @@ namespace CloudNine.Discord
             var commandHander = _services.GetRequiredService<CommandHandlerService>();
 
             _client.Ready += Client_Ready;
-            _client.MessageCreated += commandHander.MessageRecievedAsync;
 
             var iservice = _services.GetRequiredService<MultisearchInteractivityService>();
 
@@ -135,20 +174,7 @@ namespace CloudNine.Discord
 
             _client.MessageCreated += ffrservice.Client_MessageCreated;
 
-            var relay = _services.GetRequiredService<QuoteService>();
-            _client.MessageCreated += relay.MessageRecievedAsync;
-
-            _slash.RegisterCommands(Assembly.GetExecutingAssembly());
-
-            _client.InteractionCreated += _slash.HandleGatewayEvent;
-            _client.InteractionCreated += (x, y) =>
-            {
-                _client.Logger.LogDebug("Interaction Created");
-                return Task.CompletedTask;
-            };
-
             await _client.StartAsync();
-            await _slash.StartAsync();
 
             await Task.Run(async () =>
             {

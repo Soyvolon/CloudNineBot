@@ -8,12 +8,15 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using DSharpPlus.SlashCommands;
+using DSharpPlus.SlashCommands.Attributes;
 
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CloudNine.Discord.Commands.Quotes.Management
 {
-    public class DeleteQuoteCommand : CommandModule
+    [SlashCommandGroup("delete", "Delete command group!")]
+    public class DeleteQuoteCommand : SlashCommandBase
     {
         private readonly IServiceProvider _services;
 
@@ -22,15 +25,21 @@ namespace CloudNine.Discord.Commands.Quotes.Management
             this._services = services;
         }
 
-        [Command("deletequote")]
-        [RequireGuild]
-        [Description("Deltes a quote by its ID.")]
-        [Aliases("delquote", "dquote")]
-        [RequireUserPermissions(Permissions.ManageMessages)]
-        public async Task DeleteQuoteCommandAsync(CommandContext ctx,
-            [Description("The ID of the quote to remove.")]
-            int quoteId)
+        [SlashCommand("quote", "Deltes a quote by its ID.")]
+        [SlashRequireGuild]
+        [SlashRequireUserPermissions(Permissions.ManageMessages)]
+        public async Task DeleteQuoteCommandAsync(InteractionContext ctx,
+            [Option("ID", "The ID of the quote to remove.")]
+            string quoteIdRaw = "")
         {
+            await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
+
+            if(!int.TryParse(quoteIdRaw, out var quoteId))
+            {
+                await DeleteHiddenQuoteCommandAsync(ctx, quoteIdRaw);
+                return;
+            }
+
             var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
             var cfg = await _database.FindAsync<DiscordGuildConfiguration>(ctx.Guild.Id);
 
@@ -46,7 +55,7 @@ namespace CloudNine.Discord.Commands.Quotes.Management
                     .WithTitle($"Removed Quote `{quoteId}` by {quote.Author}")
                     .WithDescription(quote.Content);
 
-                await ctx.RespondAsync(embed: embed);
+                await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder().AddEmbed(embed));
             }
             else
             {
@@ -54,9 +63,7 @@ namespace CloudNine.Discord.Commands.Quotes.Management
             }
         }
 
-        [Command("deletequote")]
-        public async Task DeleteQuoteCommandAsync(CommandContext ctx,
-            [Description("The ID of the quote to remove.")]
+        public async Task DeleteHiddenQuoteCommandAsync(InteractionContext ctx,
             string quoteId)
         {
             var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
@@ -71,7 +78,7 @@ namespace CloudNine.Discord.Commands.Quotes.Management
                     .WithTitle($"Removed Quote `{quoteId}` by {quote.Author}")
                     .WithDescription(quote.Content);
 
-                await ctx.RespondAsync(embed: embed);
+                await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder().AddEmbed(embed));
             }
             else
             {

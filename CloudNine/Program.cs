@@ -70,19 +70,6 @@ namespace CloudNine
                 .AddSingleton(GetDiscordConfiguration(discordConfig, MinimumLogLevel))
                 .AddSingleton<DiscordShardedClient>()
                 .AddSingleton<DiscordRestClient>()
-                .AddSingleton<DiscordSlashClient>((x) =>
-                {
-                    var c = x.GetRequiredService<DiscordShardedClient>();
-
-                    return new(new()
-                    {
-                        ShardedClient = c,
-                        DefaultResponseType = InteractionResponseType.DeferredChannelMessageWithSource,
-                        Token = discordConfig.Token,
-                        Services = x,
-                        Logger = c.Logger
-                    });
-                })
                 .AddSingleton<BirthdayManager>((x) => new(discordConfig.TriggerBday, x))
                 .AddSingleton<CommandHandlerService>()
                 .AddSingleton<DiscordBot>();

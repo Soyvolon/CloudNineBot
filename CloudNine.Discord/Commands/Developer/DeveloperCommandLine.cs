@@ -114,8 +114,7 @@ namespace CloudNine.Discord.Commands.Developer
                     {
                         cfg = new DiscordGuildConfiguration()
                         {
-                            Id = serverId,
-                            Prefix = ctx.Prefix
+                            Id = serverId
                         };
 
                         await _database.AddAsync(cfg);

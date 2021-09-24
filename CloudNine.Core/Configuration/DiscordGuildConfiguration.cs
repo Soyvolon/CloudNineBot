@@ -16,8 +16,6 @@ namespace CloudNine.Core.Configuration
         [Key]
         public ulong Id { get; set; }
 
-        public string? Prefix { get; set; }
-
         public BirthdayServerConfiguration BirthdayConfiguration { get; set; }
         public ConcurrentDictionary<int, Quote> Quotes { get; set; }
         public ConcurrentDictionary<string, Quote> HiddenQuotes { get; set; }

@@ -8,61 +8,53 @@ using CloudNine.Core.Moderation;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.SlashCommands;
+using DSharpPlus.SlashCommands.Attributes;
 
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CloudNine.Discord.Commands.Moderation
 {
-    public class EditWarnCommand : CommandModule
+    public partial class ModerationCommands : SlashCommandBase
     {
-        private readonly IServiceProvider _services;
-
-        public EditWarnCommand(IServiceProvider services)
+        public partial class WarnCommands : SlashCommandBase
         {
-            _services = services;
-        }
+            [SlashCommand("edit", "Edits the reason behind a warn.")]
+            [SlashRequireUserPermissions(Permissions.ManageMessages)]
+            public async Task EditWarnCommandAsync(InteractionContext ctx,
+                [Option("ID", "Warn to edit")]
+                string warnId,
 
-        [Command("editwarn")]
-        [Description("Edits the reason behind a warn.")]
-        [Aliases("edit")]
-        [RequireUserPermissions(Permissions.ManageMessages)]
-        public async Task EditWarnCommandAsync(CommandContext ctx,
-            [Description("Warn to edit")]
-            string warnId,
-
-            [Description("New reason")]
-            [RemainingText]
-            string newReason)
-        {
-            var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
-            var mod = await _database.FindAsync<ModCore>(ctx.Guild.Id);
-
-            if (mod is null)
+                [Option("Reason", "New reason")]
+                string newReason)
             {
-                await RespondError("There are no warnings on this server!");
-                return;
-            }
 
-            var warn = mod.WarnSet.FirstOrDefault(x => x.Key == warnId);
+                var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
+                var mod = await _database.FindAsync<ModCore>(ctx.Guild.Id);
 
-            if(warn is not null)
-            {
-                warn.AddEdit(newReason == "" ? "Deafult Warn." : newReason);
+                if (mod is null)
+                {
+                    await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
+                    await RespondError("There are no warnings on this server!");
+                    return;
+                }
 
-                _database.Update(mod);
-                await _database.SaveChangesAsync();
+                var warn = mod.WarnSet.FirstOrDefault(x => x.Key == warnId);
 
-                CommandsNextExtension? cnext = ctx.Client.GetCommandsNext();
-                string? raw = $"warn {warn.Key}";
-                Command? cmd = cnext.FindCommand(raw, out var args);
+                if (warn is not null)
+                {
+                    warn.AddEdit(newReason == "" ? "Deafult Warn." : newReason);
 
-                var context = cnext.CreateFakeContext(ctx.Member, ctx.Channel, raw, ctx.Prefix, cmd, args);
+                    _database.Update(mod);
+                    await _database.SaveChangesAsync();
 
-                await cnext.ExecuteCommandAsync(context);
-            }
-            else
-            {
-                await RespondError("No warn found to edit.");
+                    await ViewWarnCommand(ctx, warnId);
+                }
+                else
+                {
+                    await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
+                    await RespondError("No warn found to edit.");
+                }
             }
         }
     }

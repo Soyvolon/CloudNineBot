@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using CloudNine.Core.Configuration;
 using CloudNine.Core.Database;
+using CloudNine.Discord.Services;
 
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
@@ -13,6 +14,8 @@ using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.EventHandling;
 using DSharpPlus.Interactivity.Extensions;
+using DSharpPlus.SlashCommands;
+using DSharpPlus.SlashCommands.Attributes;
 
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,33 +24,36 @@ using Microsoft.VisualBasic.CompilerServices;
 
 namespace CloudNine.Discord.Commands.Quotes
 {
-    public class SearchQuotesCommand : CommandModule
+    [SlashCommandGroup("search", "Searching group!")]
+    public class SearchQuoteGroup : SlashCommandBase
     {
-        private readonly IServiceProvider _services;
+        protected readonly IServiceProvider _services;
+        protected readonly QuoteService _quotes;
 
-        public SearchQuotesCommand(IServiceProvider services)
+        public SearchQuoteGroup(IServiceProvider services, QuoteService quotes)
         {
             this._services = services;
+            this._quotes = quotes;
         }
 
-        [Command("searchquotes")]
-        [RequireGuild]
-        [Description("Searches quotes by a specific serach")]
-        [Aliases("searchquote", "quoteserach")]
-        public async Task SearchQuotesCommandAsync(CommandContext ctx,
-            [Description("Quote serach arguments.")]
-            params string[] args)
+        [SlashCommand("quote", "Searches quotes by a specific serach")]
+        [SlashRequireGuild]
+        public async Task SearchQuotesCommandAsync(InteractionContext ctx,
+            [Option("Arguments", "Quote serach arguments. Use --help for help.")]
+            string rawArgs)
         {
+            await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
             var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
             var cfg = await _database.FindAsync<DiscordGuildConfiguration>(ctx.Guild.Id);
-            if(cfg is null)
+            if (cfg is null)
             {
-                var b = ErrorBase().WithDescription("No quotes found.");
-                await ctx.RespondAsync(embed: b);
+                await RespondError("No quotes found.");
                 return;
             }
 
-            if(args.Length <= 0 || args[0] == "-h" || args[0] == "--help")
+            var args = rawArgs.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+            if (args.Length <= 0 || args[0] == "-h" || args[0] == "--help")
             {
                 await SearchQuotesHelpAsync(ctx);
                 return;
@@ -55,7 +61,7 @@ namespace CloudNine.Discord.Commands.Quotes
 
             List<HashSet<int>> matches = new List<HashSet<int>>();
 
-            for(int i = 0; i < args.Length; i++)
+            for (int i = 0; i < args.Length; i++)
             {
                 var set = new HashSet<int>();
 
@@ -99,7 +105,7 @@ namespace CloudNine.Discord.Commands.Quotes
 
                     case "-c":
                     case "--contains":
-                        if(args.Length <= i + 1)
+                        if (args.Length <= i + 1)
                         {
                             await RespondError("Failed to parse `--contains`, not enough paramaters.");
                             return;
@@ -121,7 +127,7 @@ namespace CloudNine.Discord.Commands.Quotes
 
             HashSet<int> matchingIds = new HashSet<int>();
 
-            for(int i = 0; i < matches.Count; i++)
+            for (int i = 0; i < matches.Count; i++)
             {
                 if (i == 0)
                     matchingIds = matches[i];
@@ -148,47 +154,47 @@ namespace CloudNine.Discord.Commands.Quotes
             interact.SendPaginatedMessageAsync(ctx.Channel, ctx.Member, pages, buttons: null);
         }
 
-        private async Task SearchQuotesHelpAsync(CommandContext ctx)
+        private async Task SearchQuotesHelpAsync(InteractionContext ctx)
         {
             var embed = new DiscordEmbedBuilder()
                     .WithColor(Color_Cloud)
                     .WithTitle("Search Quotes Help")
-                    .WithDescription("Detailed help for the `searchquotes` command.\n" +
-                        $"Using `{ctx.Prefix}searchquotes` without anything else will get you this help command.")
+                    .WithDescription("Detailed help for the `/quote search` command.\n" +
+                        $"Using `/quote search` without anything else will get you this help command.")
                     .AddField("Full Usage", "```http\n" +
-                        $"Usage   :: {ctx.Prefix}searchquotes <(-a | --author) <query> | (-s | --saved) <query> | (-c | --content) <query>>\n" +
+                        $"Usage   ::  /quote search <(-a | --author) <query> | (-s | --saved) <query> | (-c | --content) <query>>\n" +
                         "```")
                     .AddField("`-a | --author <query>`", "```http\n" +
-                        $"Usage   :: {ctx.Prefix}searchquotes -q \"Author Search\"\n" +
-                        $"Usage   :: {ctx.Prefix}searchquotes --quote \"Author Search\"\n" +
+                        $"Usage   ::  /quote search -q \"Author Search\"\n" +
+                        $"Usage   ::  /quote search --quote \"Author Search\"\n" +
                         $"Query   :: Search query. Supports wildcards and basic string matching. Use \" around multi-word" +
                         $" queries.\n" +
                         $"Returns :: The edited quote." +
                         $"\n```")
                     .AddField("`-s | --saved <query>`", "```http\n" +
-                        $"Usage   :: {ctx.Prefix}searchquotes -a \"Saved By Search\"\n" +
-                        $"Usage   :: {ctx.Prefix}searchquotes --author \"Saved By Search\"\n" +
+                        $"Usage   ::  /quote search -a \"Saved By Search\"\n" +
+                        $"Usage   ::  /quote search --author \"Saved By Search\"\n" +
                         $"Query   :: Search query. Supports wildcards and basic string matching. Use \" around multi-word" +
                         $" queries.\n" +
                         $"Returns :: The edited quote." +
                         $"\n```")
                     .AddField("`-c | --content <query>`", "```http\n" +
-                        $"Usage   :: {ctx.Prefix}searchquotes -s \"Content Search\"\n" +
-                        $"Usage   :: {ctx.Prefix}searchquotes --saved \"Content Search\"\n" +
+                        $"Usage   ::  /quote search -s \"Content Search\"\n" +
+                        $"Usage   ::  /quote search --saved \"Content Search\"\n" +
                         $"Query   :: Search query. Supports wildcards and basic string matching. Use \" around multi-word" +
                         $" queries.\n" +
                         $"Returns :: The edited quote." +
                         $"\n```")
                     .AddField("`-h | --help`", "```http\n" +
-                        $"Usage   :: {ctx.Prefix}searchquotes -h\n" +
-                        $"Usage   :: {ctx.Prefix}searchquotes --help\n" +
+                        $"Usage   ::  /quote search -h\n" +
+                        $"Usage   ::  /quote search --help\n" +
                         $"Returns :: This embed." +
                         $"\n```")
                     .AddField("Query Matching Documentation:", "This command uses the Like Operator for searches.\n" +
                         "For more information about searching with this command, see:\n" +
                         "https://bettersolutions.com/vba/strings-characters/like-operator.htm");
 
-            await ctx.RespondAsync(embed: embed);
+            await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder().AddEmbed(embed));
         }
     }
 }

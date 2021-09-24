@@ -7,31 +7,28 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
+using DSharpPlus.SlashCommands;
+using DSharpPlus.SlashCommands.Attributes;
 
 namespace CloudNine.Discord.Commands.Birthday
 {
-    public class GetBirthdayListCmd : CommandModule
+    public partial class BirthdayCommands : SlashCommandBase
     {
-        private readonly BirthdayManager _birthdays;
-
-        public GetBirthdayListCmd(BirthdayManager birthdays)
+        [SlashCommand("list", "Sends you a list of the birthdays from the server you run this command on to your DMs.")]
+        [SlashRequireGuild]
+        public async Task GetBirthdayListAsync(InteractionContext ctx, 
+            [Option("Upcoming", "True will sort the birthdays by the upcoming birthdays.")]
+            bool ordered = true)
         {
-            _birthdays = birthdays;
-        }
+            await ctx.CreateResponseAsync(DSharpPlus.InteractionResponseType.DeferredChannelMessageWithSource);
 
-        [Command("bdaylist")]
-        [RequireGuild]
-        [Aliases("brithdays")]
-        [Description("Sends you a list of the birthdays from the server you run this command on to your DMs.")]
-        public async Task GetBirthdayListAsync(CommandContext ctx, [RemainingText] string prams)
-        {
             string str = $"{ctx.Guild.Name}'s Bday List:";
 
-            var data = _birthdays.GetAllBirthdaysForServer(ctx.Guild.Id, !(prams is null) && prams.ToLower().StartsWith("s"));
+            var data = _birthdays.GetAllBirthdaysForServer(ctx.Guild.Id, ordered);
 
             if (data is null)
             {
-                await ctx.RespondAsync("There are no birthdays on this server! :sob:").ConfigureAwait(false);
+                await Respond("There are no birthdays on this server! :sob:");
                 return;
             }
 
@@ -64,7 +61,7 @@ namespace CloudNine.Discord.Commands.Birthday
             }
         }
 
-        private async Task SendText(CommandContext ctx, string str, DiscordDmChannel dm)
+        private async Task SendText(InteractionContext ctx, string str, DiscordDmChannel dm)
         {
             try
             {
@@ -75,10 +72,10 @@ namespace CloudNine.Discord.Commands.Birthday
                 await SendDM(ctx, str, dm).ConfigureAwait(false);
             }
 
-            await ctx.RespondAsync("We sent you a DM!").ConfigureAwait(false);
+            await Respond("We sent you a DM!");
         }
 
-        private async Task SendDM(CommandContext ctx, string str, DiscordDmChannel dm)
+        private async Task SendDM(InteractionContext ctx, string str, DiscordDmChannel dm)
         {
             FileStream fs = new FileStream($"birthdays-{ctx.User.Id}.txt", FileMode.OpenOrCreate);
             StreamWriter sr = new StreamWriter(fs);
@@ -119,7 +116,7 @@ namespace CloudNine.Discord.Commands.Birthday
 
             File.Delete(path);
 
-            await ctx.RespondAsync("We sent you a DM!").ConfigureAwait(false);
+            await Respond("We sent you a DM!");
         }
     }
 }

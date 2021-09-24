@@ -298,8 +298,7 @@ namespace CloudNine.Discord.Utilities
             {
                 cfg = new DiscordGuildConfiguration()
                 {
-                    Id = server,
-                    Prefix = _config.Prefix
+                    Id = server
                 };
 
                 _database.Add(cfg);

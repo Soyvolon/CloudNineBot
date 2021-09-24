@@ -38,8 +38,7 @@ namespace CloudNine.Discord.Commands.Quotes.Management
             {
                 cfg = new DiscordGuildConfiguration()
                 {
-                    Id = ctx.Guild.Id,
-                    Prefix = ctx.Prefix
+                    Id = ctx.Guild.Id
                 };
 
                 await _database.AddAsync(cfg);

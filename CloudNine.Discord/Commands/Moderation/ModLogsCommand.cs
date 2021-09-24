@@ -11,97 +11,102 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
+using DSharpPlus.SlashCommands;
+using DSharpPlus.SlashCommands.Attributes;
 
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CloudNine.Discord.Commands.Moderation
 {
-    public class ModLogsCommand : CommandModule
+    public partial class ModerationCommands : SlashCommandBase
     {
-        private readonly IServiceProvider _services;
-
-        public ModLogsCommand(IServiceProvider services)
+        [SlashCommandGroup("logs", "Log module.")]
+        public partial class LogCommands : SlashCommandBase
         {
-            _services = services;
-        }
+            private readonly IServiceProvider _services;
 
-        [Command("modlogs")]
-        [Priority(2)]
-        [Description("Gets the Mod Logs for a user.")]
-        [Aliases("mlogs", "warnings")]
-        [RequireUserPermissions(Permissions.ManageMessages)]
-        public async Task ModLogsCommandAsync(CommandContext ctx,
-            [Description("Member to get logs for")]
-            DiscordMember member)
-        {
-            var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
-            var mod = await _database.FindAsync<ModCore>(ctx.Guild.Id);
-
-            if(mod is null)
+            public LogCommands(IServiceProvider services)
             {
-                await RespondError("There are no warnings on this server!");
-                return;
+                _services = services;
             }
 
-            if (mod.Warns.TryGetValue(member.Id, out var warns))
+            [SlashCommand("view", "Gets the Mod Logs for a user.")]
+            [SlashRequireUserPermissions(Permissions.ManageMessages)]
+            public async Task ModLogsCommandAsync(InteractionContext ctx,
+                [Option("User", "Member to get logs for")]
+                DiscordUser member)
             {
-                var validWarns = warns.Where(x => !x.Value.Forgiven).Count();
-                var embed = new DiscordEmbedBuilder()
-                    .WithColor(DiscordColor.Blurple)
-                    .WithTitle($"ID: {member.Id}")
-                    .WithAuthor($"Modlogs For: {member.DisplayName}", null, member.AvatarUrl)
-                    .WithFooter($"Total Valid Warns: {validWarns} | Forgiven Warns: {warns.Count - validWarns}", null);
+                await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
 
-                int c = 0;
-                List<string>? extraWarns = null;
-                foreach (var warn in warns.Values)
+                var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
+                var mod = await _database.FindAsync<ModCore>(ctx.Guild.Id);
+
+                if (mod is null)
                 {
-                    if (c++ >= 10)
-                    {
-                        if (extraWarns is null) extraWarns = new();
+                    await RespondError("There are no warnings on this server!");
+                    return;
+                }
 
-                        extraWarns.Add(warn.Key);
-                    }
-                    else
+                if (mod.Warns.TryGetValue(member.Id, out var warns))
+                {
+                    var validWarns = warns.Where(x => !x.Value.Forgiven).Count();
+                    var embed = new DiscordEmbedBuilder()
+                        .WithColor(DiscordColor.Blurple)
+                        .WithTitle($"ID: {member.Id}")
+                        .WithAuthor($"Modlogs For: {member.Username}", null, member.AvatarUrl)
+                        .WithFooter($"Total Valid Warns: {validWarns} | Forgiven Warns: {warns.Count - validWarns}", null);
+
+                    int c = 0;
+                    List<string>? extraWarns = null;
+                    foreach (var warn in warns.Values)
                     {
-                        string username;
-                        try
+                        if (c++ >= 10)
                         {
-                            var m = await ctx.Guild.GetMemberAsync(warn.SavedBy);
-                            if (m is not null)
-                                username = m.DisplayName;
-                            else
+                            if (extraWarns is null) extraWarns = new();
+
+                            extraWarns.Add(warn.Key);
+                        }
+                        else
+                        {
+                            string username;
+                            try
+                            {
+                                var m = await ctx.Guild.GetMemberAsync(warn.SavedBy);
+                                if (m is not null)
+                                    username = m.DisplayName;
+                                else
+                                    username = warn.SavedBy.ToString();
+                            }
+                            catch (NotFoundException)
+                            {
                                 username = warn.SavedBy.ToString();
-                        }
-                        catch (NotFoundException)
-                        {
-                            username = warn.SavedBy.ToString();
-                        }
+                            }
 
-                        embed.AddField($"Warn: `{warn.Key}`{(warn.Forgiven ? " - FORGIVEN" : "")}",
-                            $"Created On: `{warn.CreatedOn:g}` - Last Edit: `{warn.LastEdit:g}`\n" +
-                            $"{(warn.Reverts.Count > 0 ? $"*`reverted {warn.Reverts.Count} times ...`*" : "")}\n" +
-                            $"```\n" +
-                            $"{warn.Message}" +
-                            $"```\n" +
-                            $"{(warn.Edits.Count > 0 ? $"*`... edited {warn.Edits.Count} times`*" : "")}\n" +
-                            $"Warn created by: {username}");
+                            embed.AddField($"Warn: `{warn.Key}`{(warn.Forgiven ? " - FORGIVEN" : "")}",
+                                $"Created On: `{warn.CreatedOn:g}` - Last Edit: `{warn.LastEdit:g}`\n" +
+                                $"{(warn.Reverts.Count > 0 ? $"*`reverted {warn.Reverts.Count} times ...`*" : "")}\n" +
+                                $"```\n" +
+                                $"{warn.Message}" +
+                                $"```\n" +
+                                $"{(warn.Edits.Count > 0 ? $"*`... edited {warn.Edits.Count} times`*" : "")}\n" +
+                                $"Warn created by: {username}");
+                        }
                     }
-                }
 
-                if(extraWarns is not null)
+                    if (extraWarns is not null)
+                    {
+                        var joined = string.Join("`, `", extraWarns);
+
+                        embed.AddField($"*`... {warns.Count - 10} older warns not dispalyed`*",
+                            $"`{joined}`");
+                    }
+
+                    await RespondAsync(embed);
+                }
+                else
                 {
-                    var joined = string.Join("`, `", extraWarns);
-
-                    embed.AddField($"*`... {warns.Count - 10} older warns not dispalyed`*",
-                        $"`{joined}`");
+                    await RespondWarn("No warning found for user.");
                 }
-
-                await ctx.RespondAsync(embed: embed);
-            }
-            else
-            {
-                await RespondWarn("No warning found for user.");
             }
         }
     }

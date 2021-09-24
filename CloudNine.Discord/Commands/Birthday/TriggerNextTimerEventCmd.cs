@@ -4,28 +4,23 @@ using CloudNine.Discord.Utilities;
 
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.SlashCommands;
+using DSharpPlus.SlashCommands.Attributes;
 
 namespace CloudNine.Discord.Commands.Birthday
 {
-    public class TriggerNextTimerEventCmd : CommandModule
+    public partial class BirthdayCommands : SlashCommandBase
     {
-        private readonly BirthdayManager _birthdays;
-
-        public TriggerNextTimerEventCmd(BirthdayManager birthdays)
-        {
-            _birthdays = birthdays;
-        }
-
-        [Command("bdaytrigger")]
-        [RequireGuild]
-        [RequireOwner]
-        [Hidden]
-        public async Task DebugTriggerAsync(CommandContext ctx)
+        [SlashCommand("trigger", "Tests bday execution")]
+        [SlashRequireGuild]
+        [SlashRequireOwner]
+        public async Task DebugTriggerAsync(InteractionContext ctx)
         {
             if (DiscordBot.IsDebug)
             {
+                await ctx.CreateResponseAsync(DSharpPlus.InteractionResponseType.DeferredChannelMessageWithSource);
                 _birthdays.DebugTrigger = true;
-                await ctx.RespondAsync("Triggered").ConfigureAwait(false);
+                await Respond("Triggered");
             }
         }
     }

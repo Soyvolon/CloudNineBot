@@ -13,43 +13,53 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using DSharpPlus.SlashCommands;
+using DSharpPlus.SlashCommands.Attributes;
 
 using Microsoft.Extensions.DependencyInjection;
 
 using static CloudNine.Discord.Services.QuoteService;
 
-namespace CloudNine.Discord.Commands.Quotes.Management
+namespace CloudNine.Discord.Commands.Quotes
 {
-    public class EditQuoteCommand : CommandModule
+    [SlashCommandGroup("edit", "Quote edit group.")]
+    public class EditQuoteGroup : SlashCommandBase
     {
-        private readonly IServiceProvider _services;
-        private readonly QuoteService _quotes;
+        protected readonly IServiceProvider _services;
+        protected readonly QuoteService _quotes;
 
-        public EditQuoteCommand(IServiceProvider services, QuoteService quotes)
+        public EditQuoteGroup(IServiceProvider services, QuoteService quotes)
         {
             this._services = services;
             this._quotes = quotes;
         }
 
-        [Command("editquote")]
-        [RequireGuild]
-        [Description("Edits an exsisting quote.")]
-        [RequireUserPermissions(Permissions.ManageMessages)]
-        [Priority(2)]
-        public async Task EditQuoteCommandAsync(CommandContext ctx,
-            
-            [Description("Arguments for editing the command. Use `-h | --help` for more information.")]
-            params string[] args)
+        [SlashCommand("quote", "Edits an exsisting quote.")]
+        [SlashRequireGuild]
+        [SlashRequireUserPermissions(Permissions.ManageMessages)]
+        public async Task EditQuoteCommandAsync(InteractionContext ctx,
+            [Option("ID", "The ID of the quote you want to edit.")]
+        long quoteId,
+
+            [Option("Arugments", "Arguments for editing the command. Use `-h | --help` for more information.")]
+        string rawArgs)
         {
-            if(args.Length <= 0 || args[0] == "-h" || args[0] == "--help")
+            await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
+
+            var argsL = rawArgs.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
+            argsL.Insert(0, quoteId.ToString());
+            var args = argsL.ToArray();
+
+            if (args.Length <= 0 || args[0] == "-h" || args[0] == "--help")
             { // Show help information.
                 await EditQuoteHelpCommandAsync(ctx);
                 return;
             }
+
             var _database = _services.GetRequiredService<CloudNineDatabaseModel>();
             var cfg = await _database.FindAsync<DiscordGuildConfiguration>(ctx.Guild.Id);
 
-            if(cfg is null)
+            if (cfg is null)
             {
                 await Respond("Quote not found!");
                 return;
@@ -57,7 +67,7 @@ namespace CloudNine.Discord.Commands.Quotes.Management
 
             Quote quote;
             bool hidden = false;
-            if(int.TryParse(args[0], out int id))
+            if (int.TryParse(args[0], out int id))
             {
                 if (!cfg.Quotes.TryGetValue(id, out quote))
                 {
@@ -67,7 +77,7 @@ namespace CloudNine.Discord.Commands.Quotes.Management
             }
             else
             {
-                if(!cfg.HiddenQuotes.TryGetValue(args[0], out quote))
+                if (!cfg.HiddenQuotes.TryGetValue(args[0], out quote))
                 {
                     await Respond("Quote not found!");
                     return;
@@ -81,23 +91,23 @@ namespace CloudNine.Discord.Commands.Quotes.Management
             var data = new QuoteData();
             var argsList = args[1..].ToList();
 
-            for(int i = 0; i < argsList.Count; i++)
+            for (int i = 0; i < argsList.Count; i++)
             {
-                (i, data, _) = await _quotes.ExecuteArgumentChecks(argsList, i, data, ctx.Message);
+                (i, data, _) = await _quotes.ExecuteArgumentChecks(argsList, i, data, ctx);
 
                 if (i == -1 || data is null) return;
             }
 
             var defaults = new Dictionary<string, object>()
-            {
-                { "--author", quote.Author },
-                { "--saved", quote.SavedBy },
-                { "--image", quote.Attachment },
-                { "--color", quote.Color },
-                { "--time", quote.SavedAt },
-                { "--custom", quote.CustomId },
-                { "--message", quote.Content }
-            };
+        {
+            { "--author", quote.Author },
+            { "--saved", quote.SavedBy },
+            { "--image", quote.Attachment },
+            { "--color", quote.Color },
+            { "--time", quote.SavedAt },
+            { "--custom", quote.CustomId },
+            { "--message", quote.Content }
+        };
 
             var relay = new Relay();
 
@@ -131,43 +141,26 @@ namespace CloudNine.Discord.Commands.Quotes.Management
 
             await _database.SaveChangesAsync();
 
-            string cmdFull;
-            string cmdArgs;
-            if(hidden)
-            {
-                cmdFull = $"{ctx.Prefix}quote id \"{quote.CustomId}\"";
-                cmdArgs = $"id \"{quote.CustomId}\"";
-            }
-            else
-            {
-                cmdFull = $"{ctx.Prefix}quote id {quote.Id}";
-                cmdArgs = $"id {quote.Id}";
-            }
-
-            await ctx.RespondAsync($"Edited quote `{args[0]}`: ");
-            var cnext = ctx.Client.GetCommandsNext();
-
-            var cmd = cnext.FindCommand("quote", out _);
-
-            var fakeCtx = cnext.CreateFakeContext(ctx.Member, ctx.Channel, cmdFull, ctx.Prefix, cmd, cmdArgs);
-            await cnext.ExecuteCommandAsync(fakeCtx);
+            await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder()
+                .AddEmbed(quote.BuildQuote())
+                .WithContent($"Edited quote `{args[0]}`: "));
         }
 
         [Command("editquote")]
-        public async Task EditQuoteHelpCommandAsync(CommandContext ctx)
+        public async Task EditQuoteHelpCommandAsync(InteractionContext ctx)
         {
             var embed = new DiscordEmbedBuilder()
                     .WithColor(Color_Cloud)
                     .WithTitle("Edit Quote Help")
                     .WithDescription("Detailed help for the `editquote` command.\n" +
-                        $"Using `{ctx.Prefix}editquote` without anything else will get you this help command.")
-                    .AddField("Full Usage", 
+                        $"Using `/quote edit` without anything else will get you this help command.")
+                    .AddField("Full Usage",
                         "The edit command is a variable system that allows for editing as many or as few attributes as needed." +
                         "```http\n" +
-                        $"Usage          :: {ctx.Prefix}editquote <arguments>\n" +
+                        $"Usage          :: /quote edit <arguments>\n" +
                         $"Arguments      :: See the arguments section for a full list.\n" +
                         "```")
-                    .AddField("Arguments", 
+                    .AddField("Arguments",
                         "These define what action an edit operation takes.")
                     .AddField("`-a | --author <new author>` OPTIONAL", "```http\n" +
                         $"Usage        :: -a \"Cloud Bot\"\n" +
@@ -207,12 +200,13 @@ namespace CloudNine.Discord.Commands.Quotes.Management
                         $"Time         :: Modifies the content of the quote.\n" +
                         $"\n```")
                     .AddField("`-h | --help`", "```http\n" +
-                        $"Usage     :: {ctx.Prefix}editquote -h\n" +
-                        $"Usage     :: {ctx.Prefix}editquote --help\n" +
+                        $"Usage     :: /quote edit -h\n" +
+                        $"Usage     :: /quote edit --help\n" +
                         $"Returns   :: This embed." +
                         $"\n```");
 
-            await ctx.RespondAsync(embed: embed);
+            await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder().AddEmbed(embed));
         }
     }
+
 }

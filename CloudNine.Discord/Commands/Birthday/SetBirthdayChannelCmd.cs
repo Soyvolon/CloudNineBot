@@ -6,26 +6,23 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using DSharpPlus.SlashCommands;
+using DSharpPlus.SlashCommands.Attributes;
 
 namespace CloudNine.Discord.Commands.Birthday
 {
-    public class SetBirthdayChannelCmd : CommandModule
+    public partial class BirthdayCommands : SlashCommandBase
     {
-        private readonly BirthdayManager _birthdays;
-
-        public SetBirthdayChannelCmd(BirthdayManager birthdays)
+        [SlashCommand("channel", "Sets the birthday channel for this server.")]
+        [SlashRequireGuild]
+        [SlashRequireUserPermissions(Permissions.ManageGuild)]
+        public async Task SetBirthdayChannelAsync(InteractionContext ctx,
+            [Option("Channel", "Channel to set.")]
+            DiscordChannel channel)
         {
-            _birthdays = birthdays;
-        }
-
-        [Command("bdaychannel")]
-        [RequireGuild]
-        [Description("Sets the birthday channel for this server.")]
-        [RequireUserPermissions(Permissions.ManageGuild)]
-        public async Task SetBirthdayChannelAsync(CommandContext ctx, DiscordChannel channel)
-        {
+            await ctx.CreateResponseAsync(DSharpPlus.InteractionResponseType.DeferredChannelMessageWithSource);
             _birthdays.UpdateBirthdayChannel(ctx.Guild.Id, channel);
-            await ctx.RespondAsync($"Set the birthday channel to {channel.Mention}.").ConfigureAwait(false);
+            await Respond($"Set the birthday channel to {channel.Mention}.");
         }
     }
 }

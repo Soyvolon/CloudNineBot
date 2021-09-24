@@ -2,6 +2,8 @@
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Interactivity;
+using DSharpPlus.SlashCommands;
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -48,9 +50,9 @@ namespace CloudNine.Discord.Utilities
             new DiscordButtonComponent(ButtonStyle.Danger, "close", "Close", false)
         };
 
-        public static async Task SendPaignatedMessageWithButtonsAsync(this InteractivityExtension interact, DiscordChannel channel, DiscordUser user, IEnumerable<Page> pages)
+        public static async Task SendPaignatedMessageWithButtonsAsync(this InteractivityExtension interact, InteractionContext ctx, DiscordUser user, IEnumerable<Page> pages)
         {
-            var builder = new DiscordMessageBuilder();
+            var builder = new DiscordFollowupMessageBuilder();
             var start = pages.FirstOrDefault();
 
             if (start is null) return;
@@ -58,10 +60,10 @@ namespace CloudNine.Discord.Utilities
             try
             {
 
-                builder.WithEmbed(start.Embed)
+                builder.AddEmbed(start.Embed)
                     .AddComponents(Components);
 
-                var msg = await builder.SendAsync(channel);
+                var msg = await ctx.FollowUpAsync(builder);
 
                 ActiveInteractions[msg.Id] = (pages.ToImmutableArray(), 0, user.Id);
                 Timeouts[msg.Id] = new Timer(async (x) =>

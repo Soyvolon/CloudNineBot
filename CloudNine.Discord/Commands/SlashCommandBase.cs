@@ -1,40 +1,57 @@
-﻿using System;
-using System.Linq;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+﻿using DSharpPlus.Entities;
+using DSharpPlus.SlashCommands;
 
-using DSharpPlus.CommandsNext;
-using DSharpPlus.Entities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace CloudNine.Discord.Commands
 {
-    public class CommandModule : BaseCommandModule
+    public class SlashCommandBase : ApplicationCommandModule
     {
         public static readonly DiscordColor Color_Cloud = new DiscordColor(0x3498db);
         public static readonly DiscordColor Color_Warn = new DiscordColor(0xe07c10);
         public static readonly DiscordColor Color_Search = DiscordColor.Aquamarine;
 
-        private CommandContext ctx;
+        protected BaseContext Ctx { get; set; }
 
-        public override Task BeforeExecutionAsync(CommandContext ctx)
+        public override async Task<bool> BeforeContextMenuExecutionAsync(ContextMenuContext ctx)
         {
-            this.ctx = ctx;
-            return base.BeforeExecutionAsync(ctx);
+            Ctx = ctx;
+            return await base.BeforeContextMenuExecutionAsync(ctx);
+        }
+
+        public override Task<bool> BeforeSlashExecutionAsync(InteractionContext ctx)
+        {
+            Ctx = ctx;
+            return base.BeforeSlashExecutionAsync(ctx);
+        }
+
+
+        public async Task RespondAsync(DiscordEmbedBuilder embed)
+        {
+            await Ctx.FollowUpAsync(new DiscordFollowupMessageBuilder()
+                .AddEmbed(embed));
         }
 
         public async Task Respond(string response)
         {
-            await ctx.RespondAsync(response);
+            await Ctx.FollowUpAsync(new DiscordFollowupMessageBuilder()
+                .WithContent(response));
         }
 
         public async Task RespondWarn(string response)
         {
-            await ctx.RespondAsync(embed: ModBase().WithDescription(response));
+            await Ctx.FollowUpAsync(new DiscordFollowupMessageBuilder()
+                .AddEmbed(ModBase().WithDescription(response)));
         }
 
         public async Task RespondError(string response)
         {
-            await ctx.RespondAsync(embed: ErrorBase().WithDescription(response));
+            await Ctx.FollowUpAsync(new DiscordFollowupMessageBuilder()
+                .AddEmbed(ErrorBase().WithDescription(response)));
         }
 
         public static DiscordEmbedBuilder ErrorBase()
@@ -66,7 +83,8 @@ namespace CloudNine.Discord.Commands
             var embed = ErrorBase()
                 .WithDescription(message);
 
-            await ctx.RespondAsync(embed: embed);
+            await Ctx.FollowUpAsync(new DiscordFollowupMessageBuilder()
+                .AddEmbed(embed));
         }
     }
 }
