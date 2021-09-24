@@ -20,7 +20,7 @@ namespace CloudNine.Discord.Commands.Utility
             _client = client;
         }
 
-        [ContextMenu(ApplicationCommandType.MessageContextMenu, "spoiler")]
+        [ContextMenu(ApplicationCommandType.MessageContextMenu, "Spoiler")]
         public async Task SpoilerCommandAsync(ContextMenuContext ctx)
         {
             if (ctx.TargetMessage.Author.Id == ctx.User.Id)

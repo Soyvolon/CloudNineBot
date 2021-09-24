@@ -349,7 +349,7 @@ namespace CloudNine.Discord.Services
                 .WithContent($"Sent Relay at {DateTime.UtcNow.ToShortTimeString()}"));
         }
 
-        public async Task<(int, QuoteData, bool)> ExecuteArgumentChecks(List<string> args, int i, QuoteData data, InteractionContext source)
+        public async Task<(int, QuoteData, bool)> ExecuteArgumentChecks(List<string> args, int i, QuoteData data, BaseContext source)
         {
             bool argRun = false;
             switch(args[i])
@@ -601,7 +601,7 @@ namespace CloudNine.Discord.Services
             }
         }
 
-        private async Task<string?> TryParseUserId(string author, InteractionContext source)
+        private async Task<string?> TryParseUserId(string author, BaseContext source)
         {
             var res = "";
             if (author.StartsWith("<@!") && author.EndsWith(">"))

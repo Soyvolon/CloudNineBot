@@ -156,6 +156,24 @@ namespace CloudNine.Discord
                     });
                     return Task.CompletedTask;
                 };
+
+                slash.ContextMenuErrored += (x, y) =>
+                {
+                    Task.Run(async () =>
+                    {
+                        if (y.Exception is SlashExecutionChecksFailedException ex)
+                        {
+                            await y.Context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                                new DiscordInteractionResponseBuilder()
+                                    .WithContent("You do not have permission to run that command."));
+                        }
+                        else
+                        {
+                            x.Client.Logger.LogError(y.Exception, $"Context Menu Command Errored.");
+                        }
+                    });
+                    return Task.CompletedTask;
+                };
             }
 
             await _client.UseInteractivityAsync(GetInteractivityConfiguration());

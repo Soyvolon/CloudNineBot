@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CloudNine.Core.Configuration;
 using CloudNine.Core.Database;
 using CloudNine.Core.Quotes;
+using CloudNine.Discord.Commands.Permission.Checks;
 using CloudNine.Discord.Services;
 
 using DSharpPlus;
@@ -33,6 +34,38 @@ namespace CloudNine.Discord.Commands.Quotes.Management
             this._quotes = quotes;
         }
 
+        [ContextMenu(ApplicationCommandType.MessageContextMenu, "Quote")]
+        [ContextMenuRequireUserPermissions(Permissions.ManageMessages)]
+        public async Task AddQuoteContextCommandAsync(ContextMenuContext ctx)
+        {
+            await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
+
+            List<string> args = new()
+            {
+                "-a",
+                ctx.TargetMessage.Author.Username,
+                "-m",
+                ctx.TargetMessage.Content,
+                "-s",
+                ctx.User.Username,
+            };
+
+            foreach (var i in ctx.TargetMessage.Attachments)
+            {
+                args.Add("-i");
+                args.Add(i.Url);
+            }
+
+            var quote = await SaveQuote(args, ctx);
+
+            if (quote is not null)
+            {
+                await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder()
+                    .AddEmbed(quote.BuildQuote())
+                    .WithContent($"Added quote: "));
+            }
+        }
+
         [SlashCommand("quote", "Adds a quote.")]
         [SlashRequireGuild]
         [SlashRequireUserPermissions(Permissions.ManageMessages)]
@@ -56,6 +89,18 @@ namespace CloudNine.Discord.Commands.Quotes.Management
             args.Insert(0, author.Username);
             args.Insert(0, "-a");
 
+            var quote = await SaveQuote(args, ctx);
+
+            if (quote is not null)
+            {
+                await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder()
+                    .AddEmbed(quote.BuildQuote())
+                    .WithContent($"Added quote: "));
+            }
+        }
+
+        public async Task<Quote?> SaveQuote(List<string> args, BaseContext ctx)
+        {
             QuoteData data = new();
             List<string> content = new();
 
@@ -65,14 +110,14 @@ namespace CloudNine.Discord.Commands.Quotes.Management
                 {
                     case "-h":
                     case "--help":
-                        await SendAddQuoteHelp(ctx);
-                        return;
+
+                        return null;
                 }
 
                 bool argRun;
                 (i, data, argRun) = await _quotes.ExecuteArgumentChecks(args, i, data, ctx);
 
-                if (i == -1 || data is null) return;
+                if (i == -1 || data is null) return null;
 
                 if (!argRun)
                     content.Add(args[i]);
@@ -132,12 +177,10 @@ namespace CloudNine.Discord.Commands.Quotes.Management
 
             await _database.SaveChangesAsync();
 
-            await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder()
-                .AddEmbed(quote.BuildQuote())
-                .WithContent($"Added quote: "));
+            return quote;
         }
 
-        public async Task SendAddQuoteHelp(InteractionContext ctx)
+        public async Task SendAddQuoteHelp(BaseContext ctx)
         {
             var embed = new DiscordEmbedBuilder()
                     .WithColor(CommandModule.Color_Cloud)
