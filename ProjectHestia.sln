@@ -4,18 +4,35 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.0.31825.309
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectHestia", "ProjectHestia\ProjectHestia.csproj", "{24E5A049-B7ED-462B-B5D0-A7C8CF19E5D6}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F5DDAD00-9AB7-4967-97D9-649E225FB9C8} = {F5DDAD00-9AB7-4967-97D9-649E225FB9C8}
+		{56FF5934-CDED-4738-8D89-430D4487AEF3} = {56FF5934-CDED-4738-8D89-430D4487AEF3}
+		{BBC48E89-E339-4D48-9839-C83D84EFE8E1} = {BBC48E89-E339-4D48-9839-C83D84EFE8E1}
+		{3B26BFEA-92F1-47EB-AB61-5A4E4D5BD14B} = {3B26BFEA-92F1-47EB-AB61-5A4E4D5BD14B}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectHestia.Data", "ProjectHestia.Data\ProjectHestia.Data.csproj", "{56FF5934-CDED-4738-8D89-430D4487AEF3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectHestia.Components", "ProjectHestia.Components\ProjectHestia.Components.csproj", "{F5DDAD00-9AB7-4967-97D9-649E225FB9C8}"
+	ProjectSection(ProjectDependencies) = postProject
+		{56FF5934-CDED-4738-8D89-430D4487AEF3} = {56FF5934-CDED-4738-8D89-430D4487AEF3}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectHestia.Droplet", "ProjectHestia.Droplet\ProjectHestia.Droplet.csproj", "{3B26BFEA-92F1-47EB-AB61-5A4E4D5BD14B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{56FF5934-CDED-4738-8D89-430D4487AEF3} = {56FF5934-CDED-4738-8D89-430D4487AEF3}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectHestia.Discord", "ProjectHestia.Discord\ProjectHestia.Discord.csproj", "{BBC48E89-E339-4D48-9839-C83D84EFE8E1}"
+	ProjectSection(ProjectDependencies) = postProject
+		{56FF5934-CDED-4738-8D89-430D4487AEF3} = {56FF5934-CDED-4738-8D89-430D4487AEF3}
+		{3B26BFEA-92F1-47EB-AB61-5A4E4D5BD14B} = {3B26BFEA-92F1-47EB-AB61-5A4E4D5BD14B}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1. sln", "1. sln", "{BB762131-4029-447A-9903-3FD95880B1E3}"
 	ProjectSection(SolutionItems) = preProject
 		.dockerignore = .dockerignore
+		.gitattributes = .gitattributes
 		.gitignore = .gitignore
 		Dockerfile = Dockerfile
 	EndProjectSection
